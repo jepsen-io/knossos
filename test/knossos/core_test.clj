@@ -215,4 +215,5 @@
             linear  (linearizations (->Register 0) history)]
         (when (empty? linear)
           (clojure.pprint/pprint history)
-          (clojure.pprint/pprint (linearizations (->Register 0) history)))))))
+          (clojure.pprint/pprint (linearizations (->Register 0) history)))
+        (is (not (empty? linear)))))))

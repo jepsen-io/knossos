@@ -1,5 +1,6 @@
 (ns knossos.redis
-  (:use knossos.core))
+  (:require [knossos.core :refer [invoke-op ok-op keep-without-exceptions]]
+            [clojure.pprint :refer [pprint]]))
 
 ;; System state
 
@@ -25,6 +26,7 @@
   [name]
   {:name    name
    :node    nil
+   :writing nil
    :waiting nil})
 
 (defn coordinator
@@ -176,6 +178,7 @@
                     (assoc-in [:nodes node :register]            value)
                     (assoc-in [:nodes node :offset]              offset)
                     (assoc-in [:clients (:name client) :waiting] offset)
+                    (assoc-in [:clients (:name client) :writing] value)
                     (assoc :history (conj (:history system)
                                           (invoke-op (:name client)
                                                      :write
@@ -197,10 +200,11 @@
                  (when (<= (:waiting client) offset)
                    (-> system
                        (assoc-in [:clients (:name client) :waiting] nil)
+                       (assoc-in [:clients (:name client) :writing] nil)
                        (assoc :history (conj (:history system)
                                              (ok-op (:name client)
                                                     :write
-                                                    nil))))))))))
+                                                    (:writing client)))))))))))
 
 
 (defn client-read
@@ -275,12 +279,12 @@
     (when (= :isolated (:state coord))
       (let [candidates (->> system nodes (remove :isolated))]
         ; Gotta reach a majority
-        (assert (<= (inc (Math/floor (/ (count (nodes system)) 2)))
-                    (count candidates)))
-        (let [primary (:name (apply max-key :offset candidates))]
-          (-> system
-              (assoc-in [:coordinator :state] :selected)
-              (assoc-in [:coordinator :primary] primary)))))))
+        (when (<= (inc (Math/floor (/ (count (nodes system)) 2)))
+                  (count candidates))
+          (let [primary (:name (apply max-key :offset candidates))]
+            (-> system
+                (assoc-in [:coordinator :state] :selected)
+                (assoc-in [:coordinator :primary] primary))))))))
 
 (defn failover-3-inform-nodes
   "If the coordinator has selected a new primary, broadcasts that primary to
@@ -324,7 +328,8 @@
                                :clients
                                (map (fn [[name client]]
                                       [name
-                                       (assoc client :node primary)]))))))))
+                                       (assoc client :node primary)]))
+                               (into {})))))))
 
 (defn failover
   "All four failover stages combined."

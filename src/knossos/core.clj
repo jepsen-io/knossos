@@ -198,13 +198,14 @@
                    (some #(= process (:process %)) (:pending world)))))))
 
 (defn fold-op-into-worlds
-  "Given a set of worlds and either an invocation or a completion, folds that
-  operation into the set and returns a new set of possible worlds."
+  "Given a set of worlds and any type of operation, folds that operation into
+  the set and returns a new set of possible worlds."
   [worlds op]
   (set
-    (if (= :invoke (:type op))
-      (fold-invocation-into-worlds worlds op)
-      (fold-completion-into-worlds worlds op))))
+    (condp = (:type op)
+      :invoke (fold-invocation-into-worlds worlds op)
+      :ok     (fold-completion-into-worlds worlds op)
+      :info   worlds)))
 
 (defn linearizations
   "Given a model and a history, returns all possible worlds where that history
@@ -213,3 +214,16 @@
   (reduce fold-op-into-worlds
           (list (world model))
           history))
+
+(defn linearizable-prefix
+  "Computes the longest prefix of a history which is linearizable."
+  [model history]
+  (->> history
+       (reduce (fn [[linearizable worlds] op]
+                 (let [worlds' (fold-op-into-worlds worlds op)]
+                   (if (empty? worlds')
+                     ; Out of options
+                     (reduced [linearizable worlds])
+                     [(conj linearizable op) worlds'])))
+               [[] (list (world model))])
+       first))
