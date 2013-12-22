@@ -1,5 +1,5 @@
 (ns knossos.redis
-  (:require [knossos.core :refer [invoke-op ok-op keep-without-exceptions]]
+  (:require [knossos.core :refer [op invoke-op ok-op keep-without-exceptions]]
             [clojure.pprint :refer [pprint]]))
 
 ;; System state
@@ -42,7 +42,7 @@
   a coordinator; plus a *history*, which is the set of operations we're
   verifying is linearizable."
   []
-  (let [node-names [:a :b :c]
+  (let [node-names [:n1 :n2 :n3]
         nodes      (->> node-names
                         (map node)
                         ; Fill in offset maps
@@ -63,7 +63,7 @@
                    (into {}))
 
         ; Construct clients
-        clients (->> [:a :b]
+        clients (->> [:c1 :c2]
                      (map client)
                      (map #(assoc % :node (:name primary)))
                      (map (juxt :name identity))
@@ -154,6 +154,10 @@
   ([pred system]
    (->> system :nodes vals (filter pred))))
 
+(defn log
+  "Appends an operation to the history of a system."
+  [system op]
+  (assoc system :history (conj (:history system) op)))
 
 ;; State transitions. Each transition takes a current state of the system and
 ;; returns a sequence of possible future states.
@@ -242,7 +246,11 @@
                        (assoc-in [:nodes (:name node) :register]
                                  (:register primary))
                        (assoc-in [:nodes (:name node) :offset]
-                                 (:offset primary)))))))))
+                                 (:offset primary))
+                       (log (op (:name node)
+                                :info
+                                :replicate-from-primary
+                                (:primary node))))))))))
 
 (defn ack-offset-to-primary
   "A node can inform its current primary of its offset, if the primary is
@@ -254,11 +262,16 @@
        (keep (fn [node]
                (when-let [primary (get-node system (:primary node))]
                  (when-not (:isolated primary)
-                   (assoc-in system [:nodes
-                                     (:primary node)
-                                     :offsets
-                                     (:name node)]
-                             (:offset node))))))))
+                   (-> system
+                       (assoc-in [:nodes
+                                  (:primary node)
+                                  :offsets
+                                  (:name node)]
+                                 (:offset node))
+                       (log (op (:name node)
+                                :info
+                                :ack-offset-to-primary
+                                (:primary node))))))))))
 
 (defn failover-1-isolate
   "If the coordinator is in normal mode, initiates failover by isolating the
@@ -269,7 +282,8 @@
       (-> system
           (assoc-in [:coordinator :state]               :isolated)
           (assoc-in [:coordinator :primary]             nil)
-          (assoc-in [:nodes (:primary coord) :isolated] true)))))
+          (assoc-in [:nodes (:primary coord) :isolated] true)
+          (log (op :coord :info :failover-1-isolate (:primary coord)))))))
 
 (defn failover-2-select
   "If the coordinator has isolated the old primary, selects a new primary by
@@ -284,7 +298,8 @@
           (let [primary (:name (apply max-key :offset candidates))]
             (-> system
                 (assoc-in [:coordinator :state] :selected)
-                (assoc-in [:coordinator :primary] primary))))))))
+                (assoc-in [:coordinator :primary] primary)
+                (log (op :coord :info :failover-2-select primary)))))))))
 
 (defn failover-3-inform-nodes
   "If the coordinator has selected a new primary, broadcasts that primary to
@@ -313,7 +328,8 @@
                                        ; Otherwise, set the primary.
                                        :else
                                        (assoc node :primary primary))]))
-                             (into {})))))))
+                             (into {})))
+          (log (op :coord :info :failover-3-inform-nodes primary))))))
 
 (defn failover-4-inform-clients
   "If the coordinator has informed all nodes of the new primary, update all
@@ -329,7 +345,8 @@
                                (map (fn [[name client]]
                                       [name
                                        (assoc client :node primary)]))
-                               (into {})))))))
+                               (into {})))
+          (log (op :coord :info :failover-4-inform-clients primary))))))
 
 (defn failover
   "All four failover stages combined."
@@ -345,8 +362,8 @@
   "All systems reachable in a single step from a given system."
   [system]
   (concat (client-write           system)
+          (client-write-complete  system)
           (client-read            system)
           (replicate-from-primary system)
           (ack-offset-to-primary  system)
-          (failover               system)
-          (client-write-complete  system)))
+          (failover               system)))

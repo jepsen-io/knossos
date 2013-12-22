@@ -65,8 +65,9 @@
            ; processes to the index of their most recent invocation. Note that
            ; we assume processes are singlethreaded; e.g. they do not perform
            ; multiple invocations without receiving responses.
-           (if (= :invoke (:type op))
+           (condp = (:type op)
              ; An invocation; remember where it is
+             :invoke
              (let [i (count history)]
                ; Enforce the singlethreaded constraint.
                (assert (not (get index (:process op))))
@@ -74,6 +75,7 @@
                 (assoc! index (:process op) i)])
 
              ; A completion; fill in the corresponding value.
+             :ok
              (let [i           (get index (:process op))
                    _           (assert i)
                    invocation  (nth history i)
@@ -81,7 +83,11 @@
                [(-> history
                     (assoc! i (assoc invocation :value value))
                     (conj! op))
-                (dissoc! index (:process op))])))
+                (dissoc! index (:process op))])
+
+             ; No change for info messages
+             :info
+             [(conj! history op) index]))
          [(transient []) (transient {})])
        first
        persistent!))

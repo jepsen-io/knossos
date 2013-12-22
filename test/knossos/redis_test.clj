@@ -21,15 +21,15 @@
                (dec depth))))))
 
 (deftest redis-test
-  (dotimes [i 10000]
-    (let [system (trajectory (system) 30)]
+  (dotimes [i 100000]
+    (let [system (trajectory (system) 15)]
       ; Is this system linearizable?
       (let [history (complete (:history system))
             linears (linearizations (->Register nil) history)]
         (when (empty? linears)
           (let [linearizable (linearizable-prefix (->Register nil) history)]
             (println "No linearizable history for...")
-            (pprint system)
+            (pprint (dissoc system :history))
             (println "History:")
             (pprint linearizable)
             (println "Unable to linearize past this point!")
