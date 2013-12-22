@@ -171,10 +171,10 @@
              [:w3 :r3 :w1 :r1 :w2 :r2]
              [:w3 :r3 :w2 :r2 :w1 :r1]}))))
 
-(defmacro with-threads
+(defmacro dothreads
   "Calls body in each of t threads, blocking until completion. Binds i
   to the thread number."
-  [t i & body]
+  [[i t] & body]
   `(->> (range ~t)
         (map (fn [~i] (future ~@body)))
         doall
@@ -196,7 +196,7 @@
   (dotimes [i 1000]
     (let [history (atom [])
           x       (VolatileVariable. 0)]
-      (with-threads 10 process
+      (dothreads [process 10]
         (dotimes [i 1]
           (Thread/sleep (rand-int 5))
           (let [value (rand-int 5)]
