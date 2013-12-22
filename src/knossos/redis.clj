@@ -9,7 +9,7 @@
   isolated from all other nodes, a local replication offset, and if it is a
   primary, a map of node names to known replication offsets."
   [name]
-  {:name name
+  {:name     name
    :register nil
    :primary  nil
    :isolated false
@@ -165,7 +165,7 @@
 (def write-state (atom 0))
 
 (defn client-write
-  "A client can send a read or write operation to a node."
+  "A client can send a write operation to a node."
   [system]
   (->> system
        clients
@@ -183,10 +183,9 @@
                     (assoc-in [:nodes node :offset]              offset)
                     (assoc-in [:clients (:name client) :waiting] offset)
                     (assoc-in [:clients (:name client) :writing] value)
-                    (assoc :history (conj (:history system)
-                                          (invoke-op (:name client)
-                                                     :write
-                                                     value)))))))))
+                    (log (invoke-op (:name client)
+                                    :write
+                                    value))))))))
 
 (defn client-write-complete
   "A reachable primary node can inform a client that its desired replication
@@ -205,10 +204,9 @@
                    (-> system
                        (assoc-in [:clients (:name client) :waiting] nil)
                        (assoc-in [:clients (:name client) :writing] nil)
-                       (assoc :history (conj (:history system)
-                                             (ok-op (:name client)
-                                                    :write
-                                                    (:writing client)))))))))))
+                       (log (ok-op (:name client)
+                                   :write
+                                   (:writing client))))))))))
 
 
 (defn client-read
@@ -221,16 +219,10 @@
        (filter (partial valid-client? system))
        (map (fn [client]
               (let [node    (:node client)
-                    value   (get-in system [:nodes node :register])
-                    history (-> system
-                                :history
-                                (conj (invoke-op (:name client)
-                                                 :read
-                                                 nil))
-                                (conj (ok-op (:name client)
-                                             :read
-                                             value)))]
-                (assoc system :history history))))))
+                    value   (get-in system [:nodes node :register])]
+                (-> system
+                    (log (invoke-op (:name client) :read nil))
+                    (log (ok-op (:name client) :read value))))))))
 
 (defn replicate-from-primary
   "A node can copy the state of its current primary, if the primary is
