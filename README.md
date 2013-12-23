@@ -1,6 +1,6 @@
 # Knossos
 
-<img src="https://raw.github.com/aphyr/knossos/doc/linear-b.jpg" alt="Linear B" />
+<img src="https://raw.github.com/aphyr/knossos/master/doc/linear-b.jpg" alt="Linear B" />
 
 Given a history of operations by a set of clients, and some singlethreaded
 model, attempts to show that the history is not linearizable with respect to
