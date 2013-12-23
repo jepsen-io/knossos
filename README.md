@@ -15,6 +15,13 @@ See `knossos.core` for the linearizability checker, and `knossos.redis` for an
 model that can generate histories verifiable with Knossos. `knossos.redis-test`
 synthesizes the two, testing the redis model for linearizability failures.
 
+Read the [blog
+post](http://aphyr.com/posts/309-knossos-redis-and-linearizability) for a full apology for releasing this monstrosity.
+
+## Installation
+
+Via [Clojars](https://clojars.org/knossos), as usual.
+
 ## License
 
 Copyright © 2013 Kyle Kingsbury
