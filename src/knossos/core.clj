@@ -17,6 +17,10 @@
   [process f value]
   (op process :ok f value))
 
+(defn fail-op
+  [process f value]
+  (op process :fail f value))
+
 (defn same-process?
   "Do A and B come from the same process?"
   [a b]
@@ -56,7 +60,10 @@
 
   This function fills in missing values for invocations, where those requests
   complete. It constructs a new history in which we 'already knew' what the
-  results of successful operations would have been."
+  results of successful operations would have been.
+
+  For failed operations, complete fills in the value for both invocation
+  and completion; depending on whichever has a value available."
   [history]
   (->> history
        (reduce
@@ -74,7 +81,7 @@
                [(conj! history op)
                 (assoc! index (:process op) i)])
 
-             ; A completion; fill in the corresponding value.
+             ; A completion; fill in the completed value.
              :ok
              (let [i           (get index (:process op))
                    _           (assert i)
@@ -82,7 +89,18 @@
                    value       (or (:value invocation) (:value op))]
                [(-> history
                     (assoc! i (assoc invocation :value value))
-                    (conj! op))
+                    (conj!  op))
+                (dissoc! index (:process op))])
+
+             ; A failure; fill in either value.
+             :fail
+             (let [i           (get index (:process op))
+                   _           (assert i)
+                   invocation  (nth history i)
+                   value       (or (:value invocation) (:value op))]
+               [(-> history
+                    (assoc! i (assoc invocation :value value))
+                    (conj!    (assoc op :value value)))
                 (dissoc! index (:process op))])
 
              ; No change for info messages
@@ -195,13 +213,31 @@
 (defn fold-completion-into-worlds
   "Given a sequence of worlds and a completion operation, returns only those
   worlds where that operation took place; e.g. is not still pending.
-  
+
   TODO: replace the corresponding element in the history with the completion."
-  [worlds invocation]
-  (let [process (:process invocation)]
+  [worlds completion]
+  (let [process (:process completion)]
     (->> worlds
          (remove (fn [world]
                    (some #(= process (:process %)) (:pending world)))))))
+
+(defn fold-failure-into-worlds
+  "Given a sequence of worlds and a failed operation, returns only those worlds
+  where that operation did not take place, and removes the operation from
+  the pending ops in those worlds.
+
+  Note that a failed operation is an operation which is *known* to have failed;
+  e.g. the system *guarantees* that it did not take place. This is different
+  from an *indeterminate* failure."
+  [worlds failure]
+  (let [process (:process failure)]
+    (->> worlds
+         (keep (fn [world]
+                 (let [pending (:pending world)]
+                   (when-let [inv (some #(when (= process (:process %)) %)
+                                        pending)]
+                     ; In this world, we have not yet applied this operation
+                     (assoc world :pending (disj pending inv)))))))))
 
 (defn fold-op-into-worlds
   "Given a set of worlds and any type of operation, folds that operation into
@@ -211,6 +247,7 @@
     (condp = (:type op)
       :invoke (fold-invocation-into-worlds worlds op)
       :ok     (fold-completion-into-worlds worlds op)
+      :fail   (fold-failure-into-worlds    worlds op)
       :info   worlds)))
 
 (defn linearizations

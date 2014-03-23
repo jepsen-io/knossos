@@ -7,7 +7,7 @@
   (testing "empty history"
     (is (= (complete [])
            [])))
-  
+
   (testing "an invocation"
     (is (= (complete [(invoke-op :a :read nil)])
            [(invoke-op :a :read nil)])))
@@ -17,6 +17,14 @@
                       (ok-op     :a :read 2)])
            [(invoke-op :a :read 2)
             (ok-op     :a :read 2)])))
+
+  (testing "a failed invocation"
+    (is (= (complete [(invoke-op :a :read nil)
+                      (fail-op   :a :read 2)])
+           (complete [(invoke-op :a :read 2)
+                      (fail-op   :a :read nil)])
+           [(invoke-op :a :read 2)
+            (fail-op   :a :read 2)])))
 
   (testing "an unbalanced set of invocations"
     (is (thrown? AssertionError
@@ -134,6 +142,12 @@
            #{(-> (world (->Register 0))
                  (assoc :fixed [(invoke-op :a :read 0)]))})))
 
+  (testing "Single invocation and failure."
+    (is (= (set (linearizations (->Register 0)
+                                [(invoke-op :a :read 0)
+                                 (fail-op   :a :read 0)]))
+           #{(world (->Register 0))})))
+
   (testing "Simple read-write race with one linearization."
     (is (= (set (linearizations (->Register 0)
                                 [(invoke-op :a :read 0)
@@ -193,11 +207,11 @@
 ; Do a bunch of reads and writes on a volatile mutable variable and test if the
 ; resulting history is linearizable.
 (deftest volatile-test
-  (dotimes [i 1000]
+  (dotimes [i 1]
     (let [history (atom [])
           x       (VolatileVariable. 0)]
-      (dothreads [process 10]
-        (dotimes [i 1]
+      (dothreads [process 6]
+        (dotimes [i 100]
           (Thread/sleep (rand-int 5))
           (let [value (rand-int 5)]
             (if (< (rand) 0.5)
@@ -213,6 +227,7 @@
                   (swap! history conj (ok-op process :read value))))))))
       (let [history (complete @history)
             linear  (linearizations (->Register 0) history)]
+        (prn (count history))
         (when (empty? linear)
           (clojure.pprint/pprint history)
           (clojure.pprint/pprint (linearizations (->Register 0) history)))
