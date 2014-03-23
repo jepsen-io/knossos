@@ -150,10 +150,12 @@
   history appended. Those ops will also be absent from its pending operations."
   [world ops]
 ; (prn "advancing" world "with" ops)
-  (merge world {:fixed   (concat (:fixed world) ops)
-                :model   (reduce step (:model world) ops)
-                :pending (apply disj (:pending world) ops)}))
-
+  (-> world
+      transient
+      (assoc! :fixed   (concat (:fixed world) ops))
+      (assoc! :model   (reduce step (:model world) ops))
+      (assoc! :pending (apply disj (:pending world) ops))
+      persistent!))
 
 (defn possible-worlds
   "Given a world, generates all possible future worlds consistent with the
@@ -189,9 +191,11 @@
                     :pending
                     combo/subsets                 ; oh no
                     (r/mapcat combo/permutations) ; dear lord no
+                    ; Realize permutations eagerly for more parallelism?
+                    r/foldcat
                     ; For each permutation, advance the world with those
                     ; operations in order
-                    (r/map (partial advance-world world))
+                    (r/map (fn advance [ops] (advance-world world ops)))
                     ; Filter out null worlds
                     (r/remove nil?)
                     ; Realize
@@ -218,7 +222,7 @@
   from those."
   [worlds invocation]
   (->> worlds
-       (r/map (fn [world]
+       (r/map (fn pend [world]
                 (assoc world :pending (conj (:pending world) invocation))))
        (r/mapcat possible-worlds)
        r/foldcat))
