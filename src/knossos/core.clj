@@ -1,5 +1,6 @@
 (ns knossos.core
-  (:require [clojure.math.combinatorics :as combo]))
+  (:require [clojure.math.combinatorics :as combo]
+            [clojure.core.reducers :as r]))
 
 (defn op
   "Constructs a new operation for a history."
@@ -170,6 +171,22 @@
              ; Otherwise, we'll skip this element and recur with the exception.
              (keep-singular f (next coll) e))))))))
 
+(defn pkeep-singular
+  "Like keep-without-exceptions, but if the resulting sequence is empty and at
+  least one exception was thrown, throws. Parallel."
+  ([f coll]
+   (let [results (->> coll
+                      (r/map (fn [el] (try (f el) (catch Exception ex ex))))
+                      (r/remove nil?)
+                      r/foldcat)
+         ok      (->> results
+                      (r/remove (partial instance? Exception))
+                      r/foldcat)]
+     (cond
+       (empty? results) results
+       (empty? ok)      (throw (first results))
+       :else            ok))))
+
 (defn possible-worlds
   "Given a world, generates all possible future worlds consistent with the
   given world's pending operations. For instance, in the world
@@ -204,7 +221,7 @@
        :pending
        combo/subsets               ; oh no
        (mapcat combo/permutations) ; dear lord no
-       (keep-singular (fn [ops] (advance-world world ops)))))
+       (pkeep-singular (partial advance-world world))))
 
 (defn fold-invocation-into-worlds
   "Given a sequence of worlds and a new invoke operation, adds this operation
@@ -212,9 +229,10 @@
   from those."
   [worlds invocation]
   (->> worlds
-       (map (fn [world]
-              (assoc world :pending (conj (:pending world) invocation))))
-       (mapcat possible-worlds)))
+       (r/map (fn [world]
+                (assoc world :pending (conj (:pending world) invocation))))
+       (r/mapcat possible-worlds)
+       r/foldcat))
 
 (defn fold-completion-into-worlds
   "Given a sequence of worlds and a completion operation, returns only those
@@ -224,8 +242,9 @@
   [worlds completion]
   (let [process (:process completion)]
     (->> worlds
-         (remove (fn [world]
-                   (some #(= process (:process %)) (:pending world)))))))
+         (r/remove (fn [world]
+                     (some #(= process (:process %)) (:pending world))))
+         r/foldcat)))
 
 (defn fold-failure-into-worlds
   "Given a sequence of worlds and a failed operation, returns only those worlds
@@ -238,12 +257,14 @@
   [worlds failure]
   (let [process (:process failure)]
     (->> worlds
-         (keep (fn [world]
-                 (let [pending (:pending world)]
-                   (when-let [inv (some #(when (= process (:process %)) %)
-                                        pending)]
-                     ; In this world, we have not yet applied this operation
-                     (assoc world :pending (disj pending inv)))))))))
+         (r/map (fn [world]
+                  (let [pending (:pending world)]
+                    (when-let [inv (some #(when (= process (:process %)) %)
+                                         pending)]
+                      ; In this world, we have not yet applied this operation
+                      (assoc world :pending (disj pending inv))))))
+         (r/remove nil?)
+         r/foldcat)))
 
 (defn fold-op-into-worlds
   "Given a set of worlds and any type of operation, folds that operation into
@@ -270,6 +291,7 @@
   (->> history
        (reduce (fn [[linearizable worlds] op]
                  (let [worlds' (fold-op-into-worlds worlds op)]
+                   (prn :world-size (count worlds'))
                    (if (empty? worlds')
                      ; Out of options
                      (reduced [linearizable worlds])
