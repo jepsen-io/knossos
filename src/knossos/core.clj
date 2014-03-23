@@ -1,6 +1,14 @@
 (ns knossos.core
   (:require [clojure.math.combinatorics :as combo]
-            [clojure.core.reducers :as r]))
+            [clojure.core.reducers :as r]
+            [clojure.set :as set]))
+
+(defn foldset
+  "Folds a reducible collection into a set."
+  [coll]
+  (r/fold (r/monoid set/union hash-set)
+          conj
+          coll))
 
 (defn op
   "Constructs a new operation for a history."
@@ -191,8 +199,6 @@
                     :pending
                     combo/subsets                 ; oh no
                     (r/mapcat combo/permutations) ; dear lord no
-                    ; Realize permutations eagerly for more parallelism?
-                    r/foldcat
                     ; For each permutation, advance the world with those
                     ; operations in order
                     (r/map (fn advance [ops] (advance-world world ops)))
@@ -224,8 +230,7 @@
   (->> worlds
        (r/map (fn pend [world]
                 (assoc world :pending (conj (:pending world) invocation))))
-       (r/mapcat possible-worlds)
-       r/foldcat))
+       (r/mapcat possible-worlds)))
 
 (defn fold-completion-into-worlds
   "Given a sequence of worlds and a completion operation, returns only those
@@ -236,8 +241,7 @@
   (let [process (:process completion)]
     (->> worlds
          (r/remove (fn [world]
-                     (some #(= process (:process %)) (:pending world))))
-         r/foldcat)))
+                     (some #(= process (:process %)) (:pending world)))))))
 
 (defn fold-failure-into-worlds
   "Given a sequence of worlds and a failed operation, returns only those worlds
@@ -256,14 +260,13 @@
                                          pending)]
                       ; In this world, we have not yet applied this operation
                       (assoc world :pending (disj pending inv))))))
-         (r/remove nil?)
-         r/foldcat)))
+         (r/remove nil?))))
 
 (defn fold-op-into-worlds
   "Given a set of worlds and any type of operation, folds that operation into
   the set and returns a new set of possible worlds."
   [worlds op]
-  (set
+  (foldset
     (condp = (:type op)
       :invoke (fold-invocation-into-worlds worlds op)
       :ok     (fold-completion-into-worlds worlds op)
