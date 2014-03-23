@@ -77,7 +77,13 @@
              :invoke
              (let [i (count history)]
                ; Enforce the singlethreaded constraint.
-               (assert (not (get index (:process op))))
+               (when-let [prior (get index (:process op))]
+                 (throw (RuntimeException.
+                          (str "Process " (:process op) " already running "
+                               (pr-str (get history prior))
+                               ", yet attempted to invoke "
+                               (pr-str op) " concurrently"))))
+
                [(conj! history op)
                 (assoc! index (:process op) i)])
 
