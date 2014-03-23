@@ -33,7 +33,7 @@
       (pprint (drop (count linearizable) history)))))
 
 (deftest redis-test
-  (dothreads [t 4] 
+  (dothreads [t 48] 
     (dotimes [i 10000]
       (let [system (trajectory (system) 15)]
         ; Is this system linearizable?
