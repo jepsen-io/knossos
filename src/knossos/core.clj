@@ -1,7 +1,8 @@
 (ns knossos.core
   (:require [clojure.math.combinatorics :as combo]
             [clojure.core.reducers :as r]
-            [clojure.set :as set]))
+            [clojure.set :as set]
+            [potemkin :refer [definterface+]]))
 
 (defn foldset
   "Folds a reducible collection into a set."
@@ -36,14 +37,14 @@
   (= (:process a)
      (:process b)))
 
-(defprotocol Model
+(definterface+ Model
   (step [model op]
         "The job of a model is to *validate* that a sequence of operations
-        applied to it is consistent. Each invocation of (step model op) returns
-        a new state of the model, or, if the operation was inconsistent with
-        the model's state, returns a (knossos/inconsistent msg). (reduce step
-        model history) then validates that a particular history is valid, and
-        returns the final state of the model."))
+        applied to it is consistent. Each invocation of (step model op)
+        returns a new state of the model, or, if the operation was
+        inconsistent with the model's state, returns a (knossos/inconsistent
+        msg). (reduce step model history) then validates that a particular
+        history is valid, and returns the final state of the model."))
 
 (defrecord Inconsistent [msg]
   Model
