@@ -28,14 +28,26 @@
   (= (:process a)
      (:process b)))
 
-; The job of a model is to *validate* that a sequence of operations applied to
-; it is consistent. Each invocation of (step model op) returns a new state of
-; the model, or throws if that operation was inconsistent with the model's
-; state. (reduce step model history) then validates that a particular history
-; is valid, and returns the final state of the model.
 (defprotocol Model
-  (step [model op]))
+  (step [model op]
+        "The job of a model is to *validate* that a sequence of operations
+        applied to it is consistent. Each invocation of (step model op) returns
+        a new state of the model, or, if the operation was inconsistent with
+        the model's state, returns a (knossos/inconsistent msg). (reduce step
+        model history) then validates that a particular history is valid, and
+        returns the final state of the model."))
 
+(defrecord Inconsistent [msg]
+  Model
+  (step [this op] this))
+
+(defn inconsistent
+  "Represents an invalid termination of a model; e.g. that an operation could
+  not have taken place."
+  [msg]
+  (Inconsistent. msg))
+
+; A read-write register
 (defrecord Register [value]
   Model
   (step [r op]
@@ -44,9 +56,9 @@
       :read  (if (or (nil? (:value op))     ; We don't know what the read was
                      (= value (:value op))) ; Read was a specific value
                r
-               (throw (RuntimeException.
-                        (str "read " (pr-str (:value op))
-                             " from register " value)))))))
+               (inconsistent
+                 (str "read " (pr-str (:value op))
+                      " from register " value))))))
 
 (defn complete
   "When a request is initiated, we may not know what the result will be--but
@@ -126,6 +138,11 @@
    :fixed []
    :pending #{}})
 
+(defn inconsistent-world?
+  "Is the model for this world in an inconsistent state?"
+  [world]
+  (instance? Inconsistent (:model world)))
+
 (defn advance-world
   "Given a world and a series of operations, applies those operations to the
   given world. The returned world will have a new model reflecting its state
@@ -137,55 +154,6 @@
                 :model   (reduce step (:model world) ops)
                 :pending (apply disj (:pending world) ops)}))
 
-(defn keep-without-exceptions
-  "Like keep, but also filters out cases where the function threw."
-  [f coll]
-  (keep (fn [element]
-          (try
-            (f element)
-            (catch Exception e
-              nil)))
-        coll))
-
-(defn keep-singular
-  "Like keep-without-exceptions, but if the resulting sequence is empty and at
-  least one exception was thrown, throws."
-  ([f coll]
-   (keep-singular f coll nil))
-  ([f coll last-exception]
-   (lazy-seq
-     (if (empty? coll)
-       ; If there's nothing left, throw the last exception.
-       (when last-exception
-         (throw last-exception))
-
-       (try
-         ; If we can successfully call (f element), we'll proceed without
-         ; throwing.
-         (cons (f (first coll))
-               (keep-singular f (next coll) false))
-         (catch Exception e
-           (if (false? last-exception)
-             ; At least one success; ignore this exception.
-             (keep-singular f (next coll) false)
-             ; Otherwise, we'll skip this element and recur with the exception.
-             (keep-singular f (next coll) e))))))))
-
-(defn pkeep-singular
-  "Like keep-without-exceptions, but if the resulting sequence is empty and at
-  least one exception was thrown, throws. Parallel."
-  ([f coll]
-   (let [results (->> coll
-                      (r/map (fn [el] (try (f el) (catch Exception ex ex))))
-                      (r/remove nil?)
-                      r/foldcat)
-         ok      (->> results
-                      (r/remove (partial instance? Exception))
-                      r/foldcat)]
-     (cond
-       (empty? results) results
-       (empty? ok)      (throw (first results))
-       :else            ok))))
 
 (defn possible-worlds
   "Given a world, generates all possible future worlds consistent with the
@@ -217,11 +185,32 @@
   {:fixed [:a :b :d :c]
    :pending []}"
   [world]
-  (->> world
-       :pending
-       combo/subsets               ; oh no
-       (mapcat combo/permutations) ; dear lord no
-       (pkeep-singular (partial advance-world world))))
+  (let [worlds (->> world
+                    :pending
+                    combo/subsets                 ; oh no
+                    (r/mapcat combo/permutations) ; dear lord no
+                    ; For each permutation, advance the world with those
+                    ; operations in order
+                    (r/map (partial advance-world world))
+                    ; Filter out null worlds
+                    (r/remove nil?)
+                    ; Realize
+                    r/foldcat)
+
+        ; Filter out inconsistent worlds
+        consistent (->> worlds
+                        (r/remove inconsistent-world?)
+                        r/foldcat)]
+    (cond
+      ; No worlds at all
+      (empty? worlds) worlds
+
+      ; All worlds were inconsistent
+      (empty? consistent) (throw (RuntimeException.
+                                   (:msg (:model (first worlds)))))
+
+      ; Return consistent worlds
+      true consistent)))
 
 (defn fold-invocation-into-worlds
   "Given a sequence of worlds and a new invoke operation, adds this operation

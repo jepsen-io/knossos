@@ -35,22 +35,23 @@
     (is (thrown? AssertionError
                  (complete [(ok-op :a :read 2)])))))
 
-(deftest keep-singular-test
-  (testing "Empty"
-    (is (= (keep-singular inc []))))
+(comment
+  (deftest keep-singular-test
+    (testing "Empty"
+      (is (= (keep-singular inc []))))
 
-  (testing "All OK"
-    (is (= (keep-singular inc [1 2 3]) [2 3 4])))
+    (testing "All OK"
+      (is (= (keep-singular inc [1 2 3]) [2 3 4])))
 
-  (testing "One bad at the start"
-    (is (= (keep-singular inc [nil 1 2] [1 2]))))
+    (testing "One bad at the start"
+      (is (= (keep-singular inc [nil 1 2] [1 2]))))
 
-  (testing "One bad at the end"
-    (is (= (keep-singular inc [1 2 nil] [1 2]))))
+    (testing "One bad at the end"
+      (is (= (keep-singular inc [1 2 nil] [1 2]))))
 
-  (testing "All bad"
-    (is (thrown? java.lang.ClassCastException
-                 (doall (keep-singular inc ["a" "b"]))))))
+    (testing "All bad"
+      (is (thrown? java.lang.ClassCastException
+                   (doall (keep-singular inc ["a" "b"])))))))
 
 (deftest advance-world-test
   (let [ops [(ok-op :a :read 0)
@@ -63,7 +64,7 @@
                (advance-world ops))
            (assoc (world (->Register 1)) :fixed ops)))
 
-    (is (thrown? RuntimeException
+    (is (inconsistent-world?
                  (advance-world (world (->Register 0))
                                 [(ok-op :a :read 1)])))))
 
