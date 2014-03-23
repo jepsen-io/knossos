@@ -27,7 +27,7 @@
             (fail-op   :a :read 2)])))
 
   (testing "an unbalanced set of invocations"
-    (is (thrown? AssertionError
+    (is (thrown? RuntimeException
                  (complete [(invoke-op :a :read nil)
                             (invoke-op :a :read nil)]))))
 
