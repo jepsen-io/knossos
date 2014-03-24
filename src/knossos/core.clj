@@ -283,16 +283,42 @@
           (list (world model))
           history))
 
+(defn degenerate-worlds
+  "NEXT LEVEL ALGORITHMIC MANEUVER: if all we care about is whether a history
+  is linearizable *at all*, instead of exactly how it got there, we can pull A
+  SNEAKY TRICK by only choosing worlds which *could* linearize differently in
+  the future.
+
+  In particular, we exploit the fact that the past is a fiction;
+  how we got to a given model state has no impact on the model's future
+  evolution. If two models have identical models and pending sets we may ignore
+  their history.
+
+  Takes a set of worlds and returns an equivalent set of worlds."
+  [worlds]
+  (->> worlds
+       (r/map (fn index [world] {[(:model world) (:pending world)]
+                                 world}))
+       (r/fold merge)
+       (r/map (fn [_ v] v))
+       foldset))
+
 (defn linearizable-prefix
   "Computes the longest prefix of a history which is linearizable."
   [model history]
   (->> history
        (reduce (fn [[linearizable worlds] op]
-                 (let [worlds' (fold-op-into-worlds worlds op)]
+                 (let [worlds'  (fold-op-into-worlds worlds op)
+                       worlds'' (degenerate-worlds worlds')]
                    (prn :world-size (count worlds'))
-                   (if (empty? worlds')
+                   (prn :degenerate (count worlds''))
+;                   (clojure.pprint/pprint worlds')
+;                   (println (count worlds') "->" (count worlds''))
+;                   (clojure.pprint/pprint worlds'')
+
+                   (if (empty? worlds'')
                      ; Out of options
                      (reduced [linearizable worlds])
-                     [(conj linearizable op) worlds'])))
+                     [(conj linearizable op) worlds''])))
                [[] (list (world model))])
        first))
