@@ -230,10 +230,9 @@
   from those."
   [worlds invocation]
   (->> worlds
-       (pmap (fn pend [world]
-               (possible-worlds
-                 (assoc world :pending (conj (:pending world) invocation)))))
-       (apply concat)))
+       (r/map (fn pend [world]
+                (assoc world :pending (conj (:pending world) invocation))))
+       (r/mapcat possible-worlds)))
 
 (defn fold-completion-into-worlds
   "Given a sequence of worlds and a completion operation, returns only those
@@ -243,10 +242,8 @@
   [worlds completion]
   (let [process (:process completion)]
     (->> worlds
-         (pmap (fn [world]
-                 (when-not (some #(= process (:process %)) (:pending world))
-                   world)))
-         (r/remove nil?))))
+         (r/remove (fn [world]
+                     (some #(= process (:process %)) (:pending world)))))))
 
 (defn fold-failure-into-worlds
   "Given a sequence of worlds and a failed operation, returns only those worlds
@@ -259,7 +256,7 @@
   [worlds failure]
   (let [process (:process failure)]
     (->> worlds
-         (pmap (fn [world]
+         (r/map (fn [world]
                   (let [pending (:pending world)]
                     (when-let [inv (some #(when (= process (:process %)) %)
                                          pending)]
