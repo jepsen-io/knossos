@@ -163,7 +163,8 @@
       transient
       (assoc! :fixed   (concat (:fixed world) ops))
       (assoc! :model   (reduce step (:model world) ops))
-      (assoc! :pending (apply disj (:pending world) ops))
+      (assoc! :pending (persistent!
+                         (reduce disj! (transient (:pending world)) ops)))
       persistent!))
 
 (defn possible-worlds
