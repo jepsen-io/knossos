@@ -31,6 +31,10 @@
   [process f value]
   (op process :fail f value))
 
+(defn invoke? [op] (= :invoke (:type op)))
+(defn ok?     [op] (= :ok     (:type op)))
+(defn fail?   [op] (= :fail   (:type op)))
+
 (defn same-process?
   "Do A and B come from the same process?"
   [a b]
@@ -55,6 +59,11 @@
   not have taken place."
   [msg]
   (Inconsistent. msg))
+
+(defn inconsistent?
+  "Is a model inconsistent?"
+  [model]
+  (instance? Inconsistent model))
 
 ; A read-write register
 (defrecord Register [value]
@@ -303,22 +312,45 @@
        (r/map (fn [_ v] v))
        foldset))
 
+(defn linearizable-prefix-and-worlds
+  "Returns a vector consisting of the linearizable prefix and the worlds
+  just prior to exhaustion."
+  [model history]
+  (reduce (fn [[linearizable worlds] op]
+            (let [worlds'  (fold-op-into-worlds worlds op)
+                  worlds'' (degenerate-worlds worlds')]
+              (prn :world-size (count worlds')
+                   :degenerate (count worlds''))
+              (if (empty? worlds'')
+                ; Out of options
+                (reduced [linearizable worlds])
+                [(conj linearizable op) worlds''])))
+          [[] (list (world model))]
+          history))
+
 (defn linearizable-prefix
   "Computes the longest prefix of a history which is linearizable."
   [model history]
-  (->> history
-       (reduce (fn [[linearizable worlds] op]
-                 (let [worlds'  (fold-op-into-worlds worlds op)
-                       worlds'' (degenerate-worlds worlds')]
-                   (prn :world-size (count worlds'))
-                   (prn :degenerate (count worlds''))
-;                   (clojure.pprint/pprint worlds')
-;                   (println (count worlds') "->" (count worlds''))
-;                   (clojure.pprint/pprint worlds'')
+  (first (linearizable-prefix-and-worlds model history)))
 
-                   (if (empty? worlds'')
-                     ; Out of options
-                     (reduced [linearizable worlds])
-                     [(conj linearizable op) worlds''])))
-               [[] (list (world model))])
-       first))
+(defn analysis
+  "Returns a map of information about the linearizability of a history.
+  Completes the history and searches for a linearization."
+  [model history]
+  (let [history+            (complete history)
+        [lin-prefix worlds] (linearizable-prefix-and-worlds model history+)
+        valid?              (= (count history+) (count lin-prefix))
+        evil-op             (when-not valid?
+                              (nth history+ (count lin-prefix)))]
+    (if valid?
+      {:valid?              true
+       :linearizable-prefix lin-prefix
+       :worlds              worlds}
+      {:valid?                   false
+       :linearizable-prefix      lin-prefix
+       :last-consistent-worlds   worlds
+       :inconsistent-op          evil-op
+       :inconsistent-transitions (map (fn [w]
+                                      [(:model w)
+                                       (-> w :model (step evil-op) :msg)])
+                                      worlds)})))
