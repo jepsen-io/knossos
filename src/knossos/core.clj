@@ -78,6 +78,35 @@
                  (str "read " (pr-str (:value op))
                       " from register " value))))))
 
+(defn processes
+  "What processes are in a history?"
+  [history]
+  (->> history
+       (r/map :process)
+       (into #{})))
+
+(defn pairs
+  "Yields a lazy sequence of [info] | [invoke, ok|fail] pairs from a history]"
+  ([history]
+   (pairs {} history))
+  ([invocations [op & ops]]
+   (lazy-seq
+     (when op
+       (case (:type op)
+         :info        (cons [op] (pairs invocations ops))
+         :invoke      (do (assert (not (contains? invocations (:process op))))
+                          (pairs (assoc invocations (:process op) op) ops))
+         (:ok :fail)  (do (assert (contains? invocations (:process op)))
+                          (cons [(get invocations (:process op)) op]
+                                (pairs (dissoc invocations (:process op))
+                                       ops))))))))
+
+(defn remove-failures
+  "Returns a version of a history in which none of the operations which are
+  known to have failed ever took place at all."
+  [history]
+  :todo)
+
 (defn complete
   "When a request is initiated, we may not know what the result will be--but
   find out when it completes. In the history, this might look like
