@@ -239,31 +239,51 @@
   (get-mutable [this] v)
   (set-mutable [this x] (set! v x)))
 
+(defn volatile-history
+  "Records a completed linearizable history by mucking around with a volatile
+  mutable variable. Crash-factor is the likelihood that a process crashes
+  during an operation: 0 is always reliable, 1 always crashes. Processes may
+  crash before or after an operation actually occurs."
+  [process-count action-count crash-factor]
+  (let [history (atom [])
+        x       (VolatileVariable. 0)]
+    (dothreads [process process-count]
+               (try
+                 (dotimes [i action-count]
+                   (Thread/sleep (rand-int 5))
+                   (when (< crash-factor (rand)) (assert false))
+
+                   (let [value (rand-int 5)]
+                     (if (< (rand) 0.5)
+                       ; Write
+                       (do
+                         (swap! history conj (invoke-op process :write value))
+                         (set-mutable x value)
+                         (when (< crash-factor (rand)) (assert false))
+                         (swap! history conj (ok-op process :write value)))
+                       ; Read
+                       (do
+                         (swap! history conj (invoke-op process :read nil))
+                         (let [value (get-mutable x)]
+                           (when (< crash-factor (rand)) (assert false))
+                           (swap! history conj (ok-op process :read value)))))))
+                 (catch AssertionError _ :crashed)))
+    (complete @history)))
+
 ; Do a bunch of reads and writes on a volatile mutable variable and test if the
 ; resulting history is linearizable.
 (deftest volatile-test
   (dotimes [i 1]
-    (let [history (atom [])
-          x       (VolatileVariable. 0)]
-      (dothreads [process 6]
-        (dotimes [i 100]
-          (Thread/sleep (rand-int 5))
-          (let [value (rand-int 5)]
-            (if (< (rand) 0.5)
-              ; Write
-              (do
-                (swap! history conj (invoke-op process :write value))
-                (set-mutable x value)
-                (swap! history conj (ok-op process :write value)))
-              ; Read
-              (do
-                (swap! history conj (invoke-op process :read nil))
-                (let [value (get-mutable x)]
-                  (swap! history conj (ok-op process :read value))))))))
-      (let [history (complete @history)
-            linear  (linearizations (->Register 0) history)]
-        (prn (count history))
-        (when (empty? linear)
-          (clojure.pprint/pprint history)
-          (clojure.pprint/pprint (linearizations (->Register 0) history)))
-        (is (not (empty? linear)))))))
+    (let [history (volatile-history 6 100 0)
+          linear  (linearizations (->Register 0) history)]
+      (when (empty? linear)
+        (clojure.pprint/pprint history)
+        (clojure.pprint/pprint (linearizations (->Register 0) history)))
+      (is (not (empty? linear))))))
+
+(deftest volatile-linearizable-test
+  (dotimes [i 1]
+    (let [history (volatile-history 100 10 0.5)
+          a       (analysis (->Register 0) history)]
+      (is (:valid? a))
+      (pprint (analysis (->Register 0) history)))))

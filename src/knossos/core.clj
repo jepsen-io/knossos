@@ -2,7 +2,10 @@
   (:require [clojure.math.combinatorics :as combo]
             [clojure.core.reducers :as r]
             [clojure.set :as set]
-            [potemkin :refer [definterface+]]))
+            [clojure.tools.logging :refer :all]
+            [potemkin :refer [definterface+]])
+  (:import (java.util.concurrent PriorityBlockingQueue
+                                 TimeUnit)))
 
 (defn foldset
   "Folds a reducible collection into a set."
@@ -402,6 +405,100 @@
                 [(conj linearizable op) worlds''])))
           [[] (list (world model))]
           history))
+
+(def awfulness-comparator
+  "Which one of these worlds should we explore first?"
+  (reify java.util.Comparator
+    (compare [this a b]
+      (cond (< (count (:pending a)) (count (:pending b))) -1
+            (< (:index a)           (:index b))            1
+            :else                                          0))))
+
+(defn explorer
+  "Pulls worlds off of the leader atom, explores them, and pushes resulting
+  worlds back onto the leader atom. Returns a future which continues as long
+  as running? is true."
+  [history running? ^PriorityBlockingQueue leaders furthest i]
+  (future
+    (while @running?
+      (when-let [world  (.poll leaders 10 TimeUnit/MILLISECONDS)]
+        (let [op     (nth history (:index world))
+              worlds (fold-op-into-world world op)]
+
+          (when-let [w (first worlds)]
+            ; Furthest we've gotten?
+            (when (< (:index @furthest) (:index w))
+              (swap! furthest (fn push-it [furthest]
+                                (if (< (:index furthest) (:index w))
+                                  w
+                                  furthest))))
+
+            ; Are we done?
+            (if (= (:index w) (count history))
+              (do (info :done!)
+               (reset! running? false))
+
+              ; Reinject subsequent worlds
+              (reduce (fn reinjector [_ world] (.put leaders world))
+                      nil
+                      worlds))))))))
+
+(defn linearizable-prefix-and-worlds
+  "Returns a vector consisting of the longest linearizable prefix and the
+  worlds just prior to exhaustion.
+
+  If you think about a lightning strike, where the history stretches from the
+  initial state in the thundercloud to the final state somewhere in the ground,
+  we're trying to find a path--any path--for a lightning bolt to jump from
+  cloud to ground.
+
+  Given a world at the tip of the lightning bolt, we can reach out to several
+  nearby worlds just slightly ahead of ours, using fold-op-into-world. If there
+  are no worlds left, we've struck a dead end and that particular fork of the
+  lightning bolt terminates. If there *are* worlds left, we want to explore
+  them--but it's not clear in what order.
+
+  Moreover, some paths are more expensive to traverse than others. Worlds with
+  a high number of pending operations, for instance, are particularly expensive
+  because each step explores n! operations. If we can find a *quicker* path to
+  ground, we should take it.
+
+  We do this by keeping a set of all incomplete worlds, and following the
+  worlds that seem to be doing the best. We leave the *hard* worlds for later.
+  Each thread pulls a world off of the incomplete set, explodes it into several
+  new worlds, and pushes those worlds back into the set. We call this set
+  *leaders*.
+
+  If we reach a world which has no future operations--whose index is equal to
+  the length of the history--we've found a linearization and can terminate.
+
+  If we ever run *out* of leaders, then we know no linearization is possible.
+  Disproving linearizability can be much more expensive than proving it; we
+  have to keep trying and trying until every possible option has been
+  exhausted."
+  [model history]
+  (if (empty? history)
+    [history (world model)]
+    (let [world    (world model)
+          running? (atom true)
+          leaders  (PriorityBlockingQueue.
+                     1
+                     awfulness-comparator)
+          furthest (atom world)
+          workers  (->> (range 48)
+                        (map (partial explorer history running? leaders
+                                      furthest))
+                        doall)]
+
+      ; Start with a single world containing the initial state
+      (.put leaders world)
+
+      ; Wait for workers
+      (->> workers (map deref) dorun)
+
+      ; Return prefix and furthest world
+      (let [furthest @furthest]
+        [(take (:index furthest) history) furthest]))))
 
 (defn linearizable-prefix
   "Computes the longest prefix of a history which is linearizable."

@@ -9,6 +9,7 @@
   :dependencies [[org.clojure/clojure "1.6.0-beta1"]
                  [org.clojure/math.combinatorics "0.0.7"]
                  [potemkin "0.3.4"]
-                 [com.boundary/high-scale-lib "1.0.3"]]
+                 [com.boundary/high-scale-lib "1.0.3"]
+                 [org.clojure/tools.logging "0.2.6"]]
   ; "-verbose:gc" "-XX:+PrintGCDetails"
   :jvm-opts ["-Xmx32g" "-XX:+UseConcMarkSweepGC" "-XX:+UseParNewGC" "-XX:+CMSParallelRemarkEnabled" "-XX:+AggressiveOpts" "-XX:+UseFastAccessorMethods"])
