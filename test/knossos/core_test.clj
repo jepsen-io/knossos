@@ -172,13 +172,15 @@
                                 [(invoke-op :a :read 0)
                                  (ok-op :a :read 0)]))
            #{(-> (world (->Register 0))
-                 (assoc :fixed [(invoke-op :a :read 0)]))})))
+                 (assoc :index 2
+                        :fixed [(invoke-op :a :read 0)]))})))
 
   (testing "Single invocation and failure."
     (is (= (set (linearizations (->Register 0)
                                 [(invoke-op :a :read 0)
                                  (fail-op   :a :read 0)]))
-           #{(world (->Register 0))})))
+           #{(-> (world (->Register 0))
+                 (assoc :index 2))})))
 
   (testing "Simple read-write race with one linearization."
     (is (= (set (linearizations (->Register 0)
@@ -189,7 +191,8 @@
                                  (ok-op :a :read 1)
                                  (ok-op :b :write 1)]))
            #{(-> (world (->Register 1))
-                 (assoc :fixed [(invoke-op :a :read 0)
+                 (assoc :index 6
+                        :fixed [(invoke-op :a :read 0)
                                 (invoke-op :b :write 1)
                                 (invoke-op :a :read 1)]))})))
 

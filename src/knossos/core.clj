@@ -179,16 +179,26 @@
 (defn world
   "A world represents the state of the system at one particular point in time.
   It comprises a known timeline of operations, and a set of operations which
-  are pending."
+  are pending. Finally, there's an integer index which indicates the number of
+  operations this world has consumed from the history."
   [model]
   {:model   model
-   :fixed []
-   :pending #{}})
+   :fixed   []
+   :pending #{}
+   :index   0})
 
 (defn inconsistent-world?
   "Is the model for this world in an inconsistent state?"
   [world]
   (instance? Inconsistent (:model world)))
+
+(defn degenerate-world-key
+  "An object which uniquely identifies whether or not a world is linearizable.
+  If two worlds have the same degenerate-world-key (in the context of a
+  history), their linearizability is equivalent."
+  [world]
+  ; What kind of social studies IS this?
+  (dissoc world :history))
 
 (defn advance-world
   "Given a world and a series of operations, applies those operations to the
@@ -233,7 +243,10 @@
   {:fixed [:a :b :c :d]
    :pending []}
   {:fixed [:a :b :d :c]
-   :pending []}"
+   :pending []}
+
+  So: we are looking for the permutations of all subsets of all pending
+  operations."
   [world]
   (let [worlds (->> world
                     :pending
@@ -262,15 +275,30 @@
       ; Return consistent worlds
       true consistent)))
 
+(defn fold-invocation-into-world
+  "Given a world and a new invoke operation, adds the operation to the pending
+  set for the world, and yields a collection of all possible worlds from that.
+  Increments world index."
+  [world invocation]
+  (possible-worlds
+    (assoc world
+           :index   (inc  (:index world))
+           :pending (conj (:pending world) invocation))))
+
 (defn fold-invocation-into-worlds
   "Given a sequence of worlds and a new invoke operation, adds this operation
-  to the pending set for each, and projecting out a set of all possible worlds
-  from those."
+  to the pending set for each, and projects out all possible worlds from
+  those."
   [worlds invocation]
-  (->> worlds
-       (r/map (fn pend [world]
-                (assoc world :pending (conj (:pending world) invocation))))
-       (r/mapcat possible-worlds)))
+  (r/mapcat #(fold-invocation-into-worlds % invocation) worlds))
+
+(defn fold-completion-into-world
+  "Given a world and a completion operation, returns world if the operation
+  took place in that world, else nil. Advances the world index by one."
+  [world completion]
+  (let [p (:process completion)]
+    (when-not (some #(= p (:process %)) (:pending world))
+      (assoc world :index (inc (:index world))))))
 
 (defn fold-completion-into-worlds
   "Given a sequence of worlds and a completion operation, returns only those
@@ -278,40 +306,58 @@
 
   TODO: replace the corresponding element in the history with the completion."
   [worlds completion]
-  (let [process (:process completion)]
-    (->> worlds
-         (r/remove (fn [world]
-                     (some #(= process (:process %)) (:pending world)))))))
+  (->> worlds
+       (r/map #(fold-completion-into-world % completion))
+       (r/remove nil)))
 
-(defn fold-failure-into-worlds
-  "Given a sequence of worlds and a failed operation, returns only those worlds
-  where that operation did not take place, and removes the operation from
-  the pending ops in those worlds.
+(defn fold-failure-into-world
+  "Given a world and a failed operation, returns world if the operation did
+  *not* take place, and removes the operation from the pending ops in that
+  world. Advances world index by one.
 
   Note that a failed operation is an operation which is *known* to have failed;
   e.g. the system *guarantees* that it did not take place. This is different
   from an *indeterminate* failure."
+  [world failure]
+  (let [process (:process failure)
+        pending (:pending world)]
+    ; Find the corresponding invocation
+    (when-let [inv (some #(when (= process (:process %)) %) pending)]
+      ; In this world, we have not yet applied the operation.
+      (assoc world :index   (inc (:index world))
+                   :pending (disj pending inv)))))
+
+(defn fold-failure-into-worlds
+  "Given a sequence of worlds and a failed operation, returns only those worlds
+  where that operation did not take place, and removes the operation from
+  the pending ops in those worlds."
   [worlds failure]
-  (let [process (:process failure)]
-    (->> worlds
-         (r/map (fn [world]
-                  (let [pending (:pending world)]
-                    (when-let [inv (some #(when (= process (:process %)) %)
-                                         pending)]
-                      ; In this world, we have not yet applied this operation
-                      (assoc world :pending (disj pending inv))))))
-         (r/remove nil?))))
+  (->> worlds
+       (r/map #(fold-failure-into-world % failure))
+       (r/remove nil?)))
+
+(defn maybe-list
+  "If x is nil, returns the empty list. If x is not-nil, returns (x)."
+  [x]
+  (if x (list x) '()))
+
+(defn fold-op-into-world
+  "Given a world and any type of operation, folds that operation into the world
+  and returns a sequence of possible worlds. Increments the world index."
+  [world op]
+  (condp = (:type op)
+    :invoke (fold-invocation-into-world world op)
+    :ok     (maybe-list (fold-completion-into-world world op))
+    :fail   (maybe-list (fold-failure-into-world    world op))
+    :info   (list (assoc world :index (inc (:index world))))))
 
 (defn fold-op-into-worlds
   "Given a set of worlds and any type of operation, folds that operation into
   the set and returns a new set of possible worlds."
   [worlds op]
-  (foldset
-    (condp = (:type op)
-      :invoke (fold-invocation-into-worlds worlds op)
-      :ok     (fold-completion-into-worlds worlds op)
-      :fail   (fold-failure-into-worlds    worlds op)
-      :info   worlds)))
+  (->> worlds
+       (r/mapcat #(fold-op-into-world % op))
+       foldset))
 
 (defn linearizations
   "Given a model and a history, returns all possible worlds where that history
