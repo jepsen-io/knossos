@@ -3,8 +3,10 @@
             [clojure.core.reducers :as r]
             [clojure.set :as set]
             [clojure.tools.logging :refer :all]
+            [interval-metrics.core :as metrics]
             [potemkin :refer [definterface+]])
-  (:import (java.util.concurrent PriorityBlockingQueue
+  (:import (org.cliffc.high_scale_lib NonBlockingHashMapLong)
+           (java.util.concurrent PriorityBlockingQueue
                                  TimeUnit)))
 
 (defn foldset
@@ -194,14 +196,6 @@
   "Is the model for this world in an inconsistent state?"
   [world]
   (instance? Inconsistent (:model world)))
-
-(defn degenerate-world-key
-  "An object which uniquely identifies whether or not a world is linearizable.
-  If two worlds have the same degenerate-world-key (in the context of a
-  history), their linearizability is equivalent."
-  [world]
-  ; What kind of social studies IS this?
-  (dissoc world :history))
 
 (defn advance-world
   "Given a world and a series of operations, applies those operations to the
@@ -414,11 +408,39 @@
             (< (:index a)           (:index b))            1
             :else                                          0))))
 
+(defn degenerate-world-key
+  "An object which uniquely identifies whether or not a world is linearizable.
+  If two worlds have the same degenerate-world-key (in the context of a
+  history), their linearizability is equivalent."
+  [world]
+  ; What kind of social studies IS this?
+  (dissoc world :history))
+
+(defn seen-world!?
+  "Given a mutable hashmap of seen worlds, ensures that an entry exists for the
+  given world, and returns truthy iff that world had already been seen."
+  [^NonBlockingHashMapLong seen world]
+  (let [k  (degenerate-world-key world)
+        ; Constrain the number of possible elements in the cache
+        h (bit-and 0xffffff (hash k))
+        seen-key (.get seen h)]
+    (if (= k seen-key)
+      ; We've already visited this node.
+      true
+      ; Null or collision. Replace the existing value.
+      (do
+        ; We want to avoid hitting shared state for cheap operations, so we
+        ; only write to the cache if this world is sufficiently expensive to
+        ; visit.
+        (when (< 1 (count (:pending world)))
+          (.put seen h k))
+        false))))
+
 (defn explorer
   "Pulls worlds off of the leader atom, explores them, and pushes resulting
   worlds back onto the leader atom. Returns a future which continues as long
   as running? is true."
-  [history running? ^PriorityBlockingQueue leaders furthest i]
+  [history running? ^PriorityBlockingQueue leaders seen furthest stats i]
   (future
     (while @running?
       (when-let [world  (.poll leaders 10 TimeUnit/MILLISECONDS)]
@@ -435,11 +457,15 @@
 
             ; Are we done?
             (if (= (:index w) (count history))
-              (do (info :done!)
-               (reset! running? false))
+              (reset! running? false)
 
               ; Reinject subsequent worlds
-              (reduce (fn reinjector [_ world] (.put leaders world))
+              (reduce (fn reinjector [_ world]
+                        (if (seen-world!? seen world)
+                          (metrics/update! (:skipped-worlds stats) 1)
+                          (do
+                            (metrics/update! (:visited-worlds stats) 1)
+                            (.put leaders world))))
                       nil
                       worlds))))))))
 
@@ -484,17 +510,31 @@
           leaders  (PriorityBlockingQueue.
                      1
                      awfulness-comparator)
+          seen     (NonBlockingHashMapLong.)
+          stats    {:skipped-worlds (metrics/rate)
+                    :visited-worlds (metrics/rate)}
           furthest (atom world)
           workers  (->> (range 48)
                         (map (partial explorer history running? leaders
-                                      furthest))
-                        doall)]
+                                      seen furthest stats))
+                        doall)
+          reporter (future
+                     (while @running?
+                       (Thread/sleep 5000)
+                       (let [visited (metrics/snapshot! (:visited-worlds stats))
+                             skipped (metrics/snapshot! (:skipped-worlds stats))
+                             total   (+ visited skipped)
+                             hitrate (/ skipped total)]
+                         (info (long visited) "visited,"
+                               (long skipped) "skipped,"
+                               "hitrate" hitrate))))]
 
       ; Start with a single world containing the initial state
       (.put leaders world)
 
       ; Wait for workers
       (->> workers (map deref) dorun)
+      @reporter
 
       ; Return prefix and furthest world
       (let [furthest @furthest]
