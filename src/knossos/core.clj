@@ -6,7 +6,8 @@
             [interval-metrics.core :as metrics]
             [potemkin :refer [definterface+]]
             [knossos.prioqueue :as prioqueue]
-            [knossos.util :as util])
+            [knossos.util :as util]
+            [clojure.pprint :refer [pprint]])
   (:import (org.cliffc.high_scale_lib NonBlockingHashMapLong)
            (java.util.concurrent.atomic AtomicLong
                                         AtomicBoolean)))
@@ -443,7 +444,7 @@
   abort all threads immediately."
   [history ^AtomicBoolean running? world]
   (when (= (count history) (:index world))
-    (info "Short-circuiting" world)
+;    (info "Short-circuiting" world)
     (.set running? false)))
 
 (defn update-deepest-world!
@@ -466,7 +467,8 @@
   [history ^AtomicBoolean running? leaders seen deepest stats world]
   (when (< (:index world) (count history))
     (let [op         (nth history (:index world))
-          _          (info "Exploring" world "with" op)
+;          _          (info "op" op "world\n"
+;                           (with-out-str (pprint world)))
           worlds     (fold-op-into-world world op)
           reinserted (reduce
                        (fn reinjector [reinserted world]
@@ -479,19 +481,20 @@
                          (if (seen-world!? seen world)
                            ; Definitely been here before
                            (do (metrics/update! (:skipped-worlds stats) 1)
-                               (info "Skipping" world)
+ ;                              (info "Skipping\n" (with-out-str (pprint world)))
                                reinserted)
 
                            ; O brave new world, that hath such operations in it!
                            (do (metrics/update! (:visited-worlds stats) 1)
-                               (info "reinjecting" world)
+;                               (info "reinjecting\n" (with-out-str (pprint world)))
+                               (.incrementAndGet
+                                 ^AtomicLong (:extant-worlds stats))
+
                                (prioqueue/put! leaders world)
                                (inc reinserted))))
                        0
                        worlds)]
-
-      ; Ensure that these worlds are known to be extant
-      (.addAndGet ^AtomicLong (:extant-worlds stats) reinserted))))
+      reinserted)))
 
 (defn explorer
   "Pulls worlds off of the leader atom, explores them, and pushes resulting
@@ -510,6 +513,7 @@
             (.decrementAndGet ^AtomicLong (:extant-worlds stats))))
 
         ; We've exhausted all possible worlds
+;        (info "worker" i "exiting")
         (.set running? false)
 
       (catch Throwable t
@@ -590,6 +594,12 @@
       ; Wait for workers
       (->> workers (map deref) dorun)
       (future-cancel reporter)
+
+;      (info "Final queue was"
+;            (take-while identity
+;                        (repeatedly #(prioqueue/poll! leaders 0))))
+
+;      (info "Final stats:" (with-out-str (pprint stats)))
 
       ; Return prefix and deepest world
       (let [deepest @deepest]
