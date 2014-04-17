@@ -256,9 +256,7 @@
                     ; operations in order
                     (r/map (fn advance [ops] (advance-world world ops)))
                     ; Filter out null worlds
-                    (r/remove nil?)
-                    ; Realize
-                    r/foldcat)
+                    (r/remove nil?))
 
         ; Filter out inconsistent worlds
         consistent (->> worlds
@@ -266,11 +264,11 @@
                         r/foldcat)]
     (cond
       ; No worlds at all
-      (empty? worlds) worlds
+      (util/rempty? worlds) worlds
 
       ; All worlds were inconsistent
-      (empty? consistent) (throw (RuntimeException.
-                                   (:msg (:model (first worlds)))))
+      (util/rempty? consistent) (throw (RuntimeException.
+                                         (:msg (:model (first worlds)))))
 
       ; Return consistent worlds
       true consistent)))

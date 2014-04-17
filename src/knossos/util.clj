@@ -1,6 +1,11 @@
 (ns knossos.util
   "Toolbox")
 
+(defn rempty?
+  "Like empty, but for reducibles."
+  [coll]
+  (reduce (fn [_ _] (reduced false)) true coll))
+
 (defmacro with-thread-name
   "Sets the thread name for duration of block."
   [thread-name & body]
