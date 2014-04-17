@@ -436,8 +436,7 @@
         ; visit.
         (when (< 1 (count (:pending world)))
           (.put seen h k))
-        false)))
-  false)
+        false))))
 
 (defn short-circuit!
   "If we've reached a world with an index as deep as the history, we can
@@ -467,10 +466,11 @@
   [history ^AtomicBoolean running? leaders seen deepest stats world]
   (when (< (:index world) (count history))
     (let [op         (nth history (:index world))
+          _          (info "Exploring" world "with" op)
           worlds     (fold-op-into-world world op)
           reinserted (reduce
                        (fn reinjector [reinserted world]
-                         ; Jacques-Yves Cousteau would be thrilled
+                         ; Jacques-Yves Cousteau could be thrilled
                          (update-deepest-world! deepest world)
 
                          ; Done?
@@ -479,10 +479,12 @@
                          (if (seen-world!? seen world)
                            ; Definitely been here before
                            (do (metrics/update! (:skipped-worlds stats) 1)
+                               (info "Skipping" world)
                                reinserted)
 
                            ; O brave new world, that hath such operations in it!
                            (do (metrics/update! (:visited-worlds stats) 1)
+                               (info "reinjecting" world)
                                (prioqueue/put! leaders world)
                                (inc reinserted))))
                        0

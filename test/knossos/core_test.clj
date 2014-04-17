@@ -292,12 +292,34 @@
     (is (= (take-while identity (repeatedly #(prioqueue/poll! q 1))))
         [w1 w1 w2 w2])))
 
-(deftest volatile-linearizable-test
-  (dotimes [i 1]
-    (let [history (volatile-history 20 100 0.5)
-          a       (analysis (->Register 0) history)]
-      (is (:valid? a))
-      (pprint history)
-      (println "history length" (count history))
+(deftest history-a
+  ; A CAS register history that exposes a bug
+  (let [h [{:process 4, :type :invoke, :f :write, :value 2}
+           {:process 4, :type :ok, :f :write, :value 2}
+           {:process 6, :type :invoke, :f :read, :value nil}
+           {:process 1, :type :invoke, :f :write, :value 4}
+           {:process 1, :type :ok, :f :write, :value 4}
+           {:process 14, :type :invoke, :f :read, :value 4}
+           {:process 14, :type :ok, :f :read, :value 4}
+           {:process 9, :type :invoke, :f :write, :value 0}
+           {:process 9, :type :ok, :f :write, :value 0}
+           {:process 19, :type :invoke, :f :read, :value 0}
+           {:process 19, :type :ok, :f :read, :value 0}]
+        a (analysis (->Register 0) h)]
+    (is (:valid? a))
+    (when-not (:valid? a)
+      (pprint h)
+      (println "history length" (count h))
       (prn)
       (pprint (update-in a [:worlds] (partial take 10))))))
+
+
+;(deftest volatile-linearizable-test
+;  (dotimes [i 1]
+;    (let [history (volatile-history 20 100 0.5)
+;          a       (analysis (->Register 0) history)]
+;      (is (:valid? a))
+;      (pprint history)
+;      (println "history length" (count history))
+;      (prn)
+;      (pprint (update-in a [:worlds] (partial take 10))))))

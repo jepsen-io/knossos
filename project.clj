@@ -11,6 +11,7 @@
                  [potemkin "0.3.4"]
                  [interval-metrics "1.0.0"]
                  [com.boundary/high-scale-lib "1.0.3"]
-                 [org.clojure/tools.logging "0.2.6"]]
+                 [org.clojure/tools.logging "0.2.6"]
+                 [org.slf4j/slf4j-log4j12 "1.6.1"]]
   ; "-verbose:gc" "-XX:+PrintGCDetails"
   :jvm-opts ["-Xmx32g" "-XX:+UseConcMarkSweepGC" "-XX:+UseParNewGC" "-XX:+CMSParallelRemarkEnabled" "-XX:+AggressiveOpts" "-XX:+UseFastAccessorMethods"])
