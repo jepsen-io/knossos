@@ -582,9 +582,9 @@
                                depth      (:index (first @deepest))
                                depth-frac (/ depth (count history))]
                            (info (str "[" depth " / " (count history) "]")
-                                 (.get (:extant-worlds stats)) "extant,"
-                                 (long visited) "visited,"
-                                 (long skipped) "skipped,"
+                                 (.get (:extant-worlds stats)) "extant worlds,"
+                                 (long visited) "visited/s,"
+                                 (long skipped) "skipped/s,"
                                  "hitrate" (format "%.3f" hitrate)
                                  "cache size" (.size seen))))))]
 

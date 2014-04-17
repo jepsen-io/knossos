@@ -31,5 +31,5 @@
 (defn prioqueue [comparator]
   (StripedBlockingQueue.
     (->> (repeatedly #(PriorityBlockingQueue. 1 comparator))
-         (take 1)
+         (take 12)
          vec)))
