@@ -4,10 +4,12 @@
             [clojure.set :as set]
             [clojure.tools.logging :refer :all]
             [interval-metrics.core :as metrics]
-            [potemkin :refer [definterface+]])
+            [potemkin :refer [definterface+]]
+            [knossos.prioqueue :as prioqueue]
+            [knossos.util :as util])
   (:import (org.cliffc.high_scale_lib NonBlockingHashMapLong)
-           (java.util.concurrent PriorityBlockingQueue
-                                 TimeUnit)))
+           (java.util.concurrent.atomic AtomicLong
+                                        AtomicBoolean)))
 
 (defn foldset
   "Folds a reducible collection into a set."
@@ -436,38 +438,78 @@
           (.put seen h k))
         false))))
 
+(defn short-circuit!
+  "If we've reached a world with an index as deep as the history, we can
+  abort all threads immediately."
+  [history ^AtomicBoolean running? world]
+  (when (= (count history) (:index world))
+    (.set running? false)))
+
+(defn update-deepest-world!
+  "If this is the deepest world we've seen, add it to the deepest list."
+  [deepest world]
+  (when (<= (:index (first @deepest)) (:index world))
+    (swap! deepest (fn update [deepest]
+                     (let [index  (:index (first deepest))
+                           index' (:index world)]
+                       (cond (< index index') [world]
+                             (= index index') (conj deepest world)
+                             :else            deepest))))))
+
+(defn explore-world!
+  "Explores a world's direct successors, reinjecting each into `leaders`.
+  Returns the number of worlds reinserted into leaders. Uses the `seen` cache
+  to avoid exploring worlds already visited. Updates `deepest` with new worlds
+  at the highest index in the history. Guarantees that by return time, all
+  worlds reinjected into leaders will be known to be extant."
+  [history ^AtomicBoolean running? leaders seen deepest stats world]
+  (when (< (:index world) (count history))
+    (let [op         (nth history (:index world))
+          worlds     (fold-op-into-world world op)
+          reinserted (reduce
+                       (fn reinjector [reinserted world]
+                         ; Jacques-Yves Cousteau would be thrilled
+                         (update-deepest-world! deepest world)
+
+                         ; Done?
+                         (short-circuit! history running? world)
+
+                         (if (seen-world!? seen world)
+                           ; Definitely been here before
+                           (do (metrics/update! (:skipped-worlds stats) 1)
+                               reinserted)
+
+                           ; O brave new world, that hath such operations in it!
+                           (do (metrics/update! (:visited-worlds stats) 1)
+                               (prioqueue/put! leaders world)
+                               (inc reinserted))))
+                       0
+                       worlds)]
+
+      ; Ensure that these worlds are known to be extant
+      (.addAndGet ^AtomicLong (:extant-worlds stats) reinserted))))
+
 (defn explorer
   "Pulls worlds off of the leader atom, explores them, and pushes resulting
-  worlds back onto the leader atom. Returns a future which continues as long
-  as running? is true."
-  [history running? ^PriorityBlockingQueue leaders seen furthest stats i]
+  worlds back onto the leader atom."
+  [history ^AtomicBoolean running? leaders seen deepest stats i]
   (future
-    (while @running?
-      (when-let [world  (.poll leaders 10 TimeUnit/MILLISECONDS)]
-        (let [op     (nth history (:index world))
-              worlds (fold-op-into-world world op)]
+    (util/with-thread-name (str "explorer-" i)
+      (try
+        (while (pos? (.get ^AtomicLong (:extant-worlds stats)))
+          (when-let [world (prioqueue/poll! leaders 10)]
+            ; Explore world, possibly creating new ones
+            (explore-world! history running? leaders seen deepest stats world)
 
-          (when-let [w (first worlds)]
-            ; Furthest we've gotten?
-            (when (< (:index @furthest) (:index w))
-              (swap! furthest (fn push-it [furthest]
-                                (if (< (:index furthest) (:index w))
-                                  w
-                                  furthest))))
+            ; We're done with this world now.
+            (.decrementAndGet ^AtomicLong (:extant-worlds stats))))
 
-            ; Are we done?
-            (if (= (:index w) (count history))
-              (reset! running? false)
+        ; We've exhausted all possible worlds
+        (.set running? false)
 
-              ; Reinject subsequent worlds
-              (reduce (fn reinjector [_ world]
-                        (if (seen-world!? seen world)
-                          (metrics/update! (:skipped-worlds stats) 1)
-                          (do
-                            (metrics/update! (:visited-worlds stats) 1)
-                            (.put leaders world))))
-                      nil
-                      worlds))))))))
+      (catch Throwable t
+        (warn t "explorer" i "crashed!")
+        (throw t))))))
 
 (defn linearizable-prefix-and-worlds
   "Returns a vector consisting of the longest linearizable prefix and the
@@ -506,39 +548,47 @@
   (if (empty? history)
     [history (world model)]
     (let [world    (world model)
-          running? (atom true)
-          leaders  (PriorityBlockingQueue.
-                     1
-                     awfulness-comparator)
+          threads  48
+          leaders  (prioqueue/prioqueue awfulness-comparator)
           seen     (NonBlockingHashMapLong.)
-          stats    {:skipped-worlds (metrics/rate)
+          running? (AtomicBoolean. true)
+          stats    {:extant-worlds  (AtomicLong. 1)
+                    :skipped-worlds (metrics/rate)
                     :visited-worlds (metrics/rate)}
-          furthest (atom world)
-          workers  (->> (range 48)
+          deepest (atom [world])
+          workers  (->> (range threads)
                         (map (partial explorer history running? leaders
-                                      seen furthest stats))
+                                      seen deepest stats))
                         doall)
           reporter (future
-                     (while @running?
-                       (Thread/sleep 5000)
-                       (let [visited (metrics/snapshot! (:visited-worlds stats))
-                             skipped (metrics/snapshot! (:skipped-worlds stats))
-                             total   (+ visited skipped)
-                             hitrate (/ skipped total)]
-                         (info (long visited) "visited,"
-                               (long skipped) "skipped,"
-                               "hitrate" hitrate))))]
+                     (util/with-thread-name "reporter"
+                       (while (.get running?)
+                         (Thread/sleep 5000)
+                         (let [visited    (metrics/snapshot!
+                                            (:visited-worlds stats))
+                               skipped    (metrics/snapshot!
+                                            (:skipped-worlds stats))
+                               total      (+ visited skipped)
+                               hitrate    (if (zero? total) 1 (/ skipped total))
+                               depth      (:index (first @deepest))
+                               depth-frac (/ depth (count history))]
+                           (info (str "[" depth " / " (count history) "]")
+                                 (.get (:extant-worlds stats)) "extant,"
+                                 (long visited) "visited,"
+                                 (long skipped) "skipped,"
+                                 "hitrate" (format "%.3f" hitrate)
+                                 "cache size" (.size seen))))))]
 
       ; Start with a single world containing the initial state
-      (.put leaders world)
+      (prioqueue/put! leaders world)
 
       ; Wait for workers
       (->> workers (map deref) dorun)
-      @reporter
+      (future-cancel reporter)
 
-      ; Return prefix and furthest world
-      (let [furthest @furthest]
-        [(take (:index furthest) history) furthest]))))
+      ; Return prefix and deepest world
+      (let [deepest @deepest]
+        [(take (:index (first deepest)) history) deepest]))))
 
 (defn linearizable-prefix
   "Computes the longest prefix of a history which is linearizable."

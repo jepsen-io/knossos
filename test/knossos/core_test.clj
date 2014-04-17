@@ -1,6 +1,7 @@
 (ns knossos.core-test
   (:require [clojure.test :refer :all]
             [knossos.core :refer :all]
+            [knossos.prioqueue :as prioqueue]
             [clojure.pprint :refer [pprint]]))
 
 (deftest complete-test
@@ -281,9 +282,19 @@
         (clojure.pprint/pprint (linearizations (->Register 0) history)))
       (is (not (empty? linear))))))
 
+(deftest prioqueue-test
+  (let [q  (prioqueue/prioqueue awfulness-comparator)
+        w1 (assoc (world :good) :index 10 :pending #{1})
+        w2 (assoc (world :evil) :index 20 :pending #{1 2 3 4 5 6})]
+    (->> [w1 w2 w1 w2]
+         (map (partial prioqueue/put! q))
+         (dorun))
+    (is (= (take-while identity (repeatedly #(prioqueue/poll! q 1))))
+        [w1 w1 w2 w2])))
+
 (deftest volatile-linearizable-test
   (dotimes [i 1]
-    (let [history (volatile-history 100 10 0.5)
+    (let [history (volatile-history 20 100 0.5)
           a       (analysis (->Register 0) history)]
       (is (:valid? a))
-      (pprint (analysis (->Register 0) history)))))
+      (pprint (update-in a [:worlds] (partial take 10))))))
