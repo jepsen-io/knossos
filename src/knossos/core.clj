@@ -436,13 +436,15 @@
         ; visit.
         (when (< 1 (count (:pending world)))
           (.put seen h k))
-        false))))
+        false)))
+  false)
 
 (defn short-circuit!
   "If we've reached a world with an index as deep as the history, we can
   abort all threads immediately."
   [history ^AtomicBoolean running? world]
   (when (= (count history) (:index world))
+    (info "Short-circuiting" world)
     (.set running? false)))
 
 (defn update-deepest-world!
@@ -496,7 +498,8 @@
   (future
     (util/with-thread-name (str "explorer-" i)
       (try
-        (while (pos? (.get ^AtomicLong (:extant-worlds stats)))
+        (while (and (.get running?)
+                    (pos? (.get ^AtomicLong (:extant-worlds stats))))
           (when-let [world (prioqueue/poll! leaders 10)]
             ; Explore world, possibly creating new ones
             (explore-world! history running? leaders seen deepest stats world)

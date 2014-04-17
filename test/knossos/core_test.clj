@@ -297,4 +297,7 @@
     (let [history (volatile-history 20 100 0.5)
           a       (analysis (->Register 0) history)]
       (is (:valid? a))
+      (pprint history)
+      (println "history length" (count history))
+      (prn)
       (pprint (update-in a [:worlds] (partial take 10))))))
