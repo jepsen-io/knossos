@@ -7,47 +7,22 @@
             [potemkin :refer [definterface+]]
             [knossos.prioqueue :as prioqueue]
             [knossos.util :as util]
+            [knossos.op :as op]
+            [knossos.history :as history]
             [clojure.pprint :refer [pprint]])
   (:import (org.cliffc.high_scale_lib NonBlockingHashMapLong)
            (java.util.concurrent.atomic AtomicLong
                                         AtomicBoolean)))
 
-(defn foldset
-  "Folds a reducible collection into a set."
-  [coll]
-  (r/fold (r/monoid set/union hash-set)
-          conj
-          coll))
+(def op op/op)
 
-(defn op
-  "Constructs a new operation for a history."
-  [process type f value]
-  {:process process
-   :type    type
-   :f       f
-   :value   value})
+(def invoke-op  op/invoke)
+(def ok-op      op/ok)
+(def fail-op    op/fail)
 
-(defn invoke-op
-  [process f value]
-  (op process :invoke f value))
-
-(defn ok-op
-  [process f value]
-  (op process :ok f value))
-
-(defn fail-op
-  [process f value]
-  (op process :fail f value))
-
-(defn invoke? [op] (= :invoke (:type op)))
-(defn ok?     [op] (= :ok     (:type op)))
-(defn fail?   [op] (= :fail   (:type op)))
-
-(defn same-process?
-  "Do A and B come from the same process?"
-  [a b]
-  (= (:process a)
-     (:process b)))
+(def invoke? op/invoke?)
+(def ok?     op/ok?)
+(def fail?   op/fail?)
 
 (definterface+ Model
   (step [model op]
@@ -85,104 +60,6 @@
                (inconsistent
                  (str "read " (pr-str (:value op))
                       " from register " value))))))
-
-(defn processes
-  "What processes are in a history?"
-  [history]
-  (->> history
-       (r/map :process)
-       (into #{})))
-
-(defn pairs
-  "Yields a lazy sequence of [info] | [invoke, ok|fail] pairs from a history]"
-  ([history]
-   (pairs {} history))
-  ([invocations [op & ops]]
-   (lazy-seq
-     (when op
-       (case (:type op)
-         :info        (cons [op] (pairs invocations ops))
-         :invoke      (do (assert (not (contains? invocations (:process op))))
-                          (pairs (assoc invocations (:process op) op) ops))
-         (:ok :fail)  (do (assert (contains? invocations (:process op)))
-                          (cons [(get invocations (:process op)) op]
-                                (pairs (dissoc invocations (:process op))
-                                       ops))))))))
-
-(defn remove-failures
-  "Returns a version of a history in which none of the operations which are
-  known to have failed ever took place at all."
-  [history]
-  :todo)
-
-(defn complete
-  "When a request is initiated, we may not know what the result will be--but
-  find out when it completes. In the history, this might look like
-
-  [{:type :invoke
-    :f    :read
-    :value nil}    ; We don't know what we're going to read.
-   {:type  :ok
-    :f     :read
-    :value 2}]     ; We received 2.
-
-  This function fills in missing values for invocations, where those requests
-  complete. It constructs a new history in which we 'already knew' what the
-  results of successful operations would have been.
-
-  For failed operations, complete fills in the value for both invocation
-  and completion; depending on whichever has a value available."
-  [history]
-  (->> history
-       (reduce
-         (fn complete [[history index] op]
-           ; History is our complete history of operations. Index is a map of
-           ; processes to the index of their most recent invocation. Note that
-           ; we assume processes are singlethreaded; e.g. they do not perform
-           ; multiple invocations without receiving responses.
-           (condp = (:type op)
-             ; An invocation; remember where it is
-             :invoke
-             (let [i (count history)]
-               ; Enforce the singlethreaded constraint.
-               (when-let [prior (get index (:process op))]
-                 (throw (RuntimeException.
-                          (str "Process " (:process op) " already running "
-                               (pr-str (get history prior))
-                               ", yet attempted to invoke "
-                               (pr-str op) " concurrently"))))
-
-               [(conj! history op)
-                (assoc! index (:process op) i)])
-
-             ; A completion; fill in the completed value.
-             :ok
-             (let [i           (get index (:process op))
-                   _           (assert i)
-                   invocation  (nth history i)
-                   value       (or (:value invocation) (:value op))]
-               [(-> history
-                    (assoc! i (assoc invocation :value value))
-                    (conj!  op))
-                (dissoc! index (:process op))])
-
-             ; A failure; fill in either value.
-             :fail
-             (let [i           (get index (:process op))
-                   _           (assert i)
-                   invocation  (nth history i)
-                   value       (or (:value invocation) (:value op))]
-               [(-> history
-                    (assoc! i (assoc invocation :value value))
-                    (conj!    (assoc op :value value)))
-                (dissoc! index (:process op))])
-
-             ; No change for info messages
-             :info
-             [(conj! history op) index]))
-         [(transient []) (transient {})])
-       first
-       persistent!))
 
 (defn world
   "A world represents the state of the system at one particular point in time.
@@ -334,19 +211,14 @@
        (r/map #(fold-failure-into-world % failure))
        (r/remove nil?)))
 
-(defn maybe-list
-  "If x is nil, returns the empty list. If x is not-nil, returns (x)."
-  [x]
-  (if x (list x) '()))
-
 (defn fold-op-into-world
   "Given a world and any type of operation, folds that operation into the world
   and returns a sequence of possible worlds. Increments the world index."
   [world op]
   (condp = (:type op)
     :invoke (fold-invocation-into-world world op)
-    :ok     (maybe-list (fold-completion-into-world world op))
-    :fail   (maybe-list (fold-failure-into-world    world op))
+    :ok     (util/maybe-list (fold-completion-into-world world op))
+    :fail   (util/maybe-list (fold-failure-into-world    world op))
     :info   (list (assoc world :index (inc (:index world))))))
 
 (defn fold-op-into-worlds
@@ -355,7 +227,7 @@
   [worlds op]
   (->> worlds
        (r/mapcat #(fold-op-into-world % op))
-       foldset))
+       util/foldset))
 
 (defn linearizations
   "Given a model and a history, returns all possible worlds where that history
@@ -383,7 +255,7 @@
                                  world}))
        (r/fold merge)
        (r/map (fn [_ v] v))
-       foldset))
+       util/foldset))
 
 (defn linearizable-prefix-and-worlds
   "Returns a vector consisting of the linearizable prefix and the worlds
@@ -612,7 +484,7 @@
   "Returns a map of information about the linearizability of a history.
   Completes the history and searches for a linearization."
   [model history]
-  (let [history+            (complete history)
+  (let [history+            (history/complete history)
         [lin-prefix worlds] (linearizable-prefix-and-worlds model history+)
         valid?              (= (count history+) (count lin-prefix))
         evil-op             (when-not valid?

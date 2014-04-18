@@ -1,10 +1,24 @@
 (ns knossos.util
-  "Toolbox")
+  "Toolbox"
+  (:require [clojure.core.reducers :as r]
+            [clojure.set :as set]))
 
 (defn rempty?
   "Like empty, but for reducibles."
   [coll]
   (reduce (fn [_ _] (reduced false)) true coll))
+
+(defn foldset
+  "Folds a reducible collection into a set."
+  [coll]
+  (r/fold (r/monoid set/union hash-set)
+          conj
+          coll))
+
+(defn maybe-list
+  "If x is nil, returns the empty list. If x is not-nil, returns (x)."
+  [x]
+  (if x (list x) '()))
 
 (defmacro with-thread-name
   "Sets the thread name for duration of block."

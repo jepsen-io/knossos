@@ -2,39 +2,8 @@
   (:require [clojure.test :refer :all]
             [knossos.core :refer :all]
             [knossos.prioqueue :as prioqueue]
+            [knossos.history :as history]
             [clojure.pprint :refer [pprint]]))
-
-(deftest complete-test
-  (testing "empty history"
-    (is (= (complete [])
-           [])))
-
-  (testing "an invocation"
-    (is (= (complete [(invoke-op :a :read nil)])
-           [(invoke-op :a :read nil)])))
-
-  (testing "a completed invocation"
-    (is (= (complete [(invoke-op :a :read nil)
-                      (ok-op     :a :read 2)])
-           [(invoke-op :a :read 2)
-            (ok-op     :a :read 2)])))
-
-  (testing "a failed invocation"
-    (is (= (complete [(invoke-op :a :read nil)
-                      (fail-op   :a :read 2)])
-           (complete [(invoke-op :a :read 2)
-                      (fail-op   :a :read nil)])
-           [(invoke-op :a :read 2)
-            (fail-op   :a :read 2)])))
-
-  (testing "an unbalanced set of invocations"
-    (is (thrown? RuntimeException
-                 (complete [(invoke-op :a :read nil)
-                            (invoke-op :a :read nil)]))))
-
-  (testing "an unbalanced completion"
-    (is (thrown? AssertionError
-                 (complete [(ok-op :a :read 2)])))))
 
 (comment
   (deftest keep-singular-test
@@ -241,7 +210,7 @@
   (set-mutable [this x] (set! v x)))
 
 (defn volatile-history
-  "Records a completed linearizable history by mucking around with a volatile
+  "Records a linearizable history by mucking around with a volatile
   mutable variable. Crash-factor is the likelihood that a process crashes
   during an operation: 0 is always reliable, 1 always crashes. Processes may
   crash before or after an operation actually occurs."
@@ -269,13 +238,13 @@
                            (when (< crash-factor (rand)) (assert false))
                            (swap! history conj (ok-op process :read value)))))))
                  (catch AssertionError _ :crashed)))
-    (complete @history)))
+    @history))
 
 ; Do a bunch of reads and writes on a volatile mutable variable and test if the
 ; resulting history is linearizable.
 (deftest volatile-test
   (dotimes [i 1]
-    (let [history (volatile-history 6 100 0)
+    (let [history (history/complete (volatile-history 6 100 0))
           linear  (linearizations (->Register 0) history)]
       (when (empty? linear)
         (clojure.pprint/pprint history)
