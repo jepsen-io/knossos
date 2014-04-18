@@ -86,7 +86,8 @@
 ; (prn "advancing" world "with" ops)
   (-> world
       transient
-      (assoc! :fixed   (into (:fixed world) ops))
+      ; Unclear whether this is faster than transients via (into).
+      (assoc! :fixed   (reduce conj (:fixed world) ops))
       (assoc! :model   (reduce step (:model world) ops))
       (assoc! :pending (persistent!
                          (reduce disj! (transient (:pending world)) ops)))
