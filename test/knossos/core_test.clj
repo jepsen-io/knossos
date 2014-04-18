@@ -255,7 +255,7 @@
 
 (deftest volatile-linearizable-test
   (dotimes [i 1]
-    (let [history (volatile-history 100 100 0.5)
+    (let [history (volatile-history 110 100 0.5)
           a       (analysis (->Register 0) history)]
       (is (:valid? a))
       (pprint history)

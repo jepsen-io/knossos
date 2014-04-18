@@ -443,7 +443,7 @@
   (if (empty? history)
     [history (world model)]
     (let [world    (world model)
-          threads  48
+          threads  (+ 2 (.. Runtime getRuntime availableProcessors))
           leaders  (prioqueue/prioqueue awfulness-comparator)
           seen     (NonBlockingHashMapLong.)
           running? (AtomicBoolean. true)
