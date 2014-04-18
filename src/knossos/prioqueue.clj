@@ -15,7 +15,10 @@
   Queue
   (put! [q element]
     ; Spray out to a random queue
-    (.put ^BlockingQueue (rand-nth qs) element))
+    ; (.put ^BlockingQueue (rand-nth qs) element)
+    ; Push onto our preferred queue plus one
+    (let [t (mod (.. Thread currentThread getId) (count qs))]
+      (.put ^BlockingQueue (nth qs t) element)))
 
   (poll! [q timeout]
     (let [n (count qs)
