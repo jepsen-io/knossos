@@ -3,6 +3,7 @@
             [knossos.core :refer :all]
             [knossos.prioqueue :as prioqueue]
             [knossos.history :as history]
+            [knossos.op :as op]
             [clojure.pprint :refer [pprint]]))
 
 (comment
@@ -24,10 +25,10 @@
                    (doall (keep-singular inc ["a" "b"])))))))
 
 (deftest advance-world-test
-  (let [ops [(ok-op :a :read 0)
-             (ok-op :a :read nil)
-             (ok-op :a :write 1)
-             (ok-op :a :read 1)]]
+  (let [ops [(op/ok :a :read 0)
+             (op/ok :a :read nil)
+             (op/ok :a :write 1)
+             (op/ok :a :read 1)]]
     (is (= (-> (->Register 0)
                world
                (assoc :pending (set ops))
@@ -36,7 +37,7 @@
 
     (is (inconsistent-world?
                  (advance-world (world (->Register 0))
-                                [(ok-op :a :read 1)])))))
+                                [(op/ok :a :read 1)])))))
 
 (deftest degenerate-worlds-test
   (testing "empty"
@@ -77,60 +78,60 @@
 
   (testing "fixed history"
     (let [w (-> (world (->Register 0))
-                (assoc :fixed [(ok-op :a :read 0)]))]
+                (assoc :fixed [(op/ok :a :read 0)]))]
       (is (= (possible-worlds w) [w]))))
 
   (testing "one fixed, one pending operation"
     (let [w (-> (world (->Register 0))
-                (assoc :fixed    [(ok-op :a :read 0)])
-                (assoc :pending #{(ok-op :a :write 1)}))]
+                (assoc :fixed    [(op/ok :a :read 0)])
+                (assoc :pending #{(op/ok :a :write 1)}))]
       (is (= (set (possible-worlds w))
              ; In one world, the write occurs
              #{(-> (world (->Register 1))
-                   (assoc :fixed [(ok-op :a :read 0)
-                                  (ok-op :a :write 1)])
+                   (assoc :fixed [(op/ok :a :read 0)
+                                  (op/ok :a :write 1)])
                    (assoc :pending #{}))
                ; And in the other, the write is still pending.
                w}))))
 
   (testing "Multiple pending operations with only two linear paths"
     (let [w (-> (world (->Register 0))
-                (assoc :pending #{(ok-op :a :read 0)
-                                  (ok-op :a :write 1)
-                                  (ok-op :a :read 1)}))]
+                (assoc :pending #{(op/ok :a :read 0)
+                                  (op/ok :a :write 1)
+                                  (op/ok :a :read 1)}))]
       (is (= (set (possible-worlds w))
              #{; Nothing happened
                w
                ; Read 0 happened
                (-> w
-                   (assoc :fixed   [(ok-op :a :read 0)])
-                   (assoc :pending #{(ok-op :a :write 1)
-                                     (ok-op :a :read 1)}))
+                   (assoc :fixed   [(op/ok :a :read 0)])
+                   (assoc :pending #{(op/ok :a :write 1)
+                                     (op/ok :a :read 1)}))
                ; Read 0 and write 1 happened.
                (-> w
                    (assoc :model   (->Register 1))
-                   (assoc :fixed   [(ok-op :a :read 0)
-                                    (ok-op :a :write 1)])
-                   (assoc :pending #{(ok-op :a :read 1)}))
+                   (assoc :fixed   [(op/ok :a :read 0)
+                                    (op/ok :a :write 1)])
+                   (assoc :pending #{(op/ok :a :read 1)}))
                ; All ops happened
                (-> w
                    (assoc :model (->Register 1))
-                   (assoc :fixed [(ok-op :a :read 0)
-                                  (ok-op :a :write 1)
-                                  (ok-op :a :read 1)])
+                   (assoc :fixed [(op/ok :a :read 0)
+                                  (op/ok :a :write 1)
+                                  (op/ok :a :read 1)])
                    (assoc :pending #{}))
                ; Write 1 happened.
                (-> w
                    (assoc :model (->Register 1))
-                   (assoc :fixed [(ok-op :a :write 1)])
-                   (assoc :pending #{(ok-op :a :read 0)
-                                     (ok-op :a :read 1)}))
+                   (assoc :fixed [(op/ok :a :write 1)])
+                   (assoc :pending #{(op/ok :a :read 0)
+                                     (op/ok :a :read 1)}))
                ; Write 1 and read 1 happened.
                (-> w
                    (assoc :model (->Register 1))
-                   (assoc :fixed [(ok-op :a :write 1)
-                                  (ok-op :a :read 1)])
-                   (assoc :pending #{(ok-op :a :read 0)}))})))))
+                   (assoc :fixed [(op/ok :a :write 1)
+                                  (op/ok :a :read 1)])
+                   (assoc :pending #{(op/ok :a :read 0)}))})))))
 
 (deftest linearizations-test
   (testing "Empty history"
@@ -139,47 +140,47 @@
 
   (testing "Single invocation and completion."
     (is (= (set (linearizations (->Register 0)
-                                [(invoke-op :a :read 0)
-                                 (ok-op :a :read 0)]))
+                                [(op/invoke :a :read 0)
+                                 (op/ok :a :read 0)]))
            #{(-> (world (->Register 0))
                  (assoc :index 2
-                        :fixed [(invoke-op :a :read 0)]))})))
+                        :fixed [(op/invoke :a :read 0)]))})))
 
   (testing "Single invocation and failure."
     (is (= (set (linearizations (->Register 0)
-                                [(invoke-op :a :read 0)
-                                 (fail-op   :a :read 0)]))
+                                [(op/invoke :a :read 0)
+                                 (op/fail   :a :read 0)]))
            #{(-> (world (->Register 0))
                  (assoc :index 2))})))
 
   (testing "Simple read-write race with one linearization."
     (is (= (set (linearizations (->Register 0)
-                                [(invoke-op :a :read 0)
-                                 (ok-op :a :read 0)
-                                 (invoke-op :a :read 1)   ; Overlaps B's write
-                                 (invoke-op :b :write 1)
-                                 (ok-op :a :read 1)
-                                 (ok-op :b :write 1)]))
+                                [(op/invoke :a :read 0)
+                                 (op/ok :a :read 0)
+                                 (op/invoke :a :read 1)   ; Overlaps B's write
+                                 (op/invoke :b :write 1)
+                                 (op/ok :a :read 1)
+                                 (op/ok :b :write 1)]))
            #{(-> (world (->Register 1))
                  (assoc :index 6
-                        :fixed [(invoke-op :a :read 0)
-                                (invoke-op :b :write 1)
-                                (invoke-op :a :read 1)]))})))
+                        :fixed [(op/invoke :a :read 0)
+                                (op/invoke :b :write 1)
+                                (op/invoke :a :read 1)]))})))
 
   (testing "Totally concurrent but corresponding reads/writes."
     (is (= (->> (linearizations (->Register 0)
-                                [(invoke-op :w1 :write 1)
-                                 (invoke-op :r1 :read 1)
-                                 (invoke-op :w2 :write 2)
-                                 (invoke-op :r2 :read 2)
-                                 (invoke-op :w3 :write 3)
-                                 (invoke-op :r3 :read 3)
-                                 (ok-op :w1 :write 1)
-                                 (ok-op :r1 :read 1)
-                                 (ok-op :w2 :write 2)
-                                 (ok-op :r2 :read 2)
-                                 (ok-op :w3 :write 3)
-                                 (ok-op :r3 :read 3)])
+                                [(op/invoke :w1 :write 1)
+                                 (op/invoke :r1 :read 1)
+                                 (op/invoke :w2 :write 2)
+                                 (op/invoke :r2 :read 2)
+                                 (op/invoke :w3 :write 3)
+                                 (op/invoke :r3 :read 3)
+                                 (op/ok :w1 :write 1)
+                                 (op/ok :r1 :read 1)
+                                 (op/ok :w2 :write 2)
+                                 (op/ok :r2 :read 2)
+                                 (op/ok :w3 :write 3)
+                                 (op/ok :r3 :read 3)])
                 (map :fixed)
                 (map (partial map :process))
                 set)
@@ -227,16 +228,16 @@
                      (if (< (rand) 0.5)
                        ; Write
                        (do
-                         (swap! history conj (invoke-op process :write value))
+                         (swap! history conj (op/invoke process :write value))
                          (set-mutable x value)
                          (when (< crash-factor (rand)) (assert false))
-                         (swap! history conj (ok-op process :write value)))
+                         (swap! history conj (op/ok process :write value)))
                        ; Read
                        (do
-                         (swap! history conj (invoke-op process :read nil))
+                         (swap! history conj (op/invoke process :read nil))
                          (let [value (get-mutable x)]
                            (when (< crash-factor (rand)) (assert false))
-                           (swap! history conj (ok-op process :read value)))))))
+                           (swap! history conj (op/ok process :read value)))))))
                  (catch AssertionError _ :crashed)))
     @history))
 
