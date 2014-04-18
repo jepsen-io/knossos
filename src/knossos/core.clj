@@ -505,7 +505,12 @@
         [lin-prefix worlds] (linearizable-prefix-and-worlds model history+)
         valid?              (= (count history+) (count lin-prefix))
         evil-op             (when-not valid?
-                              (nth history+ (count lin-prefix)))]
+                              (nth history+ (count lin-prefix)))
+        ; Remove worlds with equivalent states
+        worlds              (->> worlds
+                                 (r/map (juxt identity degenerate-world-key))
+                                 (into {})
+                                 vals)]
     (if valid?
       {:valid?              true
        :linearizable-prefix lin-prefix
