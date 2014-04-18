@@ -211,6 +211,12 @@
        (r/map #(fold-failure-into-world % failure))
        (r/remove nil?)))
 
+(defn fold-info-into-world
+  "Given a world and an info operation, returns a subsequent world. Info
+  operations don't appear in the fixed history; only the index advances."
+  [world info]
+  (assoc world :index (inc (:index world))))
+
 (defn fold-op-into-world
   "Given a world and any type of operation, folds that operation into the world
   and returns a sequence of possible worlds. Increments the world index."
@@ -219,7 +225,7 @@
     :invoke (fold-invocation-into-world world op)
     :ok     (util/maybe-list (fold-completion-into-world world op))
     :fail   (util/maybe-list (fold-failure-into-world    world op))
-    :info   (list (assoc world :index (inc (:index world))))))
+    :info   (list            (fold-info-into-world       world op))))
 
 (defn fold-op-into-worlds
   "Given a set of worlds and any type of operation, folds that operation into
@@ -231,56 +237,64 @@
 
 (defn linearizations
   "Given a model and a history, returns all possible worlds where that history
-  is linearizable."
+  is linearizable. Brute-force, expensive, but deterministic, simple, and
+  useful for short histories."
   [model history]
   (assert (vector? history))
   (reduce fold-op-into-worlds
           (list (world model))
           history))
 
-(defn degenerate-worlds
-  "NEXT LEVEL ALGORITHMIC MANEUVER: if all we care about is whether a history
-  is linearizable *at all*, instead of exactly how it got there, we can pull A
-  SNEAKY TRICK by only choosing worlds which *could* linearize differently in
-  the future.
+(defn next-op
+  "The next operation from the history to be applied to a world, based on the
+  world's index, or nil when out of bounds."
+  [history world]
+  (try
+    (nth history (:index world))
+    (catch NullPointerException e
+      (info world)
+      (throw e))
+    (catch IndexOutOfBoundsException e
+      nil)))
 
-  In particular, we exploit the fact that the past is a fiction;
-  how we got to a given model state has no impact on the model's future
-  evolution. If two models have identical models and pending sets we may ignore
-  their history.
+(defn prune-world
+  "Given a history and a world, advances the world through as many operations
+  in the history as possible, without splitting into multiple worlds. Returns a
+  new world (possibly the same as the input), or nil if the world was found to
+  be inconsistent."
+  [history stats world]
+  (when world
+    (metrics/update! (:visited-worlds stats) 1)
+    (if-let [op (next-op history world)]
+      (condp = (:type op)
+        :ok   (recur history stats (fold-completion-into-world world op))
+        :fail (recur history stats (fold-failure-into-world    world op))
+        :info (recur history stats (fold-info-into-world       world op))
+        world)
 
-  Takes a set of worlds and returns an equivalent set of worlds."
-  [worlds]
-  (->> worlds
-       (r/map (fn index [world] {[(:model world) (:pending world)]
-                                 world}))
-       (r/fold merge)
-       (r/map (fn [_ v] v))
-       util/foldset))
+      ; No more ops
+      world)))
 
-(defn linearizable-prefix-and-worlds
-  "Returns a vector consisting of the linearizable prefix and the worlds
-  just prior to exhaustion."
-  [model history]
-  (reduce (fn [[linearizable worlds] op]
-            (let [worlds'  (fold-op-into-worlds worlds op)
-                  worlds'' (degenerate-worlds worlds')]
-              (prn :world-size (count worlds')
-                   :degenerate (count worlds''))
-              (if (empty? worlds'')
-                ; Out of options
-                (reduced [linearizable worlds])
-                [(conj linearizable op) worlds''])))
-          [[] (list (world model))]
-          history))
+(defn explode-then-prune-world
+  "Given a history and a world, generates a reducible sequence of possible
+  subseqeuent worlds, obtained in two phases:
 
-(def awfulness-comparator
-  "Which one of these worlds should we explore first?"
-  (reify java.util.Comparator
-    (compare [this a b]
-      (cond (< (count (:pending a)) (count (:pending b))) -1
-            (< (:index a)           (:index b))            1
-            :else                                          0))))
+  1. If the next operation in the history for this world is an invocation, we
+     find all possible subsequent worlds as a result of that invocation.
+
+  2. For all immediately subsequent ok, fail, and info operations, use those
+     operations to prune and further advance the worlds from phase 1."
+  [history stats world]
+  (if-let [op (next-op history world)]
+    ; Branch out for all invocations
+    (->> (if (op/invoke? op)
+           (fold-invocation-into-world world op)
+           (list world))
+         ; Prune completions
+         (r/map (fn shears [world] (prune-world history stats world)))
+         (r/remove nil?))
+    ; No more ops
+    (list world)))
 
 (defn degenerate-world-key
   "An object which uniquely identifies whether or not a world is linearizable.
@@ -336,36 +350,28 @@
   at the highest index in the history. Guarantees that by return time, all
   worlds reinjected into leaders will be known to be extant."
   [history ^AtomicBoolean running? leaders seen deepest stats world]
-  (when (< (:index world) (count history))
-    (let [op         (nth history (:index world))
-;          _          (info "op" op "world\n"
-;                           (with-out-str (pprint world)))
-          worlds     (fold-op-into-world world op)
-          reinserted (reduce
-                       (fn reinjector [reinserted world]
-                         ; Jacques-Yves Cousteau could be thrilled
-                         (update-deepest-world! deepest world)
+  (->> world
+       (explode-then-prune-world history stats)
+       (reduce
+         (fn reinjector [reinserted world]
+           ; Jacques-Yves Cousteau could be thrilled
+           (update-deepest-world! deepest world)
 
-                         ; Done?
-                         (short-circuit! history running? world)
+           ; Done?
+           (short-circuit! history running? world)
 
-                         (if (seen-world!? seen world)
-                           ; Definitely been here before
-                           (do (metrics/update! (:skipped-worlds stats) 1)
- ;                              (info "Skipping\n" (with-out-str (pprint world)))
-                               reinserted)
+           (if (seen-world!? seen world)
+             ; Definitely been here before
+             (do (metrics/update! (:skipped-worlds stats) 1)
+                 ; (info "Skipping\n" (with-out-str (pprint world)))
+                 reinserted)
 
-                           ; O brave new world, that hath such operations in it!
-                           (do (metrics/update! (:visited-worlds stats) 1)
-;                               (info "reinjecting\n" (with-out-str (pprint world)))
-                               (.incrementAndGet
-                                 ^AtomicLong (:extant-worlds stats))
-
-                               (prioqueue/put! leaders world)
-                               (inc reinserted))))
-                       0
-                       worlds)]
-      reinserted)))
+             ; O brave new world, that hath such operations in it!
+             (do (.incrementAndGet ^AtomicLong (:extant-worlds stats))
+                 ; (info "reinjecting\n" (with-out-str (pprint world)))
+                 (prioqueue/put! leaders world)
+                 (inc reinserted))))
+         0)))
 
 (defn explorer
   "Pulls worlds off of the leader atom, explores them, and pushes resulting
@@ -390,6 +396,14 @@
       (catch Throwable t
         (warn t "explorer" i "crashed!")
         (throw t))))))
+
+(def awfulness-comparator
+  "Which one of these worlds should we explore first?"
+  (reify java.util.Comparator
+    (compare [this a b]
+      (cond (< (count (:pending a)) (count (:pending b))) -1
+            (< (:index a)           (:index b))            1
+            :else                                          0))))
 
 (defn linearizable-prefix-and-worlds
   "Returns a vector consisting of the longest linearizable prefix and the

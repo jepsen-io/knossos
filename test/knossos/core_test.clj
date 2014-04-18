@@ -39,37 +39,6 @@
                  (advance-world (world (->Register 0))
                                 [(op/ok :a :read 1)])))))
 
-(deftest degenerate-worlds-test
-  (testing "empty"
-    (is (= (degenerate-worlds #{}) #{})))
-
-  (testing "singular"
-    (is (= (degenerate-worlds
-             #{{:model 2 :pending #{1 2 3}}})
-           #{{:model 2 :pending #{1 2 3}}})))
-
-  (testing "distinct models"
-    (is (= (degenerate-worlds
-             #{{:model 1 :pending #{1 2 3}}
-               {:model 2 :pending #{1 2 3}}})
-           #{{:model 1 :pending #{1 2 3}}
-             {:model 2 :pending #{1 2 3}}})))
-
-  (testing "same models"
-    (is (= (->>
-             #{{:model 1 :fixed :a :pending #{1 2 3}}
-               {:model 1 :fixed :b :pending #{1 2 3}}
-               {:model 1 :fixed :a :pending #{1 4}}
-               {:model 1 :fixed :b :pending #{1 4}}
-               {:model 1 :fixed :a :pending #{}}
-               {:model 1 :fixed :b :pending #{}}}
-             degenerate-worlds
-             (map #(select-keys % [:model :pending]))
-             set)
-           #{{:model 1 :pending #{1 2 3}}
-             {:model 1 :pending #{1 4}}
-             {:model 1 :pending #{}}}))))
-
 (deftest possible-worlds-test
   (testing "empty"
     ; The projection of an empty world is an empty world. I'm so alone.
