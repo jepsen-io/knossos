@@ -320,7 +320,7 @@
         ; We want to avoid hitting shared state for cheap operations, so we
         ; only write to the cache if this world is sufficiently expensive to
         ; visit.
-        (when (< 1 (count (:pending world)))
+        (when (< 0 (count (:pending world)))
           (.put seen h k))
         false))))
 
