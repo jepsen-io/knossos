@@ -86,7 +86,7 @@
 ; (prn "advancing" world "with" ops)
   (-> world
       transient
-      (assoc! :fixed   (concat (:fixed world) ops))
+      (assoc! :fixed   (into (:fixed world) ops))
       (assoc! :model   (reduce step (:model world) ops))
       (assoc! :pending (persistent!
                          (reduce disj! (transient (:pending world)) ops)))
@@ -233,6 +233,7 @@
   "Given a model and a history, returns all possible worlds where that history
   is linearizable."
   [model history]
+  (assert (vector? history))
   (reduce fold-op-into-worlds
           (list (world model))
           history))
@@ -424,6 +425,7 @@
   have to keep trying and trying until every possible option has been
   exhausted."
   [model history]
+  (assert (vector? history))
   (if (empty? history)
     [history (world model)]
     (let [world    (world model)
