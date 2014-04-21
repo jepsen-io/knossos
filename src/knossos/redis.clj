@@ -157,7 +157,7 @@
 (defn log
   "Appends an operation to the history of a system."
   [system op]
-  (assoc system :history (conj (:history system) op)))
+  (update-in system [:history] conj op))
 
 ;; State transitions. Each transition takes a current state of the system and
 ;; returns a sequence of possible future states.
