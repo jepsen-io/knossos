@@ -28,3 +28,8 @@
        (.. Thread currentThread (setName (name ~thread-name)))
        ~@body
        (finally (.. Thread currentThread (setName old-name#))))))
+
+(defn update
+  "Appends an operation to the history of a system."
+  [system op]
+  (update-in system [:history] conj op))
