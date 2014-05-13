@@ -1,7 +1,7 @@
 (ns knossos.redis-test
   (:require [clojure.test :refer :all]
-            [knossos.core :refer [complete
-                                  linearizations
+            [knossos.history :refer [complete]]
+            [knossos.core :refer [linearizations
                                   linearizable-prefix
                                   ->Register]]
             [knossos.redis :refer :all]
