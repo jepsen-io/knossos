@@ -303,7 +303,7 @@
   history), their linearizability is equivalent."
   [world]
   ; What kind of social studies IS this?
-  (dissoc world :history))
+  (dissoc world :fixed))
 
 (defn seen-world!?
   "Given a mutable hashmap of seen worlds, ensures that an entry exists for the
@@ -511,7 +511,7 @@
         worlds              (->> worlds
                                  ; Wait, is this backwards? Should degenerate-
                                  ; world-key be the key in this map?
-                                 (r/map (juxt identity degenerate-world-key))
+                                 (r/map (juxt degenerate-world-key identity))
                                  (into {})
                                  vals)]
     (if valid?
