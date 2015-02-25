@@ -442,7 +442,7 @@
   [model history]
   (assert (vector? history))
   (if (empty? history)
-    [history (world model)]
+    [history [(world model)]]
     (let [world    (world model)
           threads  (+ 2 (.. Runtime getRuntime availableProcessors))
           leaders  (prioqueue/prioqueue awfulness-comparator)
@@ -506,8 +506,11 @@
         valid?              (= (count history+) (count lin-prefix))
         evil-op             (when-not valid?
                               (nth history+ (count lin-prefix)))
+
         ; Remove worlds with equivalent states
         worlds              (->> worlds
+                                 ; Wait, is this backwards? Should degenerate-
+                                 ; world-key be the key in this map?
                                  (r/map (juxt identity degenerate-world-key))
                                  (into {})
                                  vals)]
