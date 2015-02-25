@@ -232,7 +232,7 @@
         [w1 w1 w2 w2])))
 
 (deftest history-a
-  ; A CAS register history that exposes a bug
+  ; A CAS register history that exposed a particular knossos bug
   (let [h [{:process 4, :type :invoke, :f :write, :value 2}
            {:process 4, :type :ok, :f :write, :value 2}
            {:process 6, :type :invoke, :f :read, :value nil}
@@ -252,13 +252,13 @@
       (prn)
       (pprint (update-in a [:worlds] (partial take 10))))))
 
-
 (deftest volatile-linearizable-test
-  (dotimes [i 1]
-    (let [history (volatile-history 150 100 1/2)
+  (dotimes [i 10]
+    (let [history (volatile-history 150 10000 1/100)
           a       (analysis (->Register 0) history)]
       (is (:valid? a))
-      (pprint history)
-      (println "history length" (count history))
-      (prn)
-      (pprint (update-in a [:worlds] (partial take 10))))))
+      (when-not (:valid? a)
+        (pprint history)
+        (println "history length" (count history))
+        (prn)
+        (pprint (update-in a [:worlds] (partial take 10)))))))

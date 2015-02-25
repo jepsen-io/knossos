@@ -303,7 +303,7 @@
   history), their linearizability is equivalent."
   [world]
   ; What kind of social studies IS this?
-  (dissoc world :history))
+  (dissoc world :fixed))
 
 (defn seen-world!?
   "Given a mutable hashmap of seen worlds, ensures that an entry exists for the
@@ -442,7 +442,7 @@
   [model history]
   (assert (vector? history))
   (if (empty? history)
-    [history (world model)]
+    [history [(world model)]]
     (let [world    (world model)
           threads  (+ 2 (.. Runtime getRuntime availableProcessors))
           leaders  (prioqueue/prioqueue awfulness-comparator)
@@ -506,9 +506,12 @@
         valid?              (= (count history+) (count lin-prefix))
         evil-op             (when-not valid?
                               (nth history+ (count lin-prefix)))
+
         ; Remove worlds with equivalent states
         worlds              (->> worlds
-                                 (r/map (juxt identity degenerate-world-key))
+                                 ; Wait, is this backwards? Should degenerate-
+                                 ; world-key be the key in this map?
+                                 (r/map (juxt degenerate-world-key identity))
                                  (into {})
                                  vals)]
     (if valid?

@@ -1,5 +1,5 @@
 (ns knossos.redis
-  (:require [knossos.core :refer [op invoke-op ok-op keep-without-exceptions]]
+  (:require [knossos.core :refer [op invoke-op ok-op]]
             [clojure.pprint :refer [pprint]]))
 
 ;; System state
