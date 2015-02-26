@@ -1,6 +1,7 @@
 (ns knossos.core
   (:require [clojure.math.combinatorics :as combo]
             [clojure.core.reducers :as r]
+            [clojure.core.typed :refer [ann]]
             [clojure.set :as set]
             [clojure.tools.logging :refer :all]
             [interval-metrics.core :as metrics]

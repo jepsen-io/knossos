@@ -1,10 +1,14 @@
 (ns knossos.core-test
   (:require [clojure.test :refer :all]
+            [clojure.core.typed :refer [check-ns]]
             [knossos.core :refer :all]
             [knossos.prioqueue :as prioqueue]
             [knossos.history :as history]
             [knossos.op :as op]
             [clojure.pprint :refer [pprint]]))
+
+(deftest typecheck
+  (is (check-ns 'knossos.core)))
 
 (comment
   (deftest keep-singular-test
@@ -254,7 +258,7 @@
 
 (deftest volatile-linearizable-test
   (dotimes [i 10]
-    (let [history (volatile-history 150 10000 1/100)
+    (let [history (volatile-history 150 1000 1/100)
           a       (analysis (->Register 0) history)]
       (is (:valid? a))
       (when-not (:valid? a)
