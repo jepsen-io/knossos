@@ -48,7 +48,14 @@
   [model]
   (instance? Inconsistent model))
 
-; A read-write register
+(defrecord NoOp []
+  Model
+  (step [m op] m))
+
+(def noop
+  "A model which always returns itself, unchanged."
+  (NoOp.))
+
 (defrecord Register [value]
   Model
   (step [r op]
@@ -60,6 +67,48 @@
                (inconsistent
                  (str "read " (pr-str (:value op))
                       " from register " value))))))
+
+(defn register
+  "A read-write register."
+  ([] (Register. nil))
+  ([x] (Register. x)))
+
+(defrecord CASRegister [value]
+  Model
+  (step [r op]
+    (condp = (:f op)
+      :write (CASRegister. (:value op))
+      :cas   (let [[cur new] (:value op)]
+               (if (= cur value)
+                 (CASRegister. new)
+                 (inconsistent (str "can't CAS " value " from " cur
+                                    " to " new))))
+      :read  (if (or (nil? (:value op))
+                     (= value (:value op)))
+               r
+               (inconsistent (str "can't read " (:value op)
+                                  " from register " value))))))
+
+(defn cas-register
+  "A compare-and-set register"
+  ([]      (CASRegister. nil))
+  ([value] (CASRegister. value)))
+
+(defrecord Mutex [locked?]
+  Model
+  (step [r op]
+    (condp = (:f op)
+      :acquire (if locked?
+                 (inconsistent "already held")
+                 (Mutex. true))
+      :release (if locked?
+                 (Mutex. false)
+                 (inconsistent "not held")))))
+
+(defn mutex
+  "A single mutex responding to :acquire and :release messages"
+  []
+  (Mutex. false))
 
 (defn world
   "A world represents the state of the system at one particular point in time.
