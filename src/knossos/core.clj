@@ -48,7 +48,14 @@
   [model]
   (instance? Inconsistent model))
 
-; A read-write register
+(defrecord NoOp []
+  Model
+  (step [m op] m))
+
+(def noop
+  "A model which always returns itself, unchanged."
+  (NoOp.))
+
 (defrecord Register [value]
   Model
   (step [r op]
@@ -60,6 +67,48 @@
                (inconsistent
                  (str "read " (pr-str (:value op))
                       " from register " value))))))
+
+(defn register
+  "A read-write register."
+  ([] (Register. nil))
+  ([x] (Register. x)))
+
+(defrecord CASRegister [value]
+  Model
+  (step [r op]
+    (condp = (:f op)
+      :write (CASRegister. (:value op))
+      :cas   (let [[cur new] (:value op)]
+               (if (= cur value)
+                 (CASRegister. new)
+                 (inconsistent (str "can't CAS " value " from " cur
+                                    " to " new))))
+      :read  (if (or (nil? (:value op))
+                     (= value (:value op)))
+               r
+               (inconsistent (str "can't read " (:value op)
+                                  " from register " value))))))
+
+(defn cas-register
+  "A compare-and-set register"
+  ([]      (CASRegister. nil))
+  ([value] (CASRegister. value)))
+
+(defrecord Mutex [locked?]
+  Model
+  (step [r op]
+    (condp = (:f op)
+      :acquire (if locked?
+                 (inconsistent "already held")
+                 (Mutex. true))
+      :release (if locked?
+                 (Mutex. false)
+                 (inconsistent "not held")))))
+
+(defn mutex
+  "A single mutex responding to :acquire and :release messages"
+  []
+  (Mutex. false))
 
 (defn world
   "A world represents the state of the system at one particular point in time.
@@ -140,6 +189,7 @@
         consistent (->> worlds
                         (r/remove inconsistent-world?)
                         r/foldcat)]
+
     (cond
       ; No worlds at all
       (util/rempty? worlds) worlds
@@ -258,19 +308,42 @@
     (catch IndexOutOfBoundsException e
       nil)))
 
+(defn update-deepest-world!
+  "If this is the deepest world we've seen, add it to the deepest list."
+  [deepest world]
+  (when (<= (:index (first @deepest)) (:index world))
+    (swap! deepest (fn update [deepest]
+                     (let [index  (:index (first deepest))
+                           index' (:index world)]
+                       (cond (< index index') [world]
+                             (= index index') (conj deepest world)
+                             :else            deepest))))))
+
 (defn prune-world
   "Given a history and a world, advances the world through as many operations
   in the history as possible, without splitting into multiple worlds. Returns a
   new world (possibly the same as the input), or nil if the world was found to
   be inconsistent."
-  [history stats world]
+  [history deepest stats world]
   (when world
     (metrics/update! (:visited-worlds stats) 1)
+    ; Jacques-Yves Cousteau could be thrilled
+    ; Strictly speaking we do a little more work than necessary by having this
+    ; here, but atomic reads are pretty cheap and contention should be
+    ; infrequent.
+    (update-deepest-world! deepest world)
+
     (if-let [op (next-op history world)]
       (condp = (:type op)
-        :ok   (recur history stats (fold-completion-into-world world op))
-        :fail (recur history stats (fold-failure-into-world    world op))
-        :info (recur history stats (fold-info-into-world       world op))
+        :ok
+        (recur history deepest stats (fold-completion-into-world world op))
+
+        :fail
+        (recur history deepest stats (fold-failure-into-world    world op))
+
+        :info
+        (recur history deepest stats (fold-info-into-world       world op))
+
         world)
 
       ; No more ops
@@ -285,14 +358,14 @@
 
   2. For all immediately subsequent ok, fail, and info operations, use those
      operations to prune and further advance the worlds from phase 1."
-  [history stats world]
+  [history deepest stats world]
   (if-let [op (next-op history world)]
     ; Branch out for all invocations
     (->> (if (op/invoke? op)
            (fold-invocation-into-world world op)
            (list world))
          ; Prune completions
-         (r/map (fn shears [world] (prune-world history stats world)))
+         (r/map (fn shears [world] (prune-world history deepest stats world)))
          (r/remove nil?))
     ; No more ops
     (list world)))
@@ -300,9 +373,13 @@
 (defn degenerate-world-key
   "An object which uniquely identifies whether or not a world is linearizable.
   If two worlds have the same degenerate-world-key (in the context of a
-  history), their linearizability is equivalent."
+  history), their linearizability is equivalent.
+
+  Here we take advantage of the fact that worlds with equivalent pending
+  operations and equivalent positions in the history will linearize
+  equivalently regardless of exactly what fixed path we took to get to this
+  point. This degeneracy allows us to dramatically prune the search space."
   [world]
-  ; What kind of social studies IS this?
   (dissoc world :fixed))
 
 (defn seen-world!?
@@ -333,17 +410,6 @@
 ;    (info "Short-circuiting" world)
     (.set running? false)))
 
-(defn update-deepest-world!
-  "If this is the deepest world we've seen, add it to the deepest list."
-  [deepest world]
-  (when (<= (:index (first @deepest)) (:index world))
-    (swap! deepest (fn update [deepest]
-                     (let [index  (:index (first deepest))
-                           index' (:index world)]
-                       (cond (< index index') [world]
-                             (= index index') (conj deepest world)
-                             :else            deepest))))))
-
 (defn explore-world!
   "Explores a world's direct successors, reinjecting each into `leaders`.
   Returns the number of worlds reinserted into leaders. Uses the `seen` cache
@@ -352,12 +418,9 @@
   worlds reinjected into leaders will be known to be extant."
   [history ^AtomicBoolean running? leaders seen deepest stats world]
   (->> world
-       (explode-then-prune-world history stats)
+       (explode-then-prune-world history deepest stats)
        (reduce
          (fn reinjector [reinserted world]
-           ; Jacques-Yves Cousteau could be thrilled
-           (update-deepest-world! deepest world)
-
            ; Done?
            (short-circuit! history running? world)
 

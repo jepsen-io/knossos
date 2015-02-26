@@ -262,3 +262,20 @@
         (println "history length" (count history))
         (prn)
         (pprint (update-in a [:worlds] (partial take 10)))))))
+
+(deftest nonlinearizable-concurrent-read-write-inconsistent-op
+  ; An invalid register history which caused Knossos to incorrectly
+  ; detect the invalid operation too early, instead of telling us correctly
+  ; about the terminal worlds.
+  (let [h [; Concurrent write of 1, and (impossible) read of 2.
+           {:process 1, :type :invoke, :f :read}
+           {:process 2, :type :invoke, :f :write, :value 1}
+           {:process 1, :type :ok,     :f :read, :value 2}
+           {:process 2, :type :ok,     :f :write, :value 1}]
+        a (analysis (register 0) h)]
+    (is (not (:valid? a)))
+    (is (= (:inconsistent-op a)
+           {:value 2, :process 1, :type :ok, :f :read}))
+    (is (= (set (:inconsistent-transitions a))
+           #{[(register 0) "read 2 from register 0"]
+             [(register 1) "read 2 from register 1"]}))))
