@@ -1,4 +1,4 @@
-(defproject knossos "0.1.1-SNAPSHOT"
+(defproject knossos "0.2"
   :description "Linearizability checker"
   :url "https://github.com/aphyr/knossos"
   :license {:name "Eclipse Public License"
@@ -6,7 +6,7 @@
   :repositories {
                  "boundary-site" "http://maven.boundary.com/artifactory/repo"
                  }
-  :dependencies [[org.clojure/clojure "1.6.0-beta1"]
+  :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojure/math.combinatorics "0.0.7"]
                  [potemkin "0.3.4"]
                  [interval-metrics "1.0.0"]
