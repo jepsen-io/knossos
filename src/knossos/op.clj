@@ -5,6 +5,7 @@
                                         check-ns
                                         defalias
                                         I
+                                        IFn
                                         Keyword
                                         U
                                         Value
