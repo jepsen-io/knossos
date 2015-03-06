@@ -94,7 +94,8 @@
                                 (pairs (dissoc invocations (:process op))
                                        ops))))))))
 
-(ann complete-fold-op [(HVec [ITransientVector ITransientMap]) op/Op ->
+(ann ^:no-check
+     complete-fold-op [(HVec [ITransientVector ITransientMap]) op/Op ->
                        (HVec [ITransientVector ITransientMap])])
 (defn complete-fold-op
   "Folds an operation into a completed history, keeping track of outstanding
@@ -122,13 +123,9 @@
 
     ; A completion; fill in the completed value.
     :ok
-    (let [i           (unsafe/ignore-with-unchecked-cast
-                        (get index (:process op))
-                        AnyInteger)
+    (let [i           (get index (:process op))
           _           (assert i)
-          invocation  (unsafe/ignore-with-unchecked-cast
-                        (nth history i)
-                        op/Invoke)
+          invocation  (nth history i)
           value       (or (:value invocation) (:value op))
           invocation' (assoc invocation :value value)]
       [(-> history
@@ -138,13 +135,9 @@
 
     ; A failure; fill in either value.
     :fail
-    (let [i           (unsafe/ignore-with-unchecked-cast
-                        (get index (:process op))
-                        AnyInteger)
+    (let [i           (get index (:process op))
           _           (assert i)
-          invocation  (unsafe/ignore-with-unchecked-cast
-                        (nth history i)
-                        op/Invoke)
+          invocation  (nth history i)
           value       (or (:value invocation) (:value op))
           invocation' (assoc invocation :value value)]
       [(-> history
@@ -156,7 +149,7 @@
     :info
     [(conj! history op) index]))
 
-(ann  complete [History -> History])
+(ann ^:no-check complete [History -> History])
 (defn complete
   "When a request is initiated, we may not know what the result will be--but
   find out when it completes. In the history, this might look like
@@ -176,10 +169,8 @@
   and completion; depending on whichever has a value available."
   [history]
   ; Reducing with a transient means we just have "vector", not "vector of ops"
-  (unsafe/ignore-with-unchecked-cast
-    (->> history
-         (reduce complete-fold-op
-                 [(transient []) (transient {})])
-         first
-         persistent!)
-    History))
+  (->> history
+       (reduce complete-fold-op
+               [(transient []) (transient {})])
+       first
+       persistent!))
