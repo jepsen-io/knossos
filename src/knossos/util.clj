@@ -1,7 +1,8 @@
 (ns knossos.util
   "Toolbox"
   (:require [clojure.core.reducers :as r]
-            [clojure.core.typed :refer [ann
+            [clojure.core.typed :refer [All
+                                        ann
                                         ann-form
                                         IFn
                                         List
@@ -13,14 +14,15 @@
   (:import [clojure.lang Reduced]
            [clojure.core.protocols CollReduce]))
 
-(ann ^:no-check rempty? [CollReduce -> Boolean])
+; Pretend reducibles are seqable: the noble lie of core.typed
+(ann ^:no-check rempty? (All [a] [(Seqable a) -> Boolean]))
 (defn rempty?
   "Like empty, but for reducibles."
   [coll]
   (reduce (fn [_ _] (reduced false))
           true coll))
 
-(ann ^:no-check foldset [CollReduce -> Set])
+(ann ^:no-check foldset (All [a] [(Seqable a) -> (Set a)]))
 (defn foldset
   "Folds a reducible collection into a set."
   [coll]

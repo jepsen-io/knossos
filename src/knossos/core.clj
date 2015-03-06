@@ -1,19 +1,40 @@
 (ns knossos.core
   (:require [clojure.math.combinatorics :as combo]
             [clojure.core.reducers :as r]
-            [clojure.core.typed :refer [ann]]
+            [clojure.core.typed :as t
+                                :refer [
+                                        All
+                                        Any
+                                        ann
+                                        ann-form
+                                        Atom1
+                                        Atom2
+                                        defalias
+                                        I
+                                        IFn
+                                        inst
+                                        NonEmptyVec
+                                        Option
+                                        Set
+                                        Seqable
+                                        tc-ignore
+                                        U
+                                        Vec
+                                        ]]
             [clojure.set :as set]
             [clojure.tools.logging :refer :all]
             [interval-metrics.core :as metrics]
             [potemkin :refer [definterface+]]
             [knossos.prioqueue :as prioqueue]
             [knossos.util :as util]
-            [knossos.op :as op]
+            [knossos.op :as op :refer [Op Invoke OK Info Fail]]
             [knossos.history :as history]
             [clojure.pprint :refer [pprint]])
   (:import (org.cliffc.high_scale_lib NonBlockingHashMapLong)
            (java.util.concurrent.atomic AtomicLong
-                                        AtomicBoolean)))
+                                        AtomicBoolean)
+           (clojure.tools.logging.impl Logger
+                                       LoggerFactory)))
 
 (def op op/op)
 
@@ -24,6 +45,8 @@
 (def invoke? op/invoke?)
 (def ok?     op/ok?)
 (def fail?   op/fail?)
+
+(tc-ignore ; core.typed can't typecheck interfaces
 
 (definterface+ Model
   (step [model op]
@@ -44,10 +67,19 @@
   [msg]
   (Inconsistent. msg))
 
+)
+
+(ann  inconsistent? [Model -> Boolean])
+                     ; core.typed: Can't use these filters without getting a
+                     ; ClassNotFound exception for Model.
+;                     :filters {:then (is Inconsistent 0)
+;                               :else (!  Inconsistent 0)}])
 (defn inconsistent?
   "Is a model inconsistent?"
   [model]
   (instance? Inconsistent model))
+
+(tc-ignore ; without interface types, we can't type implementations
 
 (defrecord NoOp []
   Model
@@ -111,6 +143,16 @@
   []
   (Mutex. false))
 
+) ; OK back to typechecking
+
+(defalias World
+  (HMap :mandatory {:model    Model
+                    :fixed    (Vec Op)
+                    :pending  (Set Op)
+                    :index    Long}
+        :complete? true))
+
+(ann  world [Model -> World])
 (defn world
   "A world represents the state of the system at one particular point in time.
   It comprises a known timeline of operations, and a set of operations which
@@ -122,11 +164,14 @@
    :pending #{}
    :index   0})
 
+(ann  inconsistent-world? [World -> Boolean])
 (defn inconsistent-world?
   "Is the model for this world in an inconsistent state?"
   [world]
   (instance? Inconsistent (:model world)))
 
+; core.typed can't check this because transients
+(ann  ^:no-check advance-world [World (Seqable Op) -> World])
 (defn advance-world
   "Given a world and a series of operations, applies those operations to the
   given world. The returned world will have a new model reflecting its state
@@ -143,6 +188,27 @@
                          (reduce disj! (transient (:pending world)) ops)))
       persistent!))
 
+; Pretend reducibles are seqable though they totally aren't
+(ann ^:no-check clojure.core.reducers/remove
+     (All [a] (IFn [[a -> Boolean] (Seqable a) -> (Seqable a)])))
+
+(ann ^:no-check clojure.core.reducers/mapcat
+     (All [a b] (IFn [[a -> (Seqable b)] (Seqable a) -> (Seqable b)])))
+
+(ann ^:no-check clojure.core.reducers/map
+     (All [a b] (IFn [[a -> b] (Seqable a) -> (Seqable b)])))
+
+(ann ^:no-check clojure.core.reducers/foldcat
+     (All [a] (IFn [(Seqable a) -> (Seqable a)])))
+
+
+(ann ^:no-check clojure.math.combinatorics/permutations
+     (All [a] (IFn [(Seqable a) -> (Seqable (Seqable a))])))
+
+(ann ^:no-check clojure.math.combinatorics/subsets
+     (All [a] (IFn [(Seqable a) -> (Seqable (Seqable a))])))
+
+(ann ^:no-check possible-worlds [World -> (Seqable World)])
 (defn possible-worlds
   "Given a world, generates all possible future worlds consistent with the
   given world's pending operations. For instance, in the world
@@ -179,10 +245,17 @@
   (let [worlds (->> world
                     :pending
                     combo/subsets                 ; oh no
-                    (r/mapcat combo/permutations) ; dear lord no
+                    (r/mapcat combo/permutations) ; oh dear lord no
+                    ; core.typed unifier can't figure this out unless we force
+                    ; a particular instance of permutations, since it's
+                    ; also polymorphic
+                    ; (r/mapcat (inst combo/permutations Op))
+
                     ; For each permutation, advance the world with those
                     ; operations in order
-                    (r/map (fn advance [ops] (advance-world world ops)))
+                    (r/map (ann-form
+                             (fn advance [ops] (advance-world world ops))
+                             [(Seqable Op) -> World]))
                     ; Filter out null worlds
                     (r/remove nil?))
 
@@ -197,11 +270,16 @@
 
       ; All worlds were inconsistent
       (util/rempty? consistent) (throw (RuntimeException.
+                                         ; Core.typed can't infer that all
+                                         ; worlds have inconsistent models
+                                         ; without more filter help than
+                                         ; I can figure out how to give it
                                          (:msg (:model (first worlds)))))
 
       ; Return consistent worlds
       true consistent)))
 
+(ann  fold-invocation-into-world [World Invoke -> (Seqable World)])
 (defn fold-invocation-into-world
   "Given a world and a new invoke operation, adds the operation to the pending
   set for the world, and yields a collection of all possible worlds from that.
@@ -212,21 +290,21 @@
            :index   (inc  (:index world))
            :pending (conj (:pending world) invocation))))
 
-(defn fold-invocation-into-worlds
-  "Given a sequence of worlds and a new invoke operation, adds this operation
-  to the pending set for each, and projects out all possible worlds from
-  those."
-  [worlds invocation]
-  (r/mapcat #(fold-invocation-into-worlds % invocation) worlds))
 
+; Some kind of core.typed bug?
+; https://gist.github.com/aphyr/2c60c58002c325a05d5d
+(ann  ^:no-check fold-completion-into-world [World OK -> World])
 (defn fold-completion-into-world
   "Given a world and a completion operation, returns world if the operation
   took place in that world, else nil. Advances the world index by one."
   [world completion]
   (let [p (:process completion)]
-    (when-not (some #(= p (:process %)) (:pending world))
+    (when-not (some (ann-form #(= p (:process %))
+                              [Op -> Boolean])
+                    (:pending world))
       (assoc world :index (inc (:index world))))))
 
+(ann  fold-completion-into-worlds [(Seqable World) OK -> (Seqable World)])
 (defn fold-completion-into-worlds
   "Given a sequence of worlds and a completion operation, returns only those
   worlds where that operation took place; e.g. is not still pending.
@@ -234,9 +312,11 @@
   TODO: replace the corresponding element in the history with the completion."
   [worlds completion]
   (->> worlds
-       (r/map #(fold-completion-into-world % completion))
-       (r/remove nil)))
+       (r/map (ann-form #(fold-completion-into-world % completion)
+                        [World -> World]))
+       (r/remove nil?)))
 
+(ann  fold-failure-into-world [World Fail -> (Option World)])
 (defn fold-failure-into-world
   "Given a world and a failed operation, returns world if the operation did
   *not* take place, and removes the operation from the pending ops in that
@@ -254,21 +334,28 @@
       (assoc world :index   (inc (:index world))
                    :pending (disj pending inv)))))
 
+; core.typed: no idea why this fails
+(ann ^:no-check fold-failure-into-worlds [(Seqable World) Fail -> (Seqable World)])
 (defn fold-failure-into-worlds
   "Given a sequence of worlds and a failed operation, returns only those worlds
   where that operation did not take place, and removes the operation from
   the pending ops in those worlds."
   [worlds failure]
   (->> worlds
-       (r/map #(fold-failure-into-world % failure))
+       (r/map (t/fn [w :- World] :- (Option World)
+                (fold-failure-into-world w failure)))
        (r/remove nil?)))
 
+(ann  fold-info-into-world [World Info -> World])
 (defn fold-info-into-world
   "Given a world and an info operation, returns a subsequent world. Info
   operations don't appear in the fixed history; only the index advances."
   [world info]
   (assoc world :index (inc (:index world))))
 
+; dunno how to convince core.typed that dispatching based on (:type op) is
+; what makes an Op an Invoke, OK, etc.
+(ann  ^:no-check fold-op-into-world [World Op -> (Seqable World)])
 (defn fold-op-into-world
   "Given a world and any type of operation, folds that operation into the world
   and returns a sequence of possible worlds. Increments the world index."
@@ -279,14 +366,17 @@
     :fail   (util/maybe-list (fold-failure-into-world    world op))
     :info   (list            (fold-info-into-world       world op))))
 
+(ann  fold-op-into-worlds [(Seqable World) Op -> (Set World)])
 (defn fold-op-into-worlds
   "Given a set of worlds and any type of operation, folds that operation into
   the set and returns a new set of possible worlds."
   [worlds op]
   (->> worlds
-       (r/mapcat #(fold-op-into-world % op))
+       (r/mapcat (t/fn [w :- World] :- (Seqable World)
+                   (fold-op-into-world w op)))
        util/foldset))
 
+(ann  linearizations [Model (Vec Op) -> (Set World)])
 (defn linearizations
   "Given a model and a history, returns all possible worlds where that history
   is linearizable. Brute-force, expensive, but deterministic, simple, and
@@ -294,9 +384,18 @@
   [model history]
   (assert (vector? history))
   (reduce fold-op-into-worlds
-          (list (world model))
+          ; core.typed won't accept a list here, even though fold-op-into-worlds
+          ; takes any (Seqable World), because of reduce's signature.
+          #{(world model)}
           history))
 
+(ann ^:no-check clojure.tools.logging.impl/enabled?  [Logger Any -> Boolean])
+(ann ^:no-check clojure.tools.logging.impl/get-logger [Any Any -> Logger])
+(ann ^:no-check clojure.tools.logging/*logger-factory* LoggerFactory)
+(ann ^:no-check clojure.tools.logging/log*
+     [Logger Any (Option Throwable) Any -> (Value nil)])
+
+(ann  next-op [(Vec Op) World -> (Option Op)])
 (defn next-op
   "The next operation from the history to be applied to a world, based on the
   world's index, or nil when out of bounds."
@@ -309,16 +408,23 @@
     (catch IndexOutOfBoundsException e
       nil)))
 
+; possibly a core.typed bug--it can't handle (conj deepest world), even though
+; it knows that world is a World and deepest is a (Vec World).
+(ann ^:no-check update-deepest-world!
+     [(Atom1 (NonEmptyVec World)) World -> (Option (Vec World))])
 (defn update-deepest-world!
   "If this is the deepest world we've seen, add it to the deepest list."
   [deepest world]
   (when (<= (:index (first @deepest)) (:index world))
-    (swap! deepest (fn update [deepest]
+    (swap! deepest (t/fn update [deepest :- (NonEmptyVec World)]
+                     :- (NonEmptyVec World)
                      (let [index  (:index (first deepest))
                            index' (:index world)]
                        (cond (< index index') [world]
                              (= index index') (conj deepest world)
                              :else            deepest))))))
+
+(tc-ignore
 
 (defn prune-world
   "Given a history and a world, advances the world through as many operations
@@ -462,7 +568,7 @@
         (warn t "explorer" i "crashed!")
         (throw t))))))
 
-(def awfulness-comparator
+(def ^:no-check awfulness-comparator
   "Which one of these worlds should we explore first?"
   (reify java.util.Comparator
     (compare [this a b]
@@ -533,7 +639,8 @@
                                depth      (:index (first @deepest))
                                depth-frac (/ depth (count history))]
                            (info (str "[" depth " / " (count history) "]")
-                                 (.get (:extant-worlds stats)) "extant worlds,"
+                                 (.get ^AtomicLong (:extant-worlds stats))
+                                 "extant worlds,"
                                  (long visited) "visited/s,"
                                  (long skipped) "skipped/s,"
                                  "hitrate" (format "%.3f" hitrate)
@@ -590,3 +697,5 @@
                                       [(:model w)
                                        (-> w :model (step evil-op) :msg)])
                                       worlds)})))
+
+)
