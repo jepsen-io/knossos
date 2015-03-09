@@ -9,7 +9,6 @@
                                         Seqable
                                         Set
                                         Value]]
-            [clojure.core.typed.unsafe :as unsafe]
             [clojure.set :as set])
   (:import [clojure.lang Reduced]
            [clojure.core.protocols CollReduce]))

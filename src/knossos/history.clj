@@ -17,7 +17,6 @@
                                         U
                                         Value
                                         Vec]]
-            [clojure.core.typed.unsafe :as unsafe]
             [knossos.op :as op])
   (:import [clojure.core.protocols CollReduce]
            [clojure.lang IMapEntry
