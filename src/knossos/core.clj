@@ -34,7 +34,8 @@
            (java.util.concurrent.atomic AtomicLong
                                         AtomicBoolean)
            (clojure.tools.logging.impl Logger
-                                       LoggerFactory)))
+                                       LoggerFactory)
+           (interval_metrics.core Metric)))
 
 (def op op/op)
 
@@ -71,9 +72,9 @@
 
 (ann  inconsistent? [Model -> Boolean])
                      ; core.typed: Can't use these filters without getting a
-                     ; ClassNotFound exception for Model.
-;                     :filters {:then (is Inconsistent 0)
-;                               :else (!  Inconsistent 0)}])
+                     ; ClassNotFound exception for Model. Why???
+                     ; :filters {:then (is Inconsistent 0)
+                     ; :else (!  Inconsistent 0)}])
 (defn inconsistent?
   "Is a model inconsistent?"
   [model]
@@ -188,9 +189,15 @@
                          (reduce disj! (transient (:pending world)) ops)))
       persistent!))
 
-; Pretend reducibles are seqable though they totally aren't
+; Pretend reducibles are seqable though they totally aren't. Hopefully
+; core.typed will have reducible tfns and annotations for reduce et al someday
 (ann ^:no-check clojure.core.reducers/remove
-     (All [a] (IFn [[a -> Boolean] (Seqable a) -> (Seqable a)])))
+     (All [a b]
+          (IFn [[a -> Any :filters {:then tt, :else (is b 0)}] (Seqable a)
+                -> (Seqable b)]
+               [[a -> Any :filters {:then tt, :else (! b 0)}] (Seqable a)
+                -> (Seqable (I a (Not b)))]
+               [[a -> Any] (Seqable a) -> (Seqable a)])))
 
 (ann ^:no-check clojure.core.reducers/mapcat
      (All [a b] (IFn [[a -> (Seqable b)] (Seqable a) -> (Seqable b)])))
@@ -389,7 +396,7 @@
           #{(world model)}
           history))
 
-(ann ^:no-check clojure.tools.logging.impl/enabled?  [Logger Any -> Boolean])
+(ann ^:no-check clojure.tools.logging.impl/enabled? [Logger Any -> Boolean])
 (ann ^:no-check clojure.tools.logging.impl/get-logger [Any Any -> Logger])
 (ann ^:no-check clojure.tools.logging/*logger-factory* LoggerFactory)
 (ann ^:no-check clojure.tools.logging/log*
@@ -408,10 +415,20 @@
     (catch IndexOutOfBoundsException e
       nil)))
 
+(defalias Stats
+  "Statistics for tracking analyzer performance"
+  (HMap :mandatory {:extant-worlds  AtomicLong
+                    :skipped-worlds Metric
+                    :visited-worlds Metric}))
+
+(defalias Deepest
+  "Mutable set of deepest worlds"
+  (Atom1 (NonEmptyVec World)))
+
 ; possibly a core.typed bug--it can't handle (conj deepest world), even though
 ; it knows that world is a World and deepest is a (Vec World).
 (ann ^:no-check update-deepest-world!
-     [(Atom1 (NonEmptyVec World)) World -> (Option (Vec World))])
+     [Deepest World -> (Option (Vec World))])
 (defn update-deepest-world!
   "If this is the deepest world we've seen, add it to the deepest list."
   [deepest world]
@@ -424,8 +441,12 @@
                              (= index index') (conj deepest world)
                              :else            deepest))))))
 
-(tc-ignore
+(ann ^:no-check interval-metrics.core/update!   [Metric Any -> Metric])
+(ann ^:no-check interval-metrics.core/snapshot! [Metric -> Any])
 
+; Core.typed can't infer that the (:type op) check constrains Ops to their
+; subtypes like Invoke, OK, etc.
+(ann  ^:no-check prune-world [(Vec Op) Deepest Stats World -> (Option World)])
 (defn prune-world
   "Given a history and a world, advances the world through as many operations
   in the history as possible, without splitting into multiple worlds. Returns a
@@ -456,6 +477,14 @@
       ; No more ops
       world)))
 
+; core.typed can't infer that (I (U a b) (Not b)) is a, which prevents us from
+; calling (r/remove nil?) and knowing the result is a seq of worlds.
+;
+; user=> (cf (fn [x :- (Seqable (Option Long))] (remove nil? x)))
+; [[(Seqable (Option java.lang.Long))
+;   -> (ASeq (I (U nil Long) (Not nil)))] {:then tt, :else ff}]
+(ann ^:no-check explode-then-prune-world [(Vec Op) Deepest Stats World
+                                -> (Seqable World)])
 (defn explode-then-prune-world
   "Given a history and a world, generates a reducible sequence of possible
   subseqeuent worlds, obtained in two phases:
@@ -472,11 +501,16 @@
            (fold-invocation-into-world world op)
            (list world))
          ; Prune completions
-         (r/map (fn shears [world] (prune-world history deepest stats world)))
+         (r/map (t/fn shears [world :- World] :- (Option World)
+                  (prune-world history deepest stats world)))
          (r/remove nil?))
     ; No more ops
     (list world)))
 
+(ann  degenerate-world-key [World -> (HMap :mandatory {:model    Model
+                                                       :pending  (Set Op)
+                                                       :index    Long}
+                                           :complete? true)])
 (defn degenerate-world-key
   "An object which uniquely identifies whether or not a world is linearizable.
   If two worlds have the same degenerate-world-key (in the context of a
@@ -489,6 +523,7 @@
   [world]
   (dissoc world :fixed))
 
+(ann  seen-world!? [NonBlockingHashMapLong World -> Boolean])
 (defn seen-world!?
   "Given a mutable hashmap of seen worlds, ensures that an entry exists for the
   given world, and returns truthy iff that world had already been seen."
@@ -509,6 +544,7 @@
           (.put seen h k))
         false))))
 
+(ann  short-circuit! [(Vec Op) AtomicBoolean World -> Any])
 (defn short-circuit!
   "If we've reached a world with an index as deep as the history, we can
   abort all threads immediately."
@@ -516,6 +552,10 @@
   (when (= (count history) (:index world))
 ;    (info "Short-circuiting" world)
     (.set running? false)))
+
+
+; No idea how to type leaders, giving up
+(tc-ignore
 
 (defn explore-world!
   "Explores a world's direct successors, reinjecting each into `leaders`.
@@ -543,6 +583,8 @@
                  (prioqueue/put! leaders world)
                  (inc reinserted))))
          0)))
+
+
 
 (defn explorer
   "Pulls worlds off of the leader atom, explores them, and pushes resulting
@@ -575,6 +617,7 @@
       (cond (< (count (:pending a)) (count (:pending b))) -1
             (< (:index a)           (:index b))            1
             :else                                          0))))
+
 
 (defn linearizable-prefix-and-worlds
   "Returns a vector consisting of the longest linearizable prefix and the
@@ -643,7 +686,7 @@
                                  "extant worlds,"
                                  (long visited) "visited/s,"
                                  (long skipped) "skipped/s,"
-                                 "hitrate" (format "%.3f" hitrate)
+                                 "hitrate" (format "%.3f," hitrate)
                                  "cache size" (.size seen))))))]
 
       ; Start with a single world containing the initial state

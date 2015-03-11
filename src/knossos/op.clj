@@ -7,31 +7,28 @@
                                         I
                                         IFn
                                         Keyword
+                                        TFn
                                         U
                                         Value
                                         ]]))
 
-(defalias OpType
-  "The possible types of operations."
-  (U (Value :invoke)
-     (Value :ok)
-     (Value :fail)
-     (Value :info)))
+; Operations come in four flavors
+(defalias GenOp (TFn [[type :variance :covariant]]
+                     (HMap :mandatory {:process Object
+                                       :type    type
+                                       :f       Keyword
+                                       :value   Object})))
+
+(defalias Invoke (GenOp (Value :invoke)))
+(defalias OK     (GenOp (Value :ok)))
+(defalias Fail   (GenOp (Value :fail)))
+(defalias Info   (GenOp (Value :info)))
 
 (defalias Op
   "An operation is comprised of a `process` invoking, completing, or noting
   progress of a function `f`, called with an argument `value`. Operations may
   also carry extra keys."
-  (HMap :mandatory {:process  Object
-                    :type     OpType
-                    :f        Keyword
-                    :value    Object}))
-
-; Operation subtypes
-(defalias Invoke (I Op (HMap :mandatory {:type (Value :invoke)})))
-(defalias OK     (I Op (HMap :mandatory {:type (Value :ok)})))
-(defalias Fail   (I Op (HMap :mandatory {:type (Value :fail)})))
-(defalias Info   (I Op (HMap :mandatory {:type (Value :info)})))
+  (U Invoke OK Fail Info))
 
 (ann op (IFn [Object (Value :invoke) Keyword Object -> Invoke]
              [Object (Value :ok)     Keyword Object -> OK]
@@ -69,17 +66,23 @@
   [process f value]
   (op process :info f value))
 
-(ann invoke? [Op -> Boolean])
-(defn invoke? [op]
-  "Is this op an invocation?"
-  (= :invoke (:type op)))
-
-(ann ok? [Op -> Boolean])
+; Not sure how to convince core.typed that this restricts Op to OK; c.t sees
+; that it has (Key :type) = :ok, but can't seem to unify that with the Op
+; constraint.
+(ann ^:no-check ok? [Op -> Boolean :filters {:then (is OK 0)
+                                             :else (!  OK 0)}])
 (defn ok? [op]
   "Is this op OK?"
   (= :ok     (:type op)))
 
-(ann fail? [Op -> Boolean])
+(ann ^:no-check invoke? [Op -> Boolean :filters {:then (is Invoke 0)
+                                                 :else (!  Invoke 0)}])
+(defn invoke? [op]
+  "Is this op an invocation?"
+  (= :invoke (:type op)))
+
+(ann ^:no-check fail? [Op -> Boolean :filters {:then (is Fail 0)
+                                               :else (!  Fail 0)}])
 (defn fail? [op]
   "Is this op a failure?"
   (= :fail   (:type op)))
