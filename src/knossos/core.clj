@@ -441,72 +441,6 @@
                              (= index index') (conj deepest world)
                              :else            deepest))))))
 
-(ann ^:no-check interval-metrics.core/update!   [Metric Any -> Metric])
-(ann ^:no-check interval-metrics.core/snapshot! [Metric -> Any])
-
-; Core.typed can't infer that the (:type op) check constrains Ops to their
-; subtypes like Invoke, OK, etc.
-(ann  ^:no-check prune-world [(Vec Op) Deepest Stats World -> (Option World)])
-(defn prune-world
-  "Given a history and a world, advances the world through as many operations
-  in the history as possible, without splitting into multiple worlds. Returns a
-  new world (possibly the same as the input), or nil if the world was found to
-  be inconsistent."
-  [history deepest stats world]
-  (when world
-    (metrics/update! (:visited-worlds stats) 1)
-    ; Jacques-Yves Cousteau could be thrilled
-    ; Strictly speaking we do a little more work than necessary by having this
-    ; here, but atomic reads are pretty cheap and contention should be
-    ; infrequent.
-    (update-deepest-world! deepest world)
-
-    (if-let [op (next-op history world)]
-      (condp = (:type op)
-        :ok
-        (recur history deepest stats (fold-completion-into-world world op))
-
-        :fail
-        (recur history deepest stats (fold-failure-into-world    world op))
-
-        :info
-        (recur history deepest stats (fold-info-into-world       world op))
-
-        world)
-
-      ; No more ops
-      world)))
-
-; core.typed can't infer that (I (U a b) (Not b)) is a, which prevents us from
-; calling (r/remove nil?) and knowing the result is a seq of worlds.
-;
-; user=> (cf (fn [x :- (Seqable (Option Long))] (remove nil? x)))
-; [[(Seqable (Option java.lang.Long))
-;   -> (ASeq (I (U nil Long) (Not nil)))] {:then tt, :else ff}]
-(ann ^:no-check explode-then-prune-world [(Vec Op) Deepest Stats World
-                                -> (Seqable World)])
-(defn explode-then-prune-world
-  "Given a history and a world, generates a reducible sequence of possible
-  subseqeuent worlds, obtained in two phases:
-
-  1. If the next operation in the history for this world is an invocation, we
-     find all possible subsequent worlds as a result of that invocation.
-
-  2. For all immediately subsequent ok, fail, and info operations, use those
-     operations to prune and further advance the worlds from phase 1."
-  [history deepest stats world]
-  (if-let [op (next-op history world)]
-    ; Branch out for all invocations
-    (->> (if (op/invoke? op)
-           (fold-invocation-into-world world op)
-           (list world))
-         ; Prune completions
-         (r/map (t/fn shears [world :- World] :- (Option World)
-                  (prune-world history deepest stats world)))
-         (r/remove nil?))
-    ; No more ops
-    (list world)))
-
 (ann  degenerate-world-key [World -> (HMap :mandatory {:model    Model
                                                        :pending  (Set Op)
                                                        :index    Long}
@@ -522,6 +456,9 @@
   point. This degeneracy allows us to dramatically prune the search space."
   [world]
   (dissoc world :fixed))
+
+(ann ^:no-check interval-metrics.core/update!   [Metric Any -> Metric])
+(ann ^:no-check interval-metrics.core/snapshot! [Metric -> Any])
 
 (ann  seen-world!? [NonBlockingHashMapLong World -> Boolean])
 (defn seen-world!?
@@ -544,6 +481,80 @@
           (.put seen h k))
         false))))
 
+; Core.typed can't infer that the (:type op) check constrains Ops to their
+; subtypes like Invoke, OK, etc.
+(t/defn ^:no-check prune-world
+  "Given a history and a world, advances the world through as many operations
+  in the history as possible, without splitting into multiple worlds. Returns a
+  new world (possibly the same as the input), or nil if the world was found to
+  be inconsistent."
+  [history :- (Vec Op)
+   seen    :- NonBlockingHashMapLong
+   deepest :- Deepest
+   stats   :- Stats
+   world   :- World]
+  (when world
+    ; Strictly speaking we do a little more work than necessary by having
+    ; this here, but atomic reads are pretty cheap and contention should be
+    ; infrequent.
+    ; Jacques-Yves Cousteau could be thrilled
+    (update-deepest-world! deepest world)
+
+    (if (seen-world!? seen world)
+      ; Definitely been here before
+      (do (metrics/update! (:skipped-worlds stats) 1)
+          ; (info "Skipping\n" (with-out-str (pprint world)))
+          nil)
+
+      (do ; OK, we haven't seen this world before.
+          (metrics/update! (:visited-worlds stats) 1)
+
+          (if-let [op (next-op history world)]
+            (condp = (:type op)
+              :ok (recur history seen deepest stats
+                         (fold-completion-into-world world op))
+
+              :fail (recur history seen deepest stats
+                           (fold-failure-into-world world op))
+
+              :info (recur history seen deepest stats
+                           (fold-info-into-world world op))
+
+              world)
+
+            ; No more ops
+            world)))))
+
+; core.typed can't infer that (I (U a b) (Not b)) is a, which prevents us from
+; calling (r/remove nil?) and knowing the result is a seq of worlds.
+;
+; user=> (cf (fn [x :- (Seqable (Option Long))] (remove nil? x)))
+; [[(Seqable (Option java.lang.Long))
+;   -> (ASeq (I (U nil Long) (Not nil)))] {:then tt, :else ff}]
+(ann ^:no-check explode-then-prune-world
+     [(Vec Op) NonBlockingHashMapLong Deepest Stats World -> (Seqable World)])
+(defn explode-then-prune-world
+  "Given a history and a world, generates a reducible sequence of possible
+  subseqeuent worlds, obtained in two phases:
+
+  1. If the next operation in the history for this world is an invocation, we
+     find all possible subsequent worlds as a result of that invocation.
+
+  2. For all immediately subsequent ok, fail, and info operations, use those
+     operations to prune and further advance the worlds from phase 1."
+  [history seen deepest stats world]
+  (if-let [op (next-op history world)]
+    ; Branch out for all invocations
+    (->> (if (op/invoke? op)
+           (fold-invocation-into-world world op)
+           (list world))
+         ; Prune completions
+         (r/map (t/fn shears [world :- World] :- (Option World)
+                  (prune-world history seen deepest stats world)))
+         (r/remove nil?))
+    ; No more ops
+    (list world)))
+
 (ann  short-circuit! [(Vec Op) AtomicBoolean World -> Any])
 (defn short-circuit!
   "If we've reached a world with an index as deep as the history, we can
@@ -565,26 +576,18 @@
   worlds reinjected into leaders will be known to be extant."
   [history ^AtomicBoolean running? leaders seen deepest stats world]
   (->> world
-       (explode-then-prune-world history deepest stats)
+       (explode-then-prune-world history seen deepest stats)
        (reduce
          (fn reinjector [reinserted world]
            ; Done?
            (short-circuit! history running? world)
 
-           (if (seen-world!? seen world)
-             ; Definitely been here before
-             (do (metrics/update! (:skipped-worlds stats) 1)
-                 ; (info "Skipping\n" (with-out-str (pprint world)))
-                 reinserted)
-
-             ; O brave new world, that hath such operations in it!
-             (do (.incrementAndGet ^AtomicLong (:extant-worlds stats))
-                 ; (info "reinjecting\n" (with-out-str (pprint world)))
-                 (prioqueue/put! leaders world)
-                 (inc reinserted))))
+           ; O brave new world, that hath such operations in it!
+           (do (.incrementAndGet ^AtomicLong (:extant-worlds stats))
+               ; (info "reinjecting\n" (with-out-str (pprint world)))
+               (prioqueue/put! leaders world)
+               (inc reinserted)))
          0)))
-
-
 
 (defn explorer
   "Pulls worlds off of the leader atom, explores them, and pushes resulting
@@ -617,7 +620,6 @@
       (cond (< (count (:pending a)) (count (:pending b))) -1
             (< (:index a)           (:index b))            1
             :else                                          0))))
-
 
 (defn linearizable-prefix-and-worlds
   "Returns a vector consisting of the longest linearizable prefix and the
