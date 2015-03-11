@@ -172,13 +172,12 @@
   (instance? Inconsistent (:model world)))
 
 ; core.typed can't check this because transients
-(ann  ^:no-check advance-world [World (Seqable Op) -> World])
-(defn advance-world
+(t/defn ^:no-check advance-world
   "Given a world and a series of operations, applies those operations to the
   given world. The returned world will have a new model reflecting its state
   with the given operations applied, and its fixed history will have the given
   history appended. Those ops will also be absent from its pending operations."
-  [world ops]
+  [world :- World, ops :- (Seqable Op)] :- World
 ; (prn "advancing" world "with" ops)
   (-> world
       transient
@@ -215,8 +214,7 @@
 (ann ^:no-check clojure.math.combinatorics/subsets
      (All [a] (IFn [(Seqable a) -> (Seqable (Seqable a))])))
 
-(ann ^:no-check possible-worlds [World -> (Seqable World)])
-(defn possible-worlds
+(t/defn ^:no-check possible-worlds
   "Given a world, generates all possible future worlds consistent with the
   given world's pending operations. For instance, in the world
 
@@ -248,7 +246,7 @@
 
   So: we are looking for the permutations of all subsets of all pending
   operations."
-  [world]
+  [world :- World] :- (Seqable World)
   (let [worlds (->> world
                     :pending
                     combo/subsets                 ; oh no
