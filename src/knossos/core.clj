@@ -557,7 +557,8 @@
 (defn ^long awfulness
   "How bad is this world to explore?"
   [world :- World] :- long
-  (count (:pending world)))
+  ; (count (:pending world))
+  (- (:index world)))
 
 ; No idea how to type leaders, giving up
 (tc-ignore
