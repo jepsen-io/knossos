@@ -1,4 +1,5 @@
 (ns knossos.core
+  (:refer-clojure :exclude [defn fn])
   (:require [clojure.math.combinatorics :as combo]
             [clojure.core.reducers :as r]
             [clojure.core.typed :as t
@@ -7,9 +8,12 @@
                                         Any
                                         ann
                                         ann-form
+                                        ann-record
                                         Atom1
                                         Atom2
                                         defalias
+                                        defn
+                                        fn
                                         I
                                         IFn
                                         inst
@@ -146,47 +150,36 @@
 
 ) ; OK back to typechecking
 
-(defalias World
-  (HMap :mandatory {:model    Model
-                    :fixed    (Vec Op)
-                    :pending  (Set Op)
-                    :index    Long}
-        :complete? true))
+(ann-record World [model   :- Model
+                   fixed   :- (Vec Op)
+                   pending :- (Set Op)
+                   index   :- Long])
+(defrecord World [model fixed pending index])
 
-(ann  world [Model -> World])
 (defn world
   "A world represents the state of the system at one particular point in time.
   It comprises a known timeline of operations, and a set of operations which
   are pending. Finally, there's an integer index which indicates the number of
   operations this world has consumed from the history."
-  [model]
-  {:model   model
-   :fixed   []
-   :pending #{}
-   :index   0})
+  [model :- Model] :- World
+  (World. model [] #{} 0))
 
-(ann  inconsistent-world? [World -> Boolean])
 (defn inconsistent-world?
   "Is the model for this world in an inconsistent state?"
-  [world]
+  [world :- World] :- Boolean
   (instance? Inconsistent (:model world)))
 
-; core.typed can't check this because transients
-(t/defn ^:no-check advance-world
+(defn advance-world
   "Given a world and a series of operations, applies those operations to the
   given world. The returned world will have a new model reflecting its state
   with the given operations applied, and its fixed history will have the given
   history appended. Those ops will also be absent from its pending operations."
-  [world :- World, ops :- (Seqable Op)] :- World
+  [^World world :- World, ops :- (Seqable Op)] :- World
 ; (prn "advancing" world "with" ops)
-  (-> world
-      transient
-      ; Unclear whether this is faster than transients via (into).
-      (assoc! :fixed   (reduce conj (:fixed world) ops))
-      (assoc! :model   (reduce step (:model world) ops))
-      (assoc! :pending (persistent!
-                         (reduce disj! (transient (:pending world)) ops)))
-      persistent!))
+  (World. (reduce step (.model world) ops)
+          (reduce conj (.fixed world) ops)
+          (persistent! (reduce disj! (transient (.pending world)) ops))
+          (.index world)))
 
 ; Pretend reducibles are seqable though they totally aren't. Hopefully
 ; core.typed will have reducible tfns and annotations for reduce et al someday
@@ -562,6 +555,10 @@
 ;    (info "Short-circuiting" world)
     (.set running? false)))
 
+(defn ^long awfulness
+  "How bad is this world to explore?"
+  [world :- World] :- long
+  (count (:pending world)))
 
 ; No idea how to type leaders, giving up
 (tc-ignore
@@ -583,7 +580,7 @@
            ; O brave new world, that hath such operations in it!
            (do (.incrementAndGet ^AtomicLong (:extant-worlds stats))
                ; (info "reinjecting\n" (with-out-str (pprint world)))
-               (prioqueue/put! leaders world)
+               (prioqueue/put! leaders (awfulness world) world)
                (inc reinserted)))
          0)))
 
@@ -610,14 +607,6 @@
       (catch Throwable t
         (warn t "explorer" i "crashed!")
         (throw t))))))
-
-(def ^:no-check awfulness-comparator
-  "Which one of these worlds should we explore first?"
-  (reify java.util.Comparator
-    (compare [this a b]
-      (cond (< (count (:pending a)) (count (:pending b))) -1
-            (< (:index a)           (:index b))            1
-            :else                                          0))))
 
 (defn linearizable-prefix-and-worlds
   "Returns a vector consisting of the longest linearizable prefix and the
@@ -658,7 +647,7 @@
     [history [(world model)]]
     (let [world    (world model)
           threads  (+ 2 (.. Runtime getRuntime availableProcessors))
-          leaders  (prioqueue/prioqueue awfulness-comparator)
+          leaders  (prioqueue/prioqueue)
           seen     (NonBlockingHashMapLong.)
           running? (AtomicBoolean. true)
           stats    {:extant-worlds  (AtomicLong. 1)
@@ -690,7 +679,7 @@
                                  "cache size" (.size seen))))))]
 
       ; Start with a single world containing the initial state
-      (prioqueue/put! leaders world)
+      (prioqueue/put! leaders 0 world)
 
       ; Wait for workers
       (->> workers (map deref) dorun)
