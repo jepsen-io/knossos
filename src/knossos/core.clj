@@ -267,12 +267,12 @@
       (util/rempty? worlds) worlds
 
       ; All worlds were inconsistent
-      (util/rempty? consistent) (throw (RuntimeException.
-                                         ; Core.typed can't infer that all
-                                         ; worlds have inconsistent models
-                                         ; without more filter help than
-                                         ; I can figure out how to give it
-                                         (:msg (:model (first worlds)))))
+      (util/rempty? consistent)
+      (throw (RuntimeException.
+               ; Core.typed can't infer that all worlds have inconsistent
+               ; models without more filter help than I can figure out how to
+               ; give it
+               ^String (str (:msg (:model (first worlds))))))
 
       ; Return consistent worlds
       true consistent)))
@@ -432,10 +432,6 @@
                              (= index index') (conj deepest world)
                              :else            deepest))))))
 
-(ann  degenerate-world-key [World -> (HMap :mandatory {:model    Model
-                                                       :pending  (Set Op)
-                                                       :index    Long}
-                                           :complete? true)])
 (defn degenerate-world-key
   "An object which uniquely identifies whether or not a world is linearizable.
   If two worlds have the same degenerate-world-key (in the context of a
@@ -445,8 +441,11 @@
   operations and equivalent positions in the history will linearize
   equivalently regardless of exactly what fixed path we took to get to this
   point. This degeneracy allows us to dramatically prune the search space."
-  [world]
-  (dissoc world :fixed))
+  [^World world :- World] :- World
+  (World. (.model world)
+          nil ; Drop history
+          (.pending world)
+          (.index world)))
 
 (ann ^:no-check interval-metrics.core/update!   [Metric Any -> Metric])
 (ann ^:no-check interval-metrics.core/snapshot! [Metric -> Any])

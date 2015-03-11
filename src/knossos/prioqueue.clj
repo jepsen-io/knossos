@@ -38,7 +38,7 @@
                              (or (.poll ^BlockingQueue
                                         (nth qs (mod (+ t i) n)))
                                  (recur (inc i))))))]
-        (.value box)))))
+        (.value ^PenaltyBox box)))))
 
 
 (defn prioqueue []
