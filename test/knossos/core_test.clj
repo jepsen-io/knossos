@@ -196,21 +196,21 @@
                (try
                  (dotimes [i action-count]
                    (Thread/sleep (rand-int 5))
-                   (when (< crash-factor (rand)) (assert false))
+                   (when (< (rand) crash-factor) (assert false))
 
-                   (let [value (rand-int 5)]
+                   (let [value (rand-int 10)]
                      (if (< (rand) 0.5)
                        ; Write
                        (do
                          (swap! history conj (op/invoke process :write value))
                          (set-mutable x value)
-                         (when (< crash-factor (rand)) (assert false))
+                         (when (< (rand) crash-factor) (assert false))
                          (swap! history conj (op/ok process :write value)))
                        ; Read
                        (do
                          (swap! history conj (op/invoke process :read nil))
                          (let [value (get-mutable x)]
-                           (when (< crash-factor (rand)) (assert false))
+                           (when (< (rand) crash-factor) (assert false))
                            (swap! history conj (op/ok process :read value)))))))
                  (catch AssertionError _ :crashed)))
     @history))
@@ -258,8 +258,9 @@
       (pprint (update-in a [:worlds] (partial take 10))))))
 
 (deftest volatile-linearizable-test
-  (dotimes [i 10]
-    (let [history (volatile-history 150 1000 1/100)
+  (dotimes [i 1]
+    (let [history (volatile-history 100 1000 1/1000)
+          _       (prn (count history))
           a       (analysis (->Register 0) history)]
       (is (:valid? a))
       (when-not (:valid? a)
