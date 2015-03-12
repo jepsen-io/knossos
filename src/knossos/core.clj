@@ -253,8 +253,8 @@
           (outof (.pending world) ops)
           (.index world)))
 
-(ann ^:no-check possible-worlds [World -> (Seqable World)])
-(defn ^:no-check possible-worlds
+(ann possible-worlds [World -> (Seqable World)])
+(defn possible-worlds
   "Given a world, generates all possible future worlds consistent with the
   given world's pending operations. For instance, in the world
 
@@ -290,11 +290,11 @@
   (let [worlds (->> world
                     :pending
                     combo/subsets                 ; oh no
-                    (r/mapcat combo/permutations) ; oh dear lord no
+                    ; (r/mapcat combo/permutations) ; oh dear lord no
                     ; core.typed unifier can't figure this out unless we force
                     ; a particular instance of permutations, since it's
                     ; also polymorphic
-                    ; (r/mapcat (inst combo/permutations Op))
+                    (r/mapcat (inst combo/permutations Op))
 
                     ; For each permutation, advance the world with those
                     ; operations in order
@@ -319,7 +319,7 @@
                ; Core.typed can't infer that all worlds have inconsistent
                ; models without more filter help than I can figure out how to
                ; give it
-               ^String (str (:msg (:model (first worlds))))))
+               ^String (str (tc-ignore (:msg (:model (first worlds)))))))
 
       ; Return consistent worlds
       true consistent)))
