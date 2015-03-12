@@ -447,11 +447,12 @@
 (defn update-deepest-world!
   "If this is the deepest world we've seen, add it to the deepest list."
   [deepest :- Deepest, world :- World] :- (Option (Vec World))
-  (when (<= (or (:index (first @deepest)) (:index world)))
+  (when (<= (or (:index (first @deepest) -1) (:index world)))
     (swap! deepest (fn update [deepest :- (Vec World)] :- (Vec World)
-                     (let [index  (or (:index (first deepest)) 0)
+                     (let [index  (or (:index (first deepest)) -1)
                            index' (:index world)]
                        (ann-form index Long)
+                       (ann-form index' Long)
                        (cond (< index index') [world]
                              (= index index') (conj deepest world)
                              :else            deepest))))))
@@ -479,7 +480,7 @@
 
 ; Core.typed can't infer that the (:type op) check constrains Ops to their
 ; subtypes like Invoke, OK, etc.
-(defn ^:no-check prune-world
+(defn prune-world
   "Given a history and a world, advances the world through as many operations
   in the history as possible, without splitting into multiple worlds. Returns a
   new world (possibly the same as the input), or nil if the world was found to
@@ -488,7 +489,7 @@
    seen    :- NonBlockingHashMapLong
    deepest :- Deepest
    stats   :- Stats
-   world   :- World]
+   world   :- (Option World)]
   (when world
     ; Strictly speaking we do a little more work than necessary by having
     ; this here, but atomic reads are pretty cheap and contention should be
@@ -505,21 +506,14 @@
       (do ; OK, we haven't seen this world before.
           (metrics/update! (:visited-worlds stats) 1)
 
-          (if-let [op (next-op history world)]
-            (condp = (:type op)
-              :ok (recur history seen deepest stats
-                         (fold-completion-into-world world op))
-
-              :fail (recur history seen deepest stats
-                           (fold-failure-into-world world op))
-
-              :info (recur history seen deepest stats
-                           (fold-info-into-world world op))
-
-              world)
-
-            ; No more ops
-            world)))))
+          (let [op (next-op history world)]
+            (if (or (nil? op) (invoke? op))
+              ; We hit a bifurcation point or the end
+              world
+              (recur history seen deepest stats
+                     (cond (op/ok? op)   (fold-completion-into-world world op)
+                           (op/fail? op) (fold-failure-into-world world op)
+                           (op/info? op) (fold-info-into-world world op)))))))))
 
 ; core.typed can't infer that (I (U a b) (Not b)) is a, which prevents us from
 ; calling (r/remove nil?) and knowing the result is a seq of worlds.

@@ -71,21 +71,32 @@
 ; constraint.
 (ann ^:no-check ok? [Op -> Boolean :filters {:then (is OK 0)
                                              :else (!  OK 0)}])
-(defn ok? [op]
+(defn ok?
   "Is this op OK?"
-  (= :ok     (:type op)))
+  [op]
+  (= :ok (:type op)))
 
 (ann ^:no-check invoke? [Op -> Boolean :filters {:then (is Invoke 0)
                                                  :else (!  Invoke 0)}])
-(defn invoke? [op]
+(defn invoke?
   "Is this op an invocation?"
+  [op]
   (= :invoke (:type op)))
 
 (ann ^:no-check fail? [Op -> Boolean :filters {:then (is Fail 0)
                                                :else (!  Fail 0)}])
-(defn fail? [op]
+(defn fail?
   "Is this op a failure?"
-  (= :fail   (:type op)))
+  [op]
+  (= :fail (:type op)))
+
+(ann ^:no-check info? [Op -> Boolean :filters {:then (is Info 0)
+                                               :else (!  Info 0)}])
+(defn info?
+  "Is this op an informational message?"
+  [op]
+  (= :info (:type op)))
+
 
 (ann same-process? [Op Op -> Boolean])
 (defn same-process?
