@@ -41,6 +41,48 @@
                                        LoggerFactory)
            (interval_metrics.core Metric)))
 
+;; TYPE SIGNATURES ============================================================
+
+; Pretend reducibles are seqable though they totally aren't. Hopefully
+; core.typed will have reducible tfns and annotations for reduce et al someday
+(ann ^:no-check clojure.core.reducers/remove
+     (All [a b]
+          (IFn [[a -> Any :filters {:then tt, :else (is b 0)}] (Seqable a)
+                -> (Seqable b)]
+               [[a -> Any :filters {:then tt, :else (! b 0)}] (Seqable a)
+                -> (Seqable (I a (Not b)))]
+               [[a -> Any] (Seqable a) -> (Seqable a)])))
+
+(ann ^:no-check clojure.core.reducers/mapcat
+     (All [a b] (IFn [[a -> (Seqable b)] (Seqable a) -> (Seqable b)])))
+
+(ann ^:no-check clojure.core.reducers/map
+     (All [a b] (IFn [[a -> b] (Seqable a) -> (Seqable b)])))
+
+(ann ^:no-check clojure.core.reducers/foldcat
+     (All [a] (IFn [(Seqable a) -> (Seqable a)])))
+
+; math.combinatorics
+(ann ^:no-check clojure.math.combinatorics/permutations
+     (All [a] (IFn [(Seqable a) -> (Seqable (Seqable a))])))
+
+(ann ^:no-check clojure.math.combinatorics/subsets
+     (All [a] (IFn [(Seqable a) -> (Seqable (Seqable a))])))
+
+; interval-metrics
+(ann ^:no-check interval-metrics.core/update!   [Metric Any -> Metric])
+(ann ^:no-check interval-metrics.core/snapshot! [Metric -> Any])
+
+; tools.logging
+(ann ^:no-check clojure.tools.logging.impl/enabled? [Logger Any -> Boolean])
+(ann ^:no-check clojure.tools.logging.impl/get-logger [Any Any -> Logger])
+(ann ^:no-check clojure.tools.logging/*logger-factory* LoggerFactory)
+(ann ^:no-check clojure.tools.logging/log*
+     [Logger Any (Option Throwable) Any -> (Value nil)])
+
+;; OK DONE WITH TYPES =========================================================
+
+
 (def op op/op)
 
 (def invoke-op  op/invoke)
@@ -192,32 +234,6 @@
           (outof (.pending world) ops)
           (.index world)))
 
-; Pretend reducibles are seqable though they totally aren't. Hopefully
-; core.typed will have reducible tfns and annotations for reduce et al someday
-(ann ^:no-check clojure.core.reducers/remove
-     (All [a b]
-          (IFn [[a -> Any :filters {:then tt, :else (is b 0)}] (Seqable a)
-                -> (Seqable b)]
-               [[a -> Any :filters {:then tt, :else (! b 0)}] (Seqable a)
-                -> (Seqable (I a (Not b)))]
-               [[a -> Any] (Seqable a) -> (Seqable a)])))
-
-(ann ^:no-check clojure.core.reducers/mapcat
-     (All [a b] (IFn [[a -> (Seqable b)] (Seqable a) -> (Seqable b)])))
-
-(ann ^:no-check clojure.core.reducers/map
-     (All [a b] (IFn [[a -> b] (Seqable a) -> (Seqable b)])))
-
-(ann ^:no-check clojure.core.reducers/foldcat
-     (All [a] (IFn [(Seqable a) -> (Seqable a)])))
-
-
-(ann ^:no-check clojure.math.combinatorics/permutations
-     (All [a] (IFn [(Seqable a) -> (Seqable (Seqable a))])))
-
-(ann ^:no-check clojure.math.combinatorics/subsets
-     (All [a] (IFn [(Seqable a) -> (Seqable (Seqable a))])))
-
 (ann ^:no-check possible-worlds [World -> (Seqable World)])
 (defn ^:no-check possible-worlds
   "Given a world, generates all possible future worlds consistent with the
@@ -312,19 +328,17 @@
                     (:pending world))
       (assoc world :index (inc (:index world))))))
 
-(ann  fold-completion-into-worlds [(Seqable World) OK -> (Seqable World)])
 (defn fold-completion-into-worlds
   "Given a sequence of worlds and a completion operation, returns only those
   worlds where that operation took place; e.g. is not still pending.
 
   TODO: replace the corresponding element in the history with the completion."
-  [worlds completion]
+  [worlds :- (Seqable World), completion :- OK] :- (Seqable World)
   (->> worlds
        (r/map (ann-form #(fold-completion-into-world % completion)
                         [World -> World]))
        (r/remove nil?)))
 
-(ann  fold-failure-into-world [World Fail -> (Option World)])
 (defn fold-failure-into-world
   "Given a world and a failed operation, returns world if the operation did
   *not* take place, and removes the operation from the pending ops in that
@@ -333,7 +347,7 @@
   Note that a failed operation is an operation which is *known* to have failed;
   e.g. the system *guarantees* that it did not take place. This is different
   from an *indeterminate* failure."
-  [world failure]
+  [world :- World, failure :- Fail] :- (Option World)
   (let [process (:process failure)
         pending (:pending world)]
     ; Find the corresponding invocation
@@ -354,11 +368,10 @@
                 (fold-failure-into-world w failure)))
        (r/remove nil?)))
 
-(ann  fold-info-into-world [World Info -> World])
 (defn fold-info-into-world
   "Given a world and an info operation, returns a subsequent world. Info
   operations don't appear in the fixed history; only the index advances."
-  [world info]
+  [world :- World, info :- Info] :- World
   (assoc world :index (inc (:index world))))
 
 ; dunno how to convince core.typed that dispatching based on (:type op) is
@@ -374,22 +387,20 @@
     :fail   (util/maybe-list (fold-failure-into-world    world op))
     :info   (list            (fold-info-into-world       world op))))
 
-(ann  fold-op-into-worlds [(Seqable World) Op -> (Set World)])
 (defn fold-op-into-worlds
   "Given a set of worlds and any type of operation, folds that operation into
   the set and returns a new set of possible worlds."
-  [worlds op]
+  [worlds :- (Seqable World), op :- Op] :- (Set World)
   (->> worlds
        (r/mapcat (t/fn [w :- World] :- (Seqable World)
                    (fold-op-into-world w op)))
        util/foldset))
 
-(ann  linearizations [Model (Vec Op) -> (Set World)])
 (defn linearizations
   "Given a model and a history, returns all possible worlds where that history
   is linearizable. Brute-force, expensive, but deterministic, simple, and
   useful for short histories."
-  [model history]
+  [model :- Model, history :- (Vec Op)] :- (Set World)
   (assert (vector? history))
   (reduce fold-op-into-worlds
           ; core.typed won't accept a list here, even though fold-op-into-worlds
@@ -397,17 +408,10 @@
           #{(world model)}
           history))
 
-(ann ^:no-check clojure.tools.logging.impl/enabled? [Logger Any -> Boolean])
-(ann ^:no-check clojure.tools.logging.impl/get-logger [Any Any -> Logger])
-(ann ^:no-check clojure.tools.logging/*logger-factory* LoggerFactory)
-(ann ^:no-check clojure.tools.logging/log*
-     [Logger Any (Option Throwable) Any -> (Value nil)])
-
-(ann  next-op [(Vec Op) World -> (Option Op)])
 (defn next-op
   "The next operation from the history to be applied to a world, based on the
   world's index, or nil when out of bounds."
-  [history world]
+  [history :- (Vec Op), world :- World] :- (Option Op)
   (try
     (nth history (:index world))
     (catch NullPointerException e
@@ -457,14 +461,11 @@
           (.pending world)
           (.index world)))
 
-(ann ^:no-check interval-metrics.core/update!   [Metric Any -> Metric])
-(ann ^:no-check interval-metrics.core/snapshot! [Metric -> Any])
-
-(ann  seen-world!? [NonBlockingHashMapLong World -> Boolean])
 (defn seen-world!?
   "Given a mutable hashmap of seen worlds, ensures that an entry exists for the
   given world, and returns truthy iff that world had already been seen."
-  [^NonBlockingHashMapLong seen world]
+  [^NonBlockingHashMapLong seen :- NonBlockingHashMapLong,
+   world :- World] :- Boolean
   (let [k  (degenerate-world-key world)
         ; Constrain the number of possible elements in the cache
         h (bit-and 0xffffff (hash k))
@@ -483,7 +484,7 @@
 
 ; Core.typed can't infer that the (:type op) check constrains Ops to their
 ; subtypes like Invoke, OK, etc.
-(t/defn ^:no-check prune-world
+(defn ^:no-check prune-world
   "Given a history and a world, advances the world through as many operations
   in the history as possible, without splitting into multiple worlds. Returns a
   new world (possibly the same as the input), or nil if the world was found to
@@ -559,7 +560,10 @@
 (defn short-circuit!
   "If we've reached a world with an index as deep as the history, we can
   abort all threads immediately."
-  [history ^AtomicBoolean running? world]
+  [history :- (Vec Op)
+   ^AtomicBoolean running? :- AtomicBoolean
+   world :- World]
+  :- Any
   (when (= (count history) (:index world))
 ;    (info "Short-circuiting" world)
     (.set running? false)))
