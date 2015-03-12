@@ -253,7 +253,6 @@
           (outof (.pending world) ops)
           (.index world)))
 
-(ann possible-worlds [World -> (Seqable World)])
 (defn possible-worlds
   "Given a world, generates all possible future worlds consistent with the
   given world's pending operations. For instance, in the world
@@ -334,28 +333,27 @@
            :index   (inc  (:index world))
            :pending (conj (:pending world) invocation))))
 
-; Some kind of core.typed bug?
-; https://gist.github.com/aphyr/2c60c58002c325a05d5d
-(ann  ^:no-check fold-completion-into-world [World OK -> World])
 (defn fold-completion-into-world
   "Given a world and a completion operation, returns world if the operation
   took place in that world, else nil. Advances the world index by one."
-  [world completion]
+  [world :- World, completion :- OK] :- (Option World)
   (let [p (:process completion)]
     (when-not (some (ann-form #(= p (:process %))
                               [Op -> Boolean])
                     (:pending world))
       (assoc world :index (inc (:index world))))))
 
+(ann ^:no-check fold-completion-into-worlds [(Seqable World) OK
+                                             -> (Seqable World)])
 (defn fold-completion-into-worlds
   "Given a sequence of worlds and a completion operation, returns only those
   worlds where that operation took place; e.g. is not still pending.
 
   TODO: replace the corresponding element in the history with the completion."
-  [worlds :- (Seqable World), completion :- OK] :- (Seqable World)
+  [worlds completion]
   (->> worlds
-       (r/map (ann-form #(fold-completion-into-world % completion)
-                        [World -> World]))
+       (r/map (fn [world :- World] :- World
+                (fold-completion-into-world world completion)))
        (r/remove nil?)))
 
 (defn fold-failure-into-world
@@ -383,7 +381,7 @@
   the pending ops in those worlds."
   [worlds failure]
   (->> worlds
-       (r/map (t/fn [w :- World] :- (Option World)
+       (r/map (fn [w :- World] :- (Option World)
                 (fold-failure-into-world w failure)))
        (r/remove nil?)))
 
@@ -447,23 +445,25 @@
 
 (defalias Deepest
   "Mutable set of deepest worlds"
-  (Atom1 (NonEmptyVec World)))
+  (Atom1 (Vec World)))
 
-; possibly a core.typed bug--it can't handle (conj deepest world), even though
-; it knows that world is a World and deepest is a (Vec World).
-(ann ^:no-check update-deepest-world!
-     [Deepest World -> (Option (Vec World))])
 (defn update-deepest-world!
   "If this is the deepest world we've seen, add it to the deepest list."
-  [deepest world]
-  (when (<= (:index (first @deepest)) (:index world))
-    (swap! deepest (t/fn update [deepest :- (NonEmptyVec World)]
-                     :- (NonEmptyVec World)
-                     (let [index  (:index (first deepest))
-                           index' (:index world)]
-                       (cond (< index index') [world]
-                             (= index index') (conj deepest world)
-                             :else            deepest))))))
+  [deepest :- Deepest, world :- World] :- (Option (Vec World))
+  ; We can drop the default 0 when core.typed lets us use NonEmptyVecs here
+  (when (<= (get (first @deepest) :index 0)
+            (:index world))
+    (swap! deepest (fn update [deepest :- (Vec World)] :- (Vec World)
+                     (if-let [d (first deepest)]
+                       (let [index  (:index d)
+                             index' (:index world)]
+                         (cond (< index index') [world]
+                               (= index index') (conj deepest world)
+                               :else            deepest))
+                       ; This will never happen, but core.typed is inconsolable.
+                       ; When c.t figures out you can conj onto NonEmptyVecs,
+                       ; we can use those instead and drop this branch. :)
+                       [world])))))
 
 (defn seen-world!?
   "Given a mutable hashmap of seen worlds, ensures that an entry exists for the
