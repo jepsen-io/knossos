@@ -18,6 +18,7 @@
                                         U
                                         Value
                                         Vec]]
+            [knossos.extra-types]
             [knossos.op :as op])
   (:import [clojure.core.protocols CollReduce]
            [clojure.lang IMapEntry
@@ -29,33 +30,6 @@
                          ITransientSet
                          ITransientVector
                          ITransientCollection]))
-
-(ann ^:no-check clojure.core.reducers/map
-     (All [a b] (IFn [[a -> b] (Seqable a) -> (Seqable b)])))
-
-(ann clojure.core/transient
-     (IFn [(IPersistentMap Any Any)     -> ITransientMap]
-          [(IPersistentSet Any)         -> ITransientSet]
-          [(IPersistentVector Any)      -> ITransientVector]
-          [(IPersistentCollection Any)  -> ITransientCollection]))
-
-(ann clojure.core/persistent!
-     (IFn [ITransientMap -> IPersistentMap]
-          [ITransientSet -> IPersistentSet]
-          [ITransientVector -> IPersistentVector]
-          [ITransientCollection -> IPersistentCollection]))
-
-(ann clojure.core/conj!
-     (IFn [ITransientMap (U IMapEntry (HVec [Any Any])) -> ITransientMap]
-          [ITransientSet        Any -> ITransientSet]
-          [ITransientVector     Any -> ITransientVector]
-          [ITransientCollection Any -> ITransientCollection]))
-
-(ann clojure.core/assoc!
-     (IFn [ITransientMap    Any Any        -> ITransientMap]
-          [ITransientVector AnyInteger Any -> ITransientVector]))
-
-(ann clojure.core/dissoc! [ITransientMap Any -> ITransientMap])
 
 (defalias History
   "A history is a sequence of operations."

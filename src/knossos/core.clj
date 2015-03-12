@@ -33,6 +33,7 @@
             [knossos.util :as util]
             [knossos.op :as op :refer [Op Invoke OK Info Fail]]
             [knossos.history :as history]
+            [knossos.extra-types]
             [clojure.pprint :refer [pprint]])
   (:import (org.cliffc.high_scale_lib NonBlockingHashMapLong)
            (java.util.concurrent.atomic AtomicLong
@@ -41,41 +42,6 @@
                                        LoggerFactory)
            (interval_metrics.core Metric)))
 
-;; TYPE SIGNATURES ============================================================
-
-; Pretend reducibles are seqable though they totally aren't. Hopefully
-; core.typed will have reducible tfns and annotations for reduce et al someday
-(ann ^:no-check clojure.core.reducers/remove
-     (All [a b]
-          (IFn [[a -> Any :filters {:then tt, :else (is b 0)}] (Seqable a)
-                -> (Seqable b)]
-               [[a -> Any :filters {:then tt, :else (! b 0)}] (Seqable a)
-                -> (Seqable (I a (Not b)))]
-               [[a -> Any] (Seqable a) -> (Seqable a)])))
-
-(ann ^:no-check clojure.core.reducers/mapcat
-     (All [a b] (IFn [[a -> (Seqable b)] (Seqable a) -> (Seqable b)])))
-
-(ann ^:no-check clojure.core.reducers/foldcat
-     (All [a] (IFn [(Seqable a) -> (Seqable a)])))
-
-; math.combinatorics
-(ann ^:no-check clojure.math.combinatorics/permutations
-     (All [a] (IFn [(Seqable a) -> (Seqable (Seqable a))])))
-
-(ann ^:no-check clojure.math.combinatorics/subsets
-     (All [a] (IFn [(Seqable a) -> (Seqable (Seqable a))])))
-
-; interval-metrics
-(ann ^:no-check interval-metrics.core/update!   [Metric Any -> Metric])
-(ann ^:no-check interval-metrics.core/snapshot! [Metric -> Any])
-
-; tools.logging
-(ann ^:no-check clojure.tools.logging.impl/enabled? [Logger Any -> Boolean])
-(ann ^:no-check clojure.tools.logging.impl/get-logger [Any Any -> Logger])
-(ann ^:no-check clojure.tools.logging/*logger-factory* LoggerFactory)
-(ann ^:no-check clojure.tools.logging/log*
-     [Logger Any (Option Throwable) Any -> (Value nil)])
 
 ;; OK DONE WITH TYPES =========================================================
 
