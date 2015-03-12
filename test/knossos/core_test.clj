@@ -8,8 +8,7 @@
             [clojure.pprint :refer [pprint]]))
 
 (deftest typecheck
-;  (is (check-ns 'knossos.core)))
-)
+  (is (check-ns 'knossos.core)))
 
 (comment
   (deftest keep-singular-test

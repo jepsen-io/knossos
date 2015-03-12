@@ -51,6 +51,8 @@
 (def ok?     op/ok?)
 (def fail?   op/fail?)
 
+(ann ^:no-check step [Model Op -> Model])
+
 (tc-ignore ; core.typed can't typecheck interfaces
 
 (definterface+ Model
@@ -169,6 +171,15 @@
   [world :- World] :- Boolean
   (instance? Inconsistent (:model world)))
 
+(ann ^:no-check outof
+     (All [a] [(Set a) (Seqable Any) -> (Set a)]))
+(defn outof
+  "Like into, but uses `disj` on a hashset"
+  [coll things-to-remove]
+  (->> things-to-remove
+       (reduce disj! (transient coll))
+       persistent!))
+
 (defn advance-world
   "Given a world and a series of operations, applies those operations to the
   given world. The returned world will have a new model reflecting its state
@@ -177,8 +188,8 @@
   [^World world :- World, ops :- (Seqable Op)] :- World
 ; (prn "advancing" world "with" ops)
   (World. (reduce step (.model world) ops)
-          (reduce conj (.fixed world) ops)
-          (persistent! (reduce disj! (transient (.pending world)) ops))
+          (into (.fixed world) ops)
+          (outof (.pending world) ops)
           (.index world)))
 
 ; Pretend reducibles are seqable though they totally aren't. Hopefully
@@ -207,7 +218,8 @@
 (ann ^:no-check clojure.math.combinatorics/subsets
      (All [a] (IFn [(Seqable a) -> (Seqable (Seqable a))])))
 
-(t/defn ^:no-check possible-worlds
+(ann ^:no-check possible-worlds [World -> (Seqable World)])
+(defn ^:no-check possible-worlds
   "Given a world, generates all possible future worlds consistent with the
   given world's pending operations. For instance, in the world
 
@@ -277,17 +289,15 @@
       ; Return consistent worlds
       true consistent)))
 
-(ann  fold-invocation-into-world [World Invoke -> (Seqable World)])
 (defn fold-invocation-into-world
   "Given a world and a new invoke operation, adds the operation to the pending
   set for the world, and yields a collection of all possible worlds from that.
   Increments world index."
-  [world invocation]
+  [world :- World, invocation :- Invoke] :- (Seqable World)
   (possible-worlds
     (assoc world
            :index   (inc  (:index world))
            :pending (conj (:pending world) invocation))))
-
 
 ; Some kind of core.typed bug?
 ; https://gist.github.com/aphyr/2c60c58002c325a05d5d
@@ -443,7 +453,7 @@
   point. This degeneracy allows us to dramatically prune the search space."
   [^World world :- World] :- World
   (World. (.model world)
-          nil ; Drop history
+          [] ; Drop history
           (.pending world)
           (.index world)))
 
@@ -539,7 +549,7 @@
            (fold-invocation-into-world world op)
            (list world))
          ; Prune completions
-         (r/map (t/fn shears [world :- World] :- (Option World)
+         (r/map (fn shears [world :- World] :- (Option World)
                   (prune-world history seen deepest stats world)))
          (r/remove nil?))
     ; No more ops
@@ -554,14 +564,13 @@
 ;    (info "Short-circuiting" world)
     (.set running? false)))
 
-(defn ^long awfulness
+(defn ^Long ^:no-check awfulness
   "How bad is this world to explore?"
-  [world :- World] :- long
+  [world :- World] :- Long
   ; (count (:pending world))
-  (- (:index world)))
+  (long (- (:index world))))
 
-; No idea how to type leaders, giving up
-(tc-ignore
+(tc-ignore ; No idea how to type leaders, giving up
 
 (defn explore-world!
   "Explores a world's direct successors, reinjecting each into `leaders`.
