@@ -56,9 +56,6 @@
 (ann ^:no-check clojure.core.reducers/mapcat
      (All [a b] (IFn [[a -> (Seqable b)] (Seqable a) -> (Seqable b)])))
 
-(ann ^:no-check clojure.core.reducers/map
-     (All [a b] (IFn [[a -> b] (Seqable a) -> (Seqable b)])))
-
 (ann ^:no-check clojure.core.reducers/foldcat
      (All [a] (IFn [(Seqable a) -> (Seqable a)])))
 
@@ -450,20 +447,14 @@
 (defn update-deepest-world!
   "If this is the deepest world we've seen, add it to the deepest list."
   [deepest :- Deepest, world :- World] :- (Option (Vec World))
-  ; We can drop the default 0 when core.typed lets us use NonEmptyVecs here
-  (when (<= (get (first @deepest) :index 0)
-            (:index world))
+  (when (<= (or (:index (first @deepest)) (:index world)))
     (swap! deepest (fn update [deepest :- (Vec World)] :- (Vec World)
-                     (if-let [d (first deepest)]
-                       (let [index  (:index d)
-                             index' (:index world)]
-                         (cond (< index index') [world]
-                               (= index index') (conj deepest world)
-                               :else            deepest))
-                       ; This will never happen, but core.typed is inconsolable.
-                       ; When c.t figures out you can conj onto NonEmptyVecs,
-                       ; we can use those instead and drop this branch. :)
-                       [world])))))
+                     (let [index  (or (:index (first deepest)) 0)
+                           index' (:index world)]
+                       (ann-form index Long)
+                       (cond (< index index') [world]
+                             (= index index') (conj deepest world)
+                             :else            deepest))))))
 
 (defn seen-world!?
   "Given a mutable hashmap of seen worlds, ensures that an entry exists for the

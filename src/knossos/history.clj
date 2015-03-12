@@ -5,6 +5,7 @@
                                         ann-form
                                         Any
                                         AnyInteger
+                                        All
                                         defalias
                                         HMap
                                         HVec
@@ -29,8 +30,8 @@
                          ITransientVector
                          ITransientCollection]))
 
-(ann clojure.core.reducers/map
-     [[Object -> Object] CollReduce -> CollReduce])
+(ann ^:no-check clojure.core.reducers/map
+     (All [a b] (IFn [[a -> b] (Seqable a) -> (Seqable b)])))
 
 (ann clojure.core/transient
      (IFn [(IPersistentMap Any Any)     -> ITransientMap]
