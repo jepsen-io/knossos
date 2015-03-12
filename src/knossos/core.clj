@@ -545,22 +545,19 @@
     ; No more ops
     (list world)))
 
-(ann  short-circuit! [(Vec Op) AtomicBoolean World -> Any])
 (defn short-circuit!
   "If we've reached a world with an index as deep as the history, we can
   abort all threads immediately."
-  [history :- (Vec Op)
-   ^AtomicBoolean running? :- AtomicBoolean
-   world :- World]
-  :- Any
+  [history                  :- (Vec Op)
+   ^AtomicBoolean running?  :- AtomicBoolean
+   world                    :- World] :- Any
   (when (= (count history) (:index world))
 ;    (info "Short-circuiting" world)
     (.set running? false)))
 
-(defn ^Long ^:no-check awfulness
+(defn ^Long awfulness
   "How bad is this world to explore?"
   [world :- World] :- Long
-  ; (count (:pending world))
   (long (- (:index world))))
 
 (tc-ignore ; No idea how to type leaders, giving up
