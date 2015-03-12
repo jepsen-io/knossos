@@ -208,6 +208,25 @@
   [model :- Model] :- World
   (World. model [] #{} 0))
 
+(ann-record DegenerateWorld [model   :- Model
+                             pending :- (Set Op)
+                             index   :- Long])
+(defrecord DegenerateWorld [model pending index])
+
+(defn degenerate-world-key
+  "An object which uniquely identifies whether or not a world is linearizable.
+  If two worlds have the same degenerate-world-key (in the context of a
+  history), their linearizability is equivalent.
+
+  Here we take advantage of the fact that worlds with equivalent pending
+  operations and equivalent positions in the history will linearize
+  equivalently regardless of exactly what fixed path we took to get to this
+  point. This degeneracy allows us to dramatically prune the search space."
+  [^World world :- World] :- DegenerateWorld
+  (DegenerateWorld. (.model world)
+                    (.pending world)
+                    (.index world)))
+
 (defn inconsistent-world?
   "Is the model for this world in an inconsistent state?"
   [world :- World] :- Boolean
@@ -445,21 +464,6 @@
                        (cond (< index index') [world]
                              (= index index') (conj deepest world)
                              :else            deepest))))))
-
-(defn degenerate-world-key
-  "An object which uniquely identifies whether or not a world is linearizable.
-  If two worlds have the same degenerate-world-key (in the context of a
-  history), their linearizability is equivalent.
-
-  Here we take advantage of the fact that worlds with equivalent pending
-  operations and equivalent positions in the history will linearize
-  equivalently regardless of exactly what fixed path we took to get to this
-  point. This degeneracy allows us to dramatically prune the search space."
-  [^World world :- World] :- World
-  (World. (.model world)
-          [] ; Drop history
-          (.pending world)
-          (.index world)))
 
 (defn seen-world!?
   "Given a mutable hashmap of seen worlds, ensures that an entry exists for the
