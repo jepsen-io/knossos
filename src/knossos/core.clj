@@ -14,6 +14,8 @@
                                         defalias
                                         defn
                                         fn
+                                        HMap
+                                        HVec
                                         I
                                         IFn
                                         inst
@@ -28,7 +30,8 @@
             [clojure.set :as set]
             [clojure.tools.logging :refer :all]
             [interval-metrics.core :as metrics]
-            [potemkin :refer [definterface+]]
+            [potemkin :refer [definterface+
+                              defrecord+]]
             [knossos.prioqueue :as prioqueue]
             [knossos.util :as util]
             [knossos.op :as op :refer [Op Invoke OK Info Fail]]
@@ -41,10 +44,6 @@
            (clojure.tools.logging.impl Logger
                                        LoggerFactory)
            (interval_metrics.core Metric)))
-
-
-;; OK DONE WITH TYPES =========================================================
-
 
 (def op op/op)
 
@@ -69,7 +68,7 @@
         msg). (reduce step model history) then validates that a particular
         history is valid, and returns the final state of the model."))
 
-(defrecord Inconsistent [msg]
+(defrecord+ Inconsistent [msg]
   Model
   (step [this op] this))
 
@@ -79,7 +78,7 @@
   [msg]
   (Inconsistent. msg))
 
-)
+) ; tc-ignore
 
 (ann  inconsistent? [Model -> Boolean])
                      ; core.typed: Can't use these filters without getting a
@@ -93,7 +92,7 @@
 
 (tc-ignore ; without interface types, we can't type implementations
 
-(defrecord NoOp []
+(defrecord+ NoOp []
   Model
   (step [m op] m))
 
@@ -101,7 +100,7 @@
   "A model which always returns itself, unchanged."
   (NoOp.))
 
-(defrecord Register [value]
+(defrecord+ Register [value]
   Model
   (step [r op]
     (condp = (:f op)
@@ -118,7 +117,7 @@
   ([] (Register. nil))
   ([x] (Register. x)))
 
-(defrecord CASRegister [value]
+(defrecord+ CASRegister [value]
   Model
   (step [r op]
     (condp = (:f op)
@@ -139,7 +138,7 @@
   ([]      (CASRegister. nil))
   ([value] (CASRegister. value)))
 
-(defrecord Mutex [locked?]
+(defrecord+ Mutex [locked?]
   Model
   (step [r op]
     (condp = (:f op)
@@ -161,7 +160,7 @@
                    fixed   :- (Vec Op)
                    pending :- (Set Op)
                    index   :- Long])
-(defrecord World [model fixed pending index])
+(defrecord+ World [model fixed pending index])
 
 (defn world
   "A world represents the state of the system at one particular point in time.
@@ -174,7 +173,7 @@
 (ann-record DegenerateWorld [model   :- Model
                              pending :- (Set Op)
                              index   :- Long])
-(defrecord DegenerateWorld [model pending index])
+(defrecord+ DegenerateWorld [model pending index])
 
 (defn degenerate-world-key
   "An object which uniquely identifies whether or not a world is linearizable.
@@ -208,7 +207,8 @@
   "Given a world and a series of operations, applies those operations to the
   given world. The returned world will have a new model reflecting its state
   with the given operations applied, and its fixed history will have the given
-  history appended. Those ops will also be absent from its pending operations."
+  history appended. Those ops will also be absent from its pending operations.
+  Does not affect the world index."
   [^World world :- World, ops :- (Seqable Op)] :- World
 ; (prn "advancing" world "with" ops)
   (World. (reduce step (.model world) ops)
@@ -216,203 +216,23 @@
           (outof (.pending world) ops)
           (.index world)))
 
-(defn possible-worlds
-  "Given a world, generates all possible future worlds consistent with the
-  given world's pending operations. For instance, in the world
-
-  {:fixed [:a :b]
-   :pending [:c :d]}
-
-  We *know* :a and :b have already happened, but :c and :d *could* happen, in
-  either order, so long as they occur after :a and :b. Here are the possible
-  worlds:
-
-  None of them may have happened:
-
-  {:fixed [:a :b]
-   :pending [:c :d]}
-
-  One of the two could have happened:
-
-  {:fixed [:a :b :c]
-   :pending [:d]}
-  {:fixed [:a :b :d]
-   :pending [:c]}
-
-  Both could have happened:
-
-  {:fixed [:a :b :c :d]
-   :pending []}
-  {:fixed [:a :b :d :c]
-   :pending []}
-
-  So: we are looking for the permutations of all subsets of all pending
-  operations."
-  [world :- World] :- (Seqable World)
-  (let [worlds (->> world
-                    :pending
-                    combo/subsets                 ; oh no
-                    ; (r/mapcat combo/permutations) ; oh dear lord no
-                    ; core.typed unifier can't figure this out unless we force
-                    ; a particular instance of permutations, since it's
-                    ; also polymorphic
-                    (r/mapcat (inst combo/permutations Op))
-
-                    ; For each permutation, advance the world with those
-                    ; operations in order
-                    (r/map (ann-form
-                             (fn advance [ops] (advance-world world ops))
-                             [(Seqable Op) -> World]))
-                    ; Filter out null worlds
-                    (r/remove nil?))
-
-        ; Filter out inconsistent worlds
-        consistent (->> worlds
-                        (r/remove inconsistent-world?)
-                        r/foldcat)]
-
-    (cond
-      ; No worlds at all
-      (util/rempty? worlds) worlds
-
-      ; All worlds were inconsistent
-      (util/rempty? consistent)
-      (throw (RuntimeException.
-               ; Core.typed can't infer that all worlds have inconsistent
-               ; models without more filter help than I can figure out how to
-               ; give it
-               ^String (str (tc-ignore (:msg (:model (first worlds)))))))
-
-      ; Return consistent worlds
-      true consistent)))
-
 (defn fold-invocation-into-world
   "Given a world and a new invoke operation, adds the operation to the pending
-  set for the world, and yields a collection of all possible worlds from that.
-  Increments world index."
-  [world :- World, invocation :- Invoke] :- (Seqable World)
-  (possible-worlds
-    (assoc world
-           :index   (inc  (:index world))
-           :pending (conj (:pending world) invocation))))
-
-(defn fold-completion-into-world
-  "Given a world and a completion operation, returns world if the operation
-  took place in that world, else nil. Advances the world index by one."
-  [world :- World, completion :- OK] :- (Option World)
-  (let [p (:process completion)]
-    (when-not (some (ann-form #(= p (:process %))
-                              [Op -> Boolean])
-                    (:pending world))
-      (assoc world :index (inc (:index world))))))
-
-(ann ^:no-check fold-completion-into-worlds [(Seqable World) OK
-                                             -> (Seqable World)])
-(defn fold-completion-into-worlds
-  "Given a sequence of worlds and a completion operation, returns only those
-  worlds where that operation took place; e.g. is not still pending.
-
-  TODO: replace the corresponding element in the history with the completion."
-  [worlds completion]
-  (->> worlds
-       (r/map (fn [world :- World] :- World
-                (fold-completion-into-world world completion)))
-       (r/remove nil?)))
-
-(defn fold-failure-into-world
-  "Given a world and a failed operation, returns world if the operation did
-  *not* take place, and removes the operation from the pending ops in that
-  world. Advances world index by one.
-
-  Note that a failed operation is an operation which is *known* to have failed;
-  e.g. the system *guarantees* that it did not take place. This is different
-  from an *indeterminate* failure."
-  [world :- World, failure :- Fail] :- (Option World)
-  (let [process (:process failure)
-        pending (:pending world)]
-    ; Find the corresponding invocation
-    (when-let [inv (some #(when (= process (:process %)) %) pending)]
-      ; In this world, we have not yet applied the operation.
-      (assoc world :index   (inc (:index world))
-                   :pending (disj pending inv)))))
-
-; core.typed: no idea why this fails
-(ann ^:no-check fold-failure-into-worlds [(Seqable World) Fail -> (Seqable World)])
-(defn fold-failure-into-worlds
-  "Given a sequence of worlds and a failed operation, returns only those worlds
-  where that operation did not take place, and removes the operation from
-  the pending ops in those worlds."
-  [worlds failure]
-  (->> worlds
-       (r/map (fn [w :- World] :- (Option World)
-                (fold-failure-into-world w failure)))
-       (r/remove nil?)))
-
-(defn fold-info-into-world
-  "Given a world and an info operation, returns a subsequent world. Info
-  operations don't appear in the fixed history; only the index advances."
-  [world :- World, info :- Info] :- World
-  (assoc world :index (inc (:index world))))
-
-; dunno how to convince core.typed that dispatching based on (:type op) is
-; what makes an Op an Invoke, OK, etc.
-(ann  ^:no-check fold-op-into-world [World Op -> (Seqable World)])
-(defn fold-op-into-world
-  "Given a world and any type of operation, folds that operation into the world
-  and returns a sequence of possible worlds. Increments the world index."
-  [world op]
-  (condp = (:type op)
-    :invoke (fold-invocation-into-world world op)
-    :ok     (util/maybe-list (fold-completion-into-world world op))
-    :fail   (util/maybe-list (fold-failure-into-world    world op))
-    :info   (list            (fold-info-into-world       world op))))
-
-(defn fold-op-into-worlds
-  "Given a set of worlds and any type of operation, folds that operation into
-  the set and returns a new set of possible worlds."
-  [worlds :- (Seqable World), op :- Op] :- (Set World)
-  (->> worlds
-       (r/mapcat (t/fn [w :- World] :- (Seqable World)
-                   (fold-op-into-world w op)))
-       util/foldset))
-
-(defn linearizations
-  "Given a model and a history, returns all possible worlds where that history
-  is linearizable. Brute-force, expensive, but deterministic, simple, and
-  useful for short histories."
-  [model :- Model, history :- (Vec Op)] :- (Set World)
-  (assert (vector? history))
-  (reduce fold-op-into-worlds
-          ; core.typed won't accept a list here, even though fold-op-into-worlds
-          ; takes any (Seqable World), because of reduce's signature.
-          #{(world model)}
-          history))
-
-(defn next-op
-  "The next operation from the history to be applied to a world, based on the
-  world's index, or nil when out of bounds."
-  [history :- (Vec Op), world :- World] :- (Option Op)
-  (try
-    (nth history (:index world))
-    (catch NullPointerException e
-      (info world)
-      (throw e))
-    (catch IndexOutOfBoundsException e
-      nil)))
-
-(defalias Stats
-  "Statistics for tracking analyzer performance"
-  (HMap :mandatory {:extant-worlds  AtomicLong
-                    :skipped-worlds Metric
-                    :visited-worlds Metric}))
+  set for the world, and increments the world's index."
+  [world :- World, invocation :- Invoke] :- World
+;  (info "Fold" invocation "into" world)
+  (assoc world
+         :index   (inc  (:index world))
+         :pending (conj (:pending world) invocation)))
 
 (defalias Deepest
   "Mutable set of deepest worlds"
   (Atom1 (Vec World)))
 
 (defn update-deepest-world!
-  "If this is the deepest world we've seen, add it to the deepest list."
-  [deepest :- Deepest, world :- World] :- (Option (Vec World))
+  "If this is the deepest world we've seen, add it to the deepest list. Returns
+  world."
+  [deepest :- Deepest, world :- World] :- World
   (when (<= (or (:index (first @deepest) -1) (:index world)))
     (swap! deepest (fn update [deepest :- (Vec World)] :- (Vec World)
                      (let [index  (or (:index (first deepest)) -1)
@@ -421,7 +241,124 @@
                        (ann-form index' Long)
                        (cond (< index index') [world]
                              (= index index') (conj deepest world)
-                             :else            deepest))))))
+                             :else            deepest)))))
+  world)
+
+(ann ^:no-check pull-out
+     (All [a] [[a -> Any] (Seqable a) -> (HVec [(Option a) (Vec a)])]))
+(defn pull-out
+  "Given a predicate function and a collection, returns a pair of `[matched,
+  others]`, where `matched` is the first element matched by the predicate fn,
+  and others is a vector of all other elements."
+  [pred coll]
+  (loop [match    nil
+         others   (transient [])
+         coll     coll]
+    (if-let [s (seq coll)]
+      (let [x  (first s)
+            xs (rest s)]
+        (if (pred x)
+          (if (nil? match)
+            (recur x others xs)
+            (throw
+              (IllegalStateException.
+                (str "Multiple matches for predicate: already had " match))))
+          (recur match (conj! others x) xs)))
+      [match (persistent! others)])))
+
+(ann ^:no-check fold-completion-into-world* [World OK -> (Seqable World)])
+(defn fold-completion-into-world*
+  "Given a world and a completion operation, returns all possible worlds where
+  that operation took place--including inconsistent worlds. Increments the
+  world index by one."
+  [world :- World, completion :- OK] :- (Seqable World)
+;  (info "Fold" completion "into" world)
+  (let [world      (assoc world :index (inc (:index world)))
+        p          (:process completion)
+        finder     (fn finder [op :- Op] :- (Option Op)
+                     (when (= p (:process op)) op))
+        ; Find the invocation from this world's pending set, and build up a
+        ; vector of *other* invocations
+        [invocation pending'] (pull-out finder (:pending world))]
+
+    (cond
+      ; We have a pending invocation. Take all operations from *other* threads
+      ; I *cannot* convince core.typed that invocation is non-nil here, so this
+      ; is uncheckable presently.
+      invocation
+      (->> pending'
+
+           ; Compute all possible partial orders of those operations
+           combo/subsets
+           (r/mapcat (inst combo/permutations Op))
+
+           (r/map (fn [ops :- (Vec Op)] :- World
+                    ; Apply the potential pending ops, then this invocation.
+                    (-> world
+                        (advance-world ops)
+                        (advance-world (list invocation))))))
+
+      ; What if it already happened in this timeline?
+      (some finder (rseq (:fixed world)))
+      (list world)
+
+      ; We never saw any invocation
+      true
+      (throw (ex-info "Couldn't find an invocation for completion"
+                      {:completion completion
+                       :world world})))))
+
+(defn fold-completion-into-world
+  "Given a world, and a completion operation, returns all possible worlds
+  consistent with that operation taking place. Increments world index by one.
+  This technique derives from the symmetry reduction in Lowe 2015, Testing For
+  Linearizability."
+  [world :- World, completion :- OK] :- (Seqable World)
+  (->> (fold-completion-into-world* world completion)
+       (r/remove inconsistent-world?)))
+
+(defn fold-failure-into-world
+  "Given a world and a failed operation, returns world if the operation did
+  *not* take place, and removes the operation from the pending ops in that
+  world. Advances world index by one.
+
+  Note that a failed operation is an operation which is *known* to have failed;
+  e.g. the system *guarantees* that it did not take place. This is different
+  from an *indeterminate* failure, and is also different than an operation
+  which is *known to have been impossible*! :-O"
+  [world :- World, failure :- Fail] :- (Option World)
+;  (info "Fold" failure "into" world)
+  (let [process (:process failure)
+        pending (:pending world)]
+    ; Find the corresponding invocation
+    (when-let [inv (some #(when (= process (:process %)) %) pending)]
+      ; In this world, we have not yet applied the operation.
+      (assoc world :index   (inc (:index world))
+                   :pending (disj pending inv)))))
+
+(defn fold-info-into-world
+  "Given a world and an info operation, returns a subsequent world. Info
+  operations don't appear in the fixed history; only the index advances."
+  [world :- World, info :- Info] :- World
+  (assoc world :index (inc (:index world))))
+
+(defn next-op
+  "The next operation from the history to be applied to a world, based on the
+  world's index, or nil when out of bounds."
+  [history :- (Vec Op), world :- World] :- (Option Op)
+  (try
+    (nth history (:index world))
+;    (catch NullPointerException e
+;      (info (with-out-str (pprint world)))
+;      (throw e))
+    (catch IndexOutOfBoundsException e
+      nil)))
+
+(defalias Stats
+  "Statistics for tracking analyzer performance"
+  (HMap :mandatory {:extant-worlds  AtomicLong
+                    :skipped-worlds Metric
+                    :visited-worlds Metric}))
 
 (defn seen-world!?
   "Given a mutable hashmap of seen worlds, ensures that an entry exists for the
@@ -473,11 +410,11 @@
           (metrics/update! (:visited-worlds stats) 1)
 
           (let [op (next-op history world)]
-            (if (or (nil? op) (invoke? op))
+            (if (or (nil? op) (ok? op))
               ; We hit a bifurcation point or the end
               world
               (recur history seen deepest stats
-                     (cond (op/ok? op)   (fold-completion-into-world world op)
+                     (cond (op/invoke? op) (fold-invocation-into-world world op)
                            (op/fail? op) (fold-failure-into-world world op)
                            (op/info? op) (fold-info-into-world world op)))))))))
 
@@ -493,18 +430,21 @@
   "Given a history and a world, generates a reducible sequence of possible
   subseqeuent worlds, obtained in two phases:
 
-  1. If the next operation in the history for this world is an invocation, we
-     find all possible subsequent worlds as a result of that invocation.
+  1. If the next operation in the history for this world is an ok op, we
+     find all possible subsequent worlds as a result of that completion.
 
-  2. For all immediately subsequent ok, fail, and info operations, use those
-     operations to prune and further advance the worlds from phase 1."
+  2. For all immediately subsequent invoke, fail, and info operations, use
+     those operations to prune and further advance the worlds from phase 1."
   [history seen deepest stats world]
   (if-let [op (next-op history world)]
-    ; Branch out for all invocations
-    (->> (if (op/invoke? op)
-           (fold-invocation-into-world world op)
+    ; Branch out for all completions
+    (->> (if (op/ok? op)
+           (let [ws (fold-completion-into-world world op)]
+             ;(info "completion expanded into" (with-out-str
+             ;                                   (pprint (into [] ws))))
+             ws)
            (list world))
-         ; Prune completions
+         ; Prune other ops
          (r/map (fn shears [world :- World] :- (Option World)
                   (prune-world history seen deepest stats world)))
          (r/remove nil?))
@@ -583,7 +523,7 @@
   cloud to ground.
 
   Given a world at the tip of the lightning bolt, we can reach out to several
-  nearby worlds just slightly ahead of ours, using fold-op-into-world. If there
+  nearby worlds just slightly ahead of ours, using fold-x-into-world. If there
   are no worlds left, we've struck a dead end and that particular fork of the
   lightning bolt terminates. If there *are* worlds left, we want to explore
   them--but it's not clear in what order.
@@ -665,6 +605,60 @@
   [model history]
   (first (linearizable-prefix-and-worlds model history)))
 
+(defalias Autopsy
+  (HMap :mandatory {}
+        :complete? false))
+
+(defn autopsy
+  "Given a known good world and an inconsistent world following it,
+  reconstructs what happened just prior to its death."
+  [history    :- (Vec Op)
+   antemortem :- World
+   postmortem :- World] :- Autopsy
+  (assert (not (inconsistent-world? antemortem)))
+  (assert (inconsistent-world? postmortem))
+  (assert (vector? history))
+  (assert (instance? World antemortem))
+  (assert (instance? World postmortem))
+  (let [; Where were we in the history at the time of death?
+        forcing-op     (nth history (dec (:index postmortem)))
+        index          (:index antemortem)
+        index'         (:index postmortem)
+        _              (assert (< -1 index index' (count history)))
+
+        ; What were the initial and crashed model states?
+        model          (:model antemortem)
+        model'         (:model postmortem)
+
+        ; Find path that led to this crash
+        path           (subvec (:fixed postmortem)
+                               (count (:fixed antemortem)))
+        _              (assert (= (:fixed postmortem)
+                                  (concat (:fixed antemortem)
+                                          path)))
+
+        ; Play forward model until just prior to death
+        perimortem     (-> (advance-world antemortem (drop-last path))
+                           (assoc :index (+ (:index antemortem)
+                                            (dec (count path)))))
+        _              (assert (not (inconsistent-world? perimortem)))]
+
+    {:world       perimortem
+     :op          (peek path)
+     :error       (:msg (:model postmortem))}))
+
+(defn inconsistent-transitions
+  "Takes a world close to death--one which is one operation away from running
+  out of linearizable paths, and returns a sequence of maps showing all the
+  ways it failed to be linearizable."
+  [history :- (Vec Op), world :- World] :- (Seqable Autopsy)
+  (when-let [op (next-op history world)]
+    (cond
+      (op/ok? op) (->> (fold-completion-into-world* world op)
+                       (r/map (partial autopsy history world))
+                       (into []))
+      :else       {:not-sure op})))
+
 (defn analysis
   "Returns a map of information about the linearizability of a history.
   Completes the history and searches for a linearization."
@@ -688,11 +682,9 @@
        :worlds              worlds}
       {:valid?                   false
        :linearizable-prefix      lin-prefix
-       :last-consistent-worlds   worlds
        :inconsistent-op          evil-op
-       :inconsistent-transitions (map (fn [w]
-                                      [(:model w)
-                                       (-> w :model (step evil-op) :msg)])
-                                      worlds)})))
+       :causes                   (->> worlds
+                                      (mapcat (partial inconsistent-transitions
+                                                    history)))})))
 
 )

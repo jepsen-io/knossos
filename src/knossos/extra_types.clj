@@ -11,6 +11,8 @@
                      Atom1
                      Atom2
                      defalias
+                     HVec
+                     HMap
                      I
                      IFn
                      inst
@@ -86,7 +88,7 @@
 
 ; math.combinatorics
 (ann ^:no-check clojure.math.combinatorics/permutations
-     (All [a] (IFn [(Seqable a) -> (Seqable (Seqable a))])))
+     (All [a] (IFn [(Seqable a) -> (Seqable (Vec a))])))
 
 (ann ^:no-check clojure.math.combinatorics/subsets
      (All [a] (IFn [(Seqable a) -> (Seqable (Seqable a))])))
