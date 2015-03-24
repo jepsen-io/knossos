@@ -27,7 +27,7 @@
                       (op/fail   :a :read 2)])
            (complete [(op/invoke :a :read 2)
                       (op/fail   :a :read nil)])
-           [(op/invoke :a :read 2)
+           [(op/info   :a :read [:failed-invoke 2])
             (op/fail   :a :read 2)])))
 
   (testing "an unbalanced set of invocations"
