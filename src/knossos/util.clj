@@ -7,6 +7,7 @@
                                         EmptySeqable
                                         IFn
                                         List
+                                        Option
                                         Seqable
                                         Set
                                         NonEmptySeqable
@@ -24,6 +25,13 @@
   [coll]
   (reduce (fn [_ _] (reduced false))
           true coll))
+
+(ann ^:no-check rkeep (All [a b]
+                           [[a -> (Option b)] (Seqable a) -> (Seqable b)]))
+(defn rkeep
+  "Like keep, but for reducibles."
+  [f coll]
+  (->> coll (r/map f) (r/remove nil?)))
 
 (ann ^:no-check foldset (All [a] [(Seqable a) -> (Set a)]))
 (defn foldset

@@ -41,6 +41,7 @@
   (:import (org.cliffc.high_scale_lib NonBlockingHashMapLong)
            (java.util.concurrent.atomic AtomicLong
                                         AtomicBoolean)
+           (clojure.lang Reduced)
            (clojure.tools.logging.impl Logger
                                        LoggerFactory)
            (interval_metrics.core Metric)))
@@ -55,8 +56,6 @@
 (def ok?     op/ok?)
 (def fail?   op/fail?)
 
-(ann ^:no-check step [Model Op -> Model])
-
 (tc-ignore ; core.typed can't typecheck interfaces
 
 (definterface+ Model
@@ -67,6 +66,8 @@
         inconsistent with the model's state, returns a (knossos/inconsistent
         msg). (reduce step model history) then validates that a particular
         history is valid, and returns the final state of the model."))
+
+(ann ^:no-check step [Model Op -> Model])
 
 (defrecord+ Inconsistent [msg]
   Model
@@ -194,37 +195,6 @@
   [world :- World] :- Boolean
   (instance? Inconsistent (:model world)))
 
-(ann ^:no-check outof
-     (All [a] [(Set a) (Seqable Any) -> (Set a)]))
-(defn outof
-  "Like into, but uses `disj` on a hashset"
-  [coll things-to-remove]
-  (->> things-to-remove
-       (reduce disj! (transient coll))
-       persistent!))
-
-(defn advance-world
-  "Given a world and a series of operations, applies those operations to the
-  given world. The returned world will have a new model reflecting its state
-  with the given operations applied, and its fixed history will have the given
-  history appended. Those ops will also be absent from its pending operations.
-  Does not affect the world index."
-  [^World world :- World, ops :- (Seqable Op)] :- World
-; (prn "advancing" world "with" ops)
-  (World. (reduce step (.model world) ops)
-          (into (.fixed world) ops)
-          (outof (.pending world) ops)
-          (.index world)))
-
-(defn fold-invocation-into-world
-  "Given a world and a new invoke operation, adds the operation to the pending
-  set for the world, and increments the world's index."
-  [world :- World, invocation :- Invoke] :- World
-;  (info "Fold" invocation "into" world)
-  (assoc world
-         :index   (inc  (:index world))
-         :pending (conj (:pending world) invocation)))
-
 (defalias Deepest
   "Mutable set of deepest worlds"
   (Atom1 (Vec World)))
@@ -243,6 +213,81 @@
                              (= index index') (conj deepest world)
                              :else            deepest)))))
   world)
+
+(defalias Seen NonBlockingHashMapLong)
+
+(defn seen-world!?
+  "Given a mutable hashmap of seen worlds, ensures that an entry exists for the
+  given world, and returns truthy iff that world had already been seen."
+  [^NonBlockingHashMapLong seen :- Seen,
+   world :- World] :- Boolean
+  (let [k  (degenerate-world-key world)
+        ; Constrain the number of possible elements in the cache
+        h (bit-and 0xffffff (hash k))
+        seen-key (.get seen h)]
+    (if (= k seen-key)
+      ; We've already visited this node.
+      true
+      ; Null or collision. Replace the existing value.
+      (do
+        ; We want to avoid hitting shared state for cheap operations, so we
+        ; only write to the cache if this world is sufficiently expensive to
+        ; visit.
+        (when (< 0 (count (:pending world)))
+          (.put seen h k))
+        false))))
+
+(ann ^:no-check outof
+     (All [a] [(Set a) (Seqable Any) -> (Set a)]))
+(defn outof
+  "Like into, but uses `disj` on a hashset"
+  [coll things-to-remove]
+  (->> things-to-remove
+       (reduce disj! (transient coll))
+       persistent!))
+
+; core.typed doesn't believe me that (step model op) returns model
+(ann  ^:no-check apply-op (IFn [World Op -> World]
+                               [nil   Op -> nil]))
+(defn apply-op
+  "Applies a single operation to a world. Returns the world with the operation
+  applied to its model and removed from its pending set. Does not affect the
+  world index.
+
+  If the world is nil, returns nil."
+  [^World world, op]
+  (when world
+    (World. (step (.model world) op)
+            (conj (.fixed world) op)
+            (disj (.pending world) op)
+            (.index world))))
+
+(defn apply-ops
+  "Given a seen world cache, a world, and a series of operations, applies those
+  operations to the given world. The returned world will have a new model
+  reflecting its state with the given operations applied, and its fixed history
+  will have the given history appended. Those ops will also be absent from its
+  pending operations.  Does not affect the world index.
+
+  If an equivalent world has already been seen, returns nil."
+  [^World world :- World
+   seen         :- Seen
+   ops          :- (Seqable Op)] :- (Option World)
+  (if-let [ops (seq ops)]
+    (let [world' (apply-op world (first ops))]
+      (if (seen-world!? seen world)
+        nil
+        (recur world' seen (rest ops))))
+    world))
+
+(defn fold-invocation-into-world
+  "Given a world and a new invoke operation, adds the operation to the pending
+  set for the world, and increments the world's index."
+  [world :- World, invocation :- Invoke] :- World
+;  (info "Fold" invocation "into" world)
+  (assoc world
+         :index   (inc  (:index world))
+         :pending (conj (:pending world) invocation)))
 
 (ann ^:no-check pull-out
      (All [a] [[a -> Any] (Seqable a) -> (HVec [(Option a) (Vec a)])]))
@@ -266,12 +311,14 @@
           (recur match (conj! others x) xs)))
       [match (persistent! others)])))
 
-(ann ^:no-check fold-completion-into-world* [World OK -> (Seqable World)])
+(ann ^:no-check fold-completion-into-world* [World Seen OK -> (Seqable World)])
 (defn fold-completion-into-world*
   "Given a world and a completion operation, returns all possible worlds where
   that operation took place--including inconsistent worlds. Increments the
   world index by one."
-  [world :- World, completion :- OK] :- (Seqable World)
+  [world      :- World
+   seen       :- Seen
+   completion :- OK] :- (Seqable World)
 ;  (info "Fold" completion "into" world)
   (let [world      (assoc world :index (inc (:index world)))
         p          (:process completion)
@@ -292,11 +339,12 @@
            combo/subsets
            (r/mapcat (inst combo/permutations Op))
 
-           (r/map (fn advance [ops :- (Vec Op)] :- World
-                    ; Apply the potential pending ops, then this invocation.
-                    (-> world
-                        (advance-world ops)
-                        (advance-world (list invocation))))))
+           (util/rkeep (fn advance [ops :- (Vec Op)] :- World
+                         ; Apply the potential pending ops, then this
+                         ; invocation.
+                         (-> world
+                             (apply-ops seen ops)
+                             (apply-op invocation)))))
 
       ; What if it already happened in this timeline?
       (some finder (rseq (:fixed world)))
@@ -313,8 +361,10 @@
   consistent with that operation taking place. Increments world index by one.
   This technique derives from the symmetry reduction in Lowe 2015, Testing For
   Linearizability."
-  [world :- World, completion :- OK] :- (Seqable World)
-  (->> (fold-completion-into-world* world completion)
+  [world      :- World
+   seen       :- Seen
+   completion :- OK] :- (Seqable World)
+  (->> (fold-completion-into-world* world seen completion)
        (r/remove inconsistent-world?)))
 
 (defn fold-failure-into-world
@@ -354,27 +404,6 @@
                     :skipped-worlds Metric
                     :visited-worlds Metric}))
 
-(defn seen-world!?
-  "Given a mutable hashmap of seen worlds, ensures that an entry exists for the
-  given world, and returns truthy iff that world had already been seen."
-  [^NonBlockingHashMapLong seen :- NonBlockingHashMapLong,
-   world :- World] :- Boolean
-  (let [k  (degenerate-world-key world)
-        ; Constrain the number of possible elements in the cache
-        h (bit-and 0xffffff (hash k))
-        seen-key (.get seen h)]
-    (if (= k seen-key)
-      ; We've already visited this node.
-      true
-      ; Null or collision. Replace the existing value.
-      (do
-        ; We want to avoid hitting shared state for cheap operations, so we
-        ; only write to the cache if this world is sufficiently expensive to
-        ; visit.
-        (when (< 0 (count (:pending world)))
-          (.put seen h k))
-        false))))
-
 ; Core.typed can't infer that the (:type op) check constrains Ops to their
 ; subtypes like Invoke, OK, etc.
 (defn prune-world
@@ -383,7 +412,7 @@
   new world (possibly the same as the input), or nil if the world was found to
   be inconsistent."
   [history :- (Vec Op)
-   seen    :- NonBlockingHashMapLong
+   seen    :- Seen
    deepest :- Deepest
    stats   :- Stats
    world   :- (Option World)]
@@ -419,7 +448,7 @@
 ; [[(Seqable (Option java.lang.Long))
 ;   -> (ASeq (I (U nil Long) (Not nil)))] {:then tt, :else ff}]
 (ann ^:no-check explode-then-prune-world
-     [(Vec Op) NonBlockingHashMapLong Deepest Stats World -> (Seqable World)])
+     [(Vec Op) Seen Deepest Stats World -> (Seqable World)])
 (defn explode-then-prune-world
   "Given a history and a world, generates a reducible sequence of possible
   subseqeuent worlds, obtained in two phases:
@@ -433,7 +462,7 @@
   (if-let [op (next-op history world)]
     ; Branch out for all completions
     (->> (if (op/ok? op)
-           (let [ws (fold-completion-into-world world op)]
+           (let [ws (fold-completion-into-world world seen op)]
              ;(info "completion expanded into" (with-out-str
              ;                                   (pprint (into [] ws))))
              ws)
@@ -632,7 +661,9 @@
                                           path)))
 
         ; Play forward model until just prior to death
-        perimortem     (-> (advance-world antemortem (drop-last path))
+        perimortem     (-> (apply-ops antemortem
+                                      (NonBlockingHashMapLong.)
+                                      (drop-last path))
                            (assoc :index (+ (:index antemortem)
                                             (dec (count path)))))
         _              (assert (not (inconsistent-world? perimortem)))]
@@ -648,7 +679,8 @@
   [history :- (Vec Op), world :- World] :- (Seqable Autopsy)
   (when-let [op (next-op history world)]
     (cond
-      (op/ok? op) (->> (fold-completion-into-world* world op)
+      (op/ok? op) (->> (fold-completion-into-world*
+                         world (NonBlockingHashMapLong.) op)
                        (r/map (partial autopsy history world))
                        (into []))
       :else       {:not-sure op})))

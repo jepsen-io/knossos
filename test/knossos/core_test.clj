@@ -5,12 +5,13 @@
             [knossos.prioqueue :as prioqueue]
             [knossos.history :as history]
             [knossos.op :as op]
-            [clojure.pprint :refer [pprint]]))
+            [clojure.pprint :refer [pprint]])
+  (:import (org.cliffc.high_scale_lib NonBlockingHashMapLong)))
 
 (deftest typecheck
   (is (check-ns 'knossos.core)))
 
-(deftest advance-world-test
+(deftest apply-ops-test
   (let [ops [(op/ok :a :read 0)
              (op/ok :a :read nil)
              (op/ok :a :write 1)
@@ -18,12 +19,13 @@
     (is (= (-> (->Register 0)
                world
                (assoc :pending (set ops))
-               (advance-world ops))
+               (apply-ops (NonBlockingHashMapLong.) ops))
            (assoc (world (->Register 1)) :fixed ops)))
 
     (is (inconsistent-world?
-                 (advance-world (world (->Register 0))
-                                [(op/ok :a :read 1)])))))
+                 (apply-ops (world (->Register 0))
+                            (NonBlockingHashMapLong.)
+                            [(op/ok :a :read 1)])))))
 
 
 (deftest prioqueue-test
@@ -158,7 +160,7 @@
 
 (deftest volatile-linearizable-test
   (dotimes [i 1]
-    (let [history (volatile-history 70 10000 1/10000)
+    (let [history (volatile-history 10 100 1/10000)
           _       (prn (count history))
           a       (analysis (->Register 0) history)]
       (is (:valid? a))
