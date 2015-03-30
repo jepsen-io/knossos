@@ -107,18 +107,16 @@
            (conj! op))
        (dissoc! index (:process op))])
 
-    ; A failure; rewrite to an info.
+    ; A failure; fill in either value.
     :fail
     (let [i           (get index (:process op))
           _           (assert i)
           invocation  (nth history i)
           value       (or (:value invocation) (:value op))
-          invocation' (assoc invocation
-                             :type :info,
-                             :value [:failed-invoke value])]
+          invocation' (assoc invocation :value value)]
       [(-> history
            (assoc! i invocation')
-           (conj!  (assoc op :value value)))
+           (conj!    (assoc op :value value)))
        (dissoc! index (:process op))])
 
     ; No change for info messages
@@ -141,7 +139,8 @@
   complete. It constructs a new history in which we 'already knew' what the
   results of successful operations would have been.
 
-  Complete transforms invocation of failed operations into :info ops as well."
+  For failed operations, complete fills in the value for both invocation
+  and completion; depending on whichever has a value available."
   [history]
   ; Reducing with a transient means we just have "vector", not "vector of ops"
   (->> history

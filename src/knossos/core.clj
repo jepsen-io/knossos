@@ -292,7 +292,7 @@
            combo/subsets
            (r/mapcat (inst combo/permutations Op))
 
-           (r/map (fn advance [ops :- (Vec Op)] :- World
+           (r/map (fn [ops :- (Vec Op)] :- World
                     ; Apply the potential pending ops, then this invocation.
                     (-> world
                         (advance-world ops)
@@ -318,9 +318,9 @@
        (r/remove inconsistent-world?)))
 
 (defn fold-failure-into-world
-  "Given a world and a failed operation, returns world, but with the world's
-  index advanced by one. Failures are informational only; they do not affect
-  linearizability.
+  "Given a world and a failed operation, returns world if the operation did
+  *not* take place, and removes the operation from the pending ops in that
+  world. Advances world index by one.
 
   Note that a failed operation is an operation which is *known* to have failed;
   e.g. the system *guarantees* that it did not take place. This is different
@@ -328,7 +328,13 @@
   which is *known to have been impossible*! :-O"
   [world :- World, failure :- Fail] :- (Option World)
 ;  (info "Fold" failure "into" world)
-  (assoc world :index (inc (:index world))))
+  (let [process (:process failure)
+        pending (:pending world)]
+    ; Find the corresponding invocation
+    (when-let [inv (some #(when (= process (:process %)) %) pending)]
+      ; In this world, we have not yet applied the operation.
+      (assoc world :index   (inc (:index world))
+                   :pending (disj pending inv)))))
 
 (defn fold-info-into-world
   "Given a world and an info operation, returns a subsequent world. Info
