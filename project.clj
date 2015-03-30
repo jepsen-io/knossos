@@ -7,7 +7,7 @@
                  "boundary-site" "http://maven.boundary.com/artifactory/repo"
                  "sonatype-oss-public" "https://oss.sonatype.org/content/groups/public/"}
   :dependencies [[org.clojure/clojure "1.6.0"]
-                 [org.clojure/math.combinatorics "0.1.1"]
+                 [org.clojure/math.combinatorics "0.0.7"]
                  [org.clojure/core.typed.rt "0.2.84"]
                  [potemkin "0.3.4"]
                  [interval-metrics "1.0.0"]
@@ -16,8 +16,5 @@
                  [org.slf4j/slf4j-log4j12 "1.6.1"]]
   ; "-verbose:gc" "-XX:+PrintGCDetails"
   :test-selectors {:focus :focus}
-  :jvm-opts ["-Xmx32g" "-XX:+UseConcMarkSweepGC" "-XX:+UseParNewGC"
-             "-XX:+CMSParallelRemarkEnabled" "-XX:+AggressiveOpts"
-             "-XX:+UseFastAccessorMethods" "-Dcom.sun.management.jmxremote"
-             "-XX:+UnlockCommercialFeatures" "-XX:+FlightRecorder"]
+  :jvm-opts ["-Xmx32g" "-XX:+UseConcMarkSweepGC" "-XX:+UseParNewGC" "-XX:+CMSParallelRemarkEnabled" "-XX:+AggressiveOpts" "-XX:+UseFastAccessorMethods"]
   :profiles {:dev {:dependencies [[org.clojure/core.typed "0.2.84"]]}})
