@@ -160,7 +160,7 @@
 
 (deftest volatile-linearizable-test
   (dotimes [i 1]
-    (let [history (volatile-history 10 100 1/10000)
+    (let [history (volatile-history 100 100 1/10000)
           _       (prn (count history))
           a       (analysis (->Register 0) history)]
       (is (:valid? a))

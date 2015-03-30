@@ -404,8 +404,6 @@
                     :skipped-worlds Metric
                     :visited-worlds Metric}))
 
-; Core.typed can't infer that the (:type op) check constrains Ops to their
-; subtypes like Invoke, OK, etc.
 (defn prune-world
   "Given a history and a world, advances the world through as many operations
   in the history as possible, without splitting into multiple worlds. Returns a
@@ -441,14 +439,6 @@
                            (op/fail? op) (fold-failure-into-world world op)
                            (op/info? op) (fold-info-into-world world op)))))))))
 
-; core.typed can't infer that (I (U a b) (Not b)) is a, which prevents us from
-; calling (r/remove nil?) and knowing the result is a seq of worlds.
-;
-; user=> (cf (fn [x :- (Seqable (Option Long))] (remove nil? x)))
-; [[(Seqable (Option java.lang.Long))
-;   -> (ASeq (I (U nil Long) (Not nil)))] {:then tt, :else ff}]
-(ann ^:no-check explode-then-prune-world
-     [(Vec Op) Seen Deepest Stats World -> (Seqable World)])
 (defn explode-then-prune-world
   "Given a history and a world, generates a reducible sequence of possible
   subseqeuent worlds, obtained in two phases:
@@ -458,7 +448,11 @@
 
   2. For all immediately subsequent invoke, fail, and info operations, use
      those operations to prune and further advance the worlds from phase 1."
-  [history seen deepest stats world]
+  [history :- (Vec Op)
+   seen    :- Seen
+   deepest :- Deepest
+   stats   :- Stats
+   world   :- World] :- (Seqable World)
   (if-let [op (next-op history world)]
     ; Branch out for all completions
     (->> (if (op/ok? op)
@@ -468,9 +462,7 @@
              ws)
            (list world))
          ; Prune other ops
-         (r/map (fn shears [world :- World] :- (Option World)
-                  (prune-world history seen deepest stats world)))
-         (r/remove nil?))
+         (util/rkeep (partial prune-world history seen deepest stats)))
     ; No more ops
     (list world)))
 
