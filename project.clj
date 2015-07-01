@@ -1,17 +1,16 @@
-(defproject knossos "0.2.1"
+(defproject knossos "0.2.2"
   :description "Linearizability checker"
   :url "https://github.com/aphyr/knossos"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :repositories {
-                 "boundary-site" "http://maven.boundary.com/artifactory/repo"
                  "sonatype-oss-public" "https://oss.sonatype.org/content/groups/public/"}
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojure/math.combinatorics "0.0.7"]
                  [org.clojure/core.typed.rt "0.2.84"]
                  [potemkin "0.3.4"]
                  [interval-metrics "1.0.0"]
-                 [com.boundary/high-scale-lib "1.0.3"]
+                 [com.boundary/high-scale-lib "1.0.6"]
                  [org.clojure/tools.logging "0.2.6"]
                  [org.slf4j/slf4j-log4j12 "1.6.1"]]
   ; "-verbose:gc" "-XX:+PrintGCDetails"
