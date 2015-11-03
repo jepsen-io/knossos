@@ -11,6 +11,7 @@
                      Atom1
                      Atom2
                      defalias
+                     HVec
                      I
                      IFn
                      inst
