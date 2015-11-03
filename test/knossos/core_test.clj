@@ -227,13 +227,13 @@
 
 (deftest prioqueue-test
   (let [q  (prioqueue/prioqueue)
-        w1 (assoc (world :good) :index 10 :pending #{1})
-        w2 (assoc (world :evil) :index 20 :pending #{1 2 3 4 5 6})]
+        w1 (assoc (world :evil) :index 20 :pending #{1 2 3 4 5 6})
+        w2 (assoc (world :good) :index 10 :pending #{1})]
     (->> [w1 w2 w1 w2]
          (map #(prioqueue/put! q (awfulness %) %))
          (dorun))
-    (is (= (take-while identity (repeatedly #(prioqueue/poll! q 1))))
-        [w1 w1 w2 w2])))
+    (is (= (take-while identity (repeatedly #(prioqueue/poll! q 1)))
+           [w1 w1 w2 w2]))))
 
 (deftest history-a
   ; A CAS register history that exposed a particular knossos bug
