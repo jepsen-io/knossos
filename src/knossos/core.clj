@@ -251,7 +251,10 @@
   [world :- World] :- (Seqable World)
   (let [worlds (->> world
                     :pending
-                    combo/subsets                 ; oh no
+                    ; ugly hack; subsets is gonna call distinct which requires
+                    ; nth which doesn't work on sets :(
+                    vec
+                    combo/subsets                   ; oh no
                     ; (r/mapcat combo/permutations) ; oh dear lord no
                     ; core.typed unifier can't figure this out unless we force
                     ; a particular instance of permutations, since it's
