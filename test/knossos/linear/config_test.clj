@@ -18,9 +18,8 @@
       (is (= 2 (count s)))
       (is (= #{1 2} (set s))))))
 
-(deftest processes-test
-  (let [ps (map-processes)
-        op {:process 0}]
+(defn processes-test [ps]
+  (let [op {:process 0}]
     (testing "empty"
       (is (= [] (into [] (calls ps))))
       (is (idle? ps 0))
@@ -49,3 +48,9 @@
         (is (idle? ps 0))))
         (is (not (calling? ps 0)))
         (is (not (returning? ps 0)))))
+
+(deftest map-processes-test
+  (processes-test (map-processes)))
+
+(deftest memoized-map-processes-test
+  (processes-test (memoized-map-processes)))
