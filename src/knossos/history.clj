@@ -113,7 +113,7 @@
           _           (assert i)
           invocation  (nth history i)
           value       (or (:value invocation) (:value op))
-          invocation' (assoc invocation :value value)]
+          invocation' (assoc invocation :value value, :fails? true)]
       [(-> history
            (assoc! i invocation')
            (conj!    (assoc op :value value)))
@@ -140,7 +140,8 @@
   results of successful operations would have been.
 
   For failed operations, complete fills in the value for both invocation
-  and completion; depending on whichever has a value available."
+  and completion; depending on whichever has a value available. We *also* add a
+  :fails? key to invocations which will fail, allowing checkers to skip them."
   [history]
   ; Reducing with a transient means we just have "vector", not "vector of ops"
   (->> history

@@ -5,38 +5,35 @@
             [clojure.core.reducers :as r]
             [knossos.linear.config :as config]
             [knossos [core :as core]
+                     [history :as history]
+                     [util :refer :all]
                      [op :as op :refer [Op Invoke OK Info Fail]]]))
 
-; Transitions between configurations
+;; Transitions between configurations
+
 (defn t-call
   "If calls and rets contain no call for a process, that process can invoke an
   operation, generating a new configuration."
   [config op]
-  (let [p (:process op)]
-    (assert (not (contains? (:calls config) p)))
-    (assert (not (contains? (:rets config) p)))
-    (assoc config :calls (assoc (:calls config) p op))))
+  (assoc config :processes (config/call (:processes config) op)))
 
 (defn t-lin
   "A pending call can be linearized by transforming the current state, moving
   the invocation from calls to rets. Returns nil if linearizing this operation
   would be inconsistent."
   [config op]
-  (let [p (:process op)]
-    (assert (contains? (:calls config) p))
-    (assert (= op (get (:calls config) p)))
-    (let [model' (core/step (:model config) op)]
-      (when-not (core/inconsistent? model')
-        (config/->Config model'
-                         (dissoc (:calls config) p)
-                         (assoc (:rets config) p model'))))))
+  (let [model' (core/step (:model config) op)]
+    (when-not (core/inconsistent? model')
+      (config/->Config model'
+                       (config/linearize (:processes config) op)))))
 
 (defn t-ret
   "A pending return can be completed. It's legal to provide an invocation or a
   completion here--all that matters is the :process"
   [config op]
-  (assert (contains? (:rets config) (:process op)))
-  (assoc config :rets (dissoc (:rets config) (:process op))))
+  (assoc config :processes (config/return (:processes config) op)))
+
+;; Exploring the automaton
 
 (defn jit-linearizations
   "Takes an initial configuration, a collection of pending invocations, and a
@@ -54,10 +51,10 @@
      ; try linearizing that op, and if we could linearize it, explore its
      ; successive linearizations too.
      (->> config
-          :calls
-          (dissoc (:process final))
-          vals
-          (keep (partial t-lin config))
+          :processes
+          config/calls
+          (r/filter #(not= (:process final) (:process %)))
+          (rkeep (partial t-lin config))
           (reduce (partial jit-linearizations final) configs)))))
 
 (defn step-ok!
@@ -75,15 +72,17 @@
   (let [p (:process ok)]
     (cond
       ; Have we already linearized the ok op in this config?
-      (contains? (:rets config) p)
-      (config/add! (t-ret config ok))
+      (config/returning? (:processes config) p)
+      (config/add! config-set (t-ret config ok))
 
       ; Is this operation pending?
-      (contains? (:calls config) p)
+      (config/calling? (:processes config) p)
       (let [jit-configs (jit-linearizations config ok)]
         ; Apply ok op to each one and return it.
         (->> jit-configs
-             (keep #(t-ret (t-lin % ok) ok))
+             (rkeep (fn [config]
+                       (when-let [linearized (t-lin config ok)]
+                         (t-ret linearized ok))))
              (reduce config/add! config-set))))
 
     config-set))
@@ -92,9 +91,10 @@
   "Advance one step through the history. Takes a configset, returns a new
   configset--or a reduced failure."
   [configs op]
+  (prn :op op)
   (cond
     ; If we're invoking an operation, just add it to each config's pending ops.
-    (op/invoke? op)
+    (and (op/invoke? op) (not (:fails? op)))
     (->> configs
          (map #(t-call % op))
          (reduce config/add! (config/set-config-set)))
@@ -104,23 +104,28 @@
     (op/ok? op)
     (let [configs' (config/set-config-set)]
       (doseq [c configs]
-        (step-ok! configs' c ok))
+        (step-ok! configs' c op))
       (if (empty? configs')
         ; Out of options! Return a reduced debugging state.
         (reduced {:valid?  false
                   :configs configs
                   :op      op})
         ; Otherwise, return new config set.
-        configs'))))
+        configs'))
 
-(defn analyze
+    ; Skip other types of ops
+    true
+    configs))
+
+(defn analysis
   "Given an initial model state and a history, checks to see if the history is
   linearizable. Returns a map with a :valid? bool and a :config configset from
   its final state, plus an offending :op if an operation forced the analyzer to
   discover there are no linearizable paths."
   [model history]
-  (let [res (reduce step
-                    (-> model config/config config/set-config-set)
+  (let [history (history/complete history)
+        res (reduce step
+                    (-> model config/config list config/set-config-set)
                     history)]
     (if (reduced? res)
       res

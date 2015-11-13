@@ -25,6 +25,28 @@
   (reduce (fn [_ _] (reduced false))
           true coll))
 
+; oh i get it we're not *supposed* to implement reducers ourselves cool thx
+(defmacro defcurried
+  [name doc meta args & body]
+  (#'r/do-curried name doc meta args body))
+
+(defmacro rfn
+  [[f1 k] fkv]
+  (#'r/do-rfn f1 k fkv))
+
+(defcurried rkeep
+  "Like keep for reducers"
+  {}
+  [f coll]
+  (r/folder coll
+          (fn [f1]
+            (rfn [f1 k]
+                 ([ret k v]
+                  (let [value (f k v)]
+                    (if (nil? value)
+                      ret
+                      (f1 ret value))))))))
+
 (ann ^:no-check foldset (All [a] [(Seqable a) -> (Set a)]))
 (defn foldset
   "Folds a reducible collection into a set."
