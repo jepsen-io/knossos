@@ -163,12 +163,13 @@
    (loop [low       0
           ^int high (dec (/ (alength a) 2))]
      (if (> low high)
-       (dec (* -2 low))
+       (dec (unchecked-multiply -2 low)) ; Because indices are bounded by
+                                         ; MAX_INT / 2, this is safe.
        (let [mid     (quot (+ low high) 2)
              mid-val (aget a (* 2 mid))]
          (cond (< mid-val process)  (recur (inc mid)  high)
                (< process mid-val)  (recur low        (dec mid))
-               true                 (* 2 mid)))))))
+               true                 (unchecked-multiply 2 mid)))))))
 
 (defn array-processes-assoc
   "Given an array like [process-id op-id process-id op-id ...], an index where
@@ -202,7 +203,7 @@
     (System/arraycopy a (+ i 2) a' i (- (alength a') i))
     a'))
 
-(deftype ArrayProcesses [history ^ints a]
+(deftype ArrayProcesses [^objects history ^ints a]
   Processes
   (calls [ps]
     ; Wish I could find an efficient way to get a reducible out of, say,
@@ -221,7 +222,7 @@
                            ; This op has been returned; skip
                            acc
                            ; Fetch op and apply f
-                           (f acc (nth history op-index)))]
+                           (f acc (aget history op-index)))]
                 (recur acc' (+ i 2)))))))))
 
   (call [ps op]
@@ -279,7 +280,7 @@
   [history]
   (assert (every? integer? (map :process (remove op/info? history))))
   (assert (every? integer? (map :index history)))
-  (ArrayProcesses. history (int-array 0)))
+  (ArrayProcesses. (object-array history) (int-array 0)))
 
 ; One particular path through the history, comprised of a model and a tracker
 ; for process states.
