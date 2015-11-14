@@ -47,16 +47,19 @@
   ; Build up a transient vector of resulting configs recursively.
   ([final configs config]
    ; Trivial case: record this configuration.
-   (let [configs (config/add! configs config)]
+   (let [configs        (config/add! configs config)
+         final-process  (:process final)]
      ; Take all pending ops from the configuration *except* the final one,
      ; try linearizing that op, and if we could linearize it, explore its
      ; successive linearizations too.
      (->> config
           :processes
           config/calls
-          (r/filter #(not= (:process final) (:process %)))
-          (rkeep (partial t-lin config))
-          (reduce (partial jit-linearizations final) configs)))))
+          (r/filter (fn excluder   [op] (not= final-process (:process op))))
+          (rkeep    (fn linearizer [op] (t-lin config op)))
+          (reduce   (fn recurrence [configs op]
+                      (jit-linearizations final configs op))
+                  configs)))))
 
 (defn step-ok!
   "Takes a ConfigSet, a config and an ok operation. If the operation has
