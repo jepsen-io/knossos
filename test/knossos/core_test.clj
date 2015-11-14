@@ -1,14 +1,10 @@
 (ns knossos.core-test
   (:require [clojure.test :refer :all]
-            [clojure.core.typed :refer [check-ns]]
             [knossos.core :refer :all]
             [knossos.prioqueue :as prioqueue]
             [knossos.history :as history]
             [knossos.op :as op]
             [clojure.pprint :refer [pprint]]))
-
-(deftest typecheck
-  (is (check-ns 'knossos.core)))
 
 (comment
   (deftest keep-singular-test

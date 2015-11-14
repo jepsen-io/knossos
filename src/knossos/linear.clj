@@ -7,7 +7,7 @@
             [knossos [core :as core]
                      [history :as history]
                      [util :refer :all]
-                     [op :as op :refer [Op Invoke OK Info Fail]]]))
+                     [op :as op]]))
 
 ;; Transitions between configurations
 

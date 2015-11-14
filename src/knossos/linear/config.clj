@@ -5,7 +5,7 @@
             [potemkin :refer [definterface+ deftype+ defrecord+]]
             [knossos [core :as core]
                      [util :refer :all]
-                     [op :as op :refer [Op Invoke OK Info Fail]]])
+                     [op :as op]])
     (:import knossos.core.Model
              java.util.Arrays
              java.util.Set
