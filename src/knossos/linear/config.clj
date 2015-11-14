@@ -205,11 +205,24 @@
 (deftype ArrayProcesses [history ^ints a]
   Processes
   (calls [ps]
-    (->> (range 1 (alength a) 2)
-         (rkeep (fn [i]
-                  (let [op-index (aget a i)]
-                    (when-not (neg? op-index)
-                      (nth history op-index)))))))
+    ; Wish I could find an efficient way to get a reducible out of, say,
+    ; (range), range reducers go through chunked seqs instead which is
+    ; evidently really pricey!
+    (reify clojure.lang.IReduceInit
+      (reduce [this f init]
+        (let [n (alength a)]
+          (loop [acc init
+                 i   1]
+            (if (<= n i)
+              ; done
+              acc
+              (let [op-index (aget a i)
+                    acc' (if (neg? op-index)
+                           ; This op has been returned; skip
+                           acc
+                           ; Fetch op and apply f
+                           (f acc (nth history op-index)))]
+                (recur acc' (+ i 2)))))))))
 
   (call [ps op]
     (let [p  (:process op)
@@ -271,7 +284,52 @@
 ; One particular path through the history, comprised of a model and a tracker
 ; for process states.
 
-(defrecord Config [model processes])
+(deftype Config [model processes]
+  clojure.lang.IKeywordLookup
+  ; Why can't we just use defrecord? Because defrecord computes hashcodes via
+  ; APersistentMap/mapHasheq which pretty darn expensive when we just want to
+  ; hash two fields--and there's no way to override hashcode without breaking
+  ; defrecord.
+  ;
+  ; Adapted from https://github.com/clojure/clojure/blob/master/src/clj/clojure/core_deftype.clj
+  (getLookupThunk [this k]
+    (let [gclass (class this)]
+      (condp identical? k
+        :model (reify clojure.lang.ILookupThunk
+                 (get [thunk gtarget]
+                   (if (identical? (class gtarget) gclass)
+                     (.-model ^Config gtarget))))
+        :processes (reify clojure.lang.ILookupThunk
+                     (get [thunk gtarget]
+                       (if (identical? (class gtarget) gclass)
+                         (.-processes ^Config gtarget)))))))
+
+  clojure.lang.IPersistentMap
+  (assoc [this k v]
+    (condp identical? k
+      :model      (Config. v processes)
+      :processes  (Config. model v)))
+
+  clojure.lang.IHashEq
+  (hasheq [this] (bit-xor (hash model) (hash processes)))
+
+  clojure.lang.IPersistentCollection
+  (equiv [this other]
+    (boolean
+      (or (identical? this other)
+          (and (instance? Config other)
+               (= model     (.-model     ^Config other))
+               (= processes (.-processes ^Config other))))))
+
+  Object
+  (hashCode [this]
+    (bit-xor (.hashCode model) (.hashCode processes)))
+
+  (equals [this other]
+    (or (identical? this other)
+        (and (instance? Config other)
+             (.equals model     (.-model     ^Config other))
+             (.equals processes (.-processes ^Config other))))))
 
 (defn config
   "An initial configuration around a given model and history."

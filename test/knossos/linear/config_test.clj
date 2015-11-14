@@ -1,7 +1,9 @@
 (ns knossos.linear.config-test
   (:require [clojure.test :refer :all]
             [knossos.linear.config :refer :all]
-            [knossos.op :refer :all]))
+            [knossos.op :refer :all])
+  (:import (knossos.linear.config Processes)))
+
 
 (deftest set-config-set-test
   (let [s (set-config-set)]
@@ -73,3 +75,25 @@
     (is (= -3 (array-processes-search (int-array [1 11 3 -33]) 2)))
     (is (= 2  (array-processes-search (int-array [1 11 3 -33]) 3)))
     (is (= -5 (array-processes-search (int-array [1 11 3 -33]) 4)))))
+
+(deftest config-test
+  (testing "kw lookups"
+    (let [c (config :foo [])]
+      (is (= :foo (:model c)))
+      (isa? Processes (:processes c))))
+
+  (testing "assoc"
+    (let [c (config :foo [])]
+      (is (= :a (:model     (assoc c :model     :a))))
+      (is (= :b (:processes (assoc c :processes :b))))))
+
+  (testing "equality"
+    (let [c1 (assoc (config {1 2} []) :processes [3 4])
+          c2 (assoc (config {1 2} []) :processes [3])
+          c3 (assoc (config {2 3} []) :processes [3 4])]
+      (is (= c1 (assoc c1 :model (:model c1))))
+      (is (= c2 (assoc c2 :model (:model c2))))
+      (is (= c3 (assoc c3 :model (:model c3))))
+      (is (not= c1 c2))
+      (is (not= c1 c3))
+      (is (not= c2 c3)))))
