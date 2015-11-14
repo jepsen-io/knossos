@@ -149,3 +149,12 @@
                [(transient []) (transient {})])
        first
        persistent!))
+
+(ann ^:no-check complete [History -> History])
+(defn index
+  "Attaches an :index key to each element of the history, identifying its
+  position in the history vector."
+  [history]
+  (->> history
+       (mapv (fn [i op] (assoc op :index i)) (range))
+       vec))

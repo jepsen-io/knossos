@@ -4,9 +4,6 @@
             [clojure.core.typed :refer [check-ns]]
             [knossos.op :as op]))
 
-(deftest typecheck
-  (is (check-ns 'knossos.history)))
-
 (deftest complete-test
   (testing "empty history"
     (is (= (complete [])
@@ -27,7 +24,7 @@
                       (op/fail   :a :read 2)])
            (complete [(op/invoke :a :read 2)
                       (op/fail   :a :read nil)])
-           [(op/invoke :a :read 2)
+           [(assoc (op/invoke :a :read 2) :fails? true)
             (op/fail   :a :read 2)])))
 
   (testing "an unbalanced set of invocations"

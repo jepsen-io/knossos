@@ -123,9 +123,14 @@
   its final state, plus an offending :op if an operation forced the analyzer to
   discover there are no linearizable paths."
   [model history]
-  (let [history (history/complete history)
+  (let [history (-> history
+                    history/complete
+                    history/index)
         res (reduce step
-                    (-> model config/config list config/set-config-set)
+                    (-> model
+                        (config/config history)
+                        list
+                        config/set-config-set)
                     history)]
     (if (reduced? res)
       res

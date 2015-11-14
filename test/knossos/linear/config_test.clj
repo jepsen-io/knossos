@@ -19,7 +19,7 @@
       (is (= #{1 2} (set s))))))
 
 (defn processes-test [ps]
-  (let [op {:process 0}]
+  (let [op {:process 0 :index 0}]
     (testing "empty"
       (is (= [] (into [] (calls ps))))
       (is (idle? ps 0))
@@ -54,3 +54,22 @@
 
 (deftest memoized-map-processes-test
   (processes-test (memoized-map-processes)))
+
+(deftest array-processes-test
+  (processes-test (array-processes [{:process 0 :index 0}])))
+
+(deftest array-processes-search-test
+  (testing "empty"
+    (is (= -1 (array-processes-search (int-array []) 3))))
+
+  (testing "one"
+    (is (= -1 (array-processes-search (int-array [1 11]) 0)))
+    (is (= 0  (array-processes-search (int-array [1 11]) 1)))
+    (is (= -3 (array-processes-search (int-array [1 11]) 2))))
+
+  (testing "two"
+    (is (= -1 (array-processes-search (int-array [1 11 3 -33]) 0)))
+    (is (= 0  (array-processes-search (int-array [1 11 3 -33]) 1)))
+    (is (= -3 (array-processes-search (int-array [1 11 3 -33]) 2)))
+    (is (= 2  (array-processes-search (int-array [1 11 3 -33]) 3)))
+    (is (= -5 (array-processes-search (int-array [1 11 3 -33]) 4)))))
