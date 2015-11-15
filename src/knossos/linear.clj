@@ -48,14 +48,15 @@
   ([final configs config]
    ; Trivial case: record this configuration.
    (let [configs        (config/add! configs config)
-         final-process  (:process final)]
+         final-process  (int (:process final))]
      ; Take all pending ops from the configuration *except* the final one,
      ; try linearizing that op, and if we could linearize it, explore its
      ; successive linearizations too.
      (->> config
           :processes
           config/calls
-          (r/filter (fn excluder   [op] (not= final-process (:process op))))
+          (r/filter (fn excluder [op]
+                      (not (= final-process (int (:process op))))))
           (rkeep    (fn linearizer [op] (t-lin config op)))
           (reduce   (fn recurrence [configs op]
                       (jit-linearizations final configs op))
