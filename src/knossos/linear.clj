@@ -4,8 +4,10 @@
   (:require [clojure.math.combinatorics :as combo]
             [clojure.core.reducers :as r]
             [knossos.linear.config :as config]
+            [knossos.model.memo :refer [memo]]
             [knossos [core :as core]
                      [history :as history]
+                     [model :as model]
                      [util :refer :all]
                      [op :as op]]))
 
@@ -22,8 +24,8 @@
   the invocation from calls to rets. Returns nil if linearizing this operation
   would be inconsistent."
   [config op]
-  (let [model' (core/step (:model config) op)]
-    (when-not (core/inconsistent? model')
+  (let [model' (model/step (:model config) op)]
+    (when-not (model/inconsistent? model')
       (config/->Config model'
                        (config/linearize (:processes config) op)))))
 
@@ -96,7 +98,7 @@
   "Advance one step through the history. Takes a configset, returns a new
   configset--or a reduced failure."
   [configs op]
-  (prn :op op)
+  (prn :space (count configs) :op op)
   (cond
     ; If we're invoking an operation, just add it to each config's pending ops.
     (and (op/invoke? op) (not (:fails? op)))
@@ -131,12 +133,13 @@
   (let [history (-> history
                     history/complete
                     history/index)
-        res (reduce step
-                    (-> model
-                        (config/config history)
-                        list
-                        config/set-config-set)
-                    history)]
+        memo (memo model history)
+        history (:history memo)
+        configs (-> (:model memo)
+                    (config/config history)
+                    list
+                    config/set-config-set)
+        res (reduce step configs history)]
     (if (reduced? res)
       res
       {:valid?  true

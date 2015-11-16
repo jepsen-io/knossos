@@ -53,6 +53,9 @@
 
   (deftest wrapper-test
     (let [w (wrapper (register 0) history)]
+      (is (integer? (hash w)))
+      (is (integer? (.hashCode w)))
+
       (is (= (register 0) (model w)))
       (is (= (register 1) (-> w (step (history 2)) model)))
       (is (= (register 1) (-> w
@@ -67,6 +70,15 @@
       (is (= (inconsistent "read 1 from register 2") (-> w
                                                          (step (history 3))
                                                          (step (history 1)))))
+
+      (is (= (-> w
+                 (step (history 2))
+                 (step (history 1))
+                 (step (history 3)))
+             (-> w
+                 (step (history 2))
+                 (step (history 3))
+                 (step (history 3)))))
       )))
 
 (deftest index-test

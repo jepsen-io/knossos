@@ -6,7 +6,7 @@
             [knossos [core :as core]
                      [util :refer :all]
                      [op :as op]])
-    (:import knossos.core.Model
+    (:import knossos.model.Model
              java.util.Arrays
              java.util.Set
              java.util.HashSet))
@@ -330,7 +330,13 @@
     (or (identical? this other)
         (and (instance? Config other)
              (.equals model     (.-model     ^Config other))
-             (.equals processes (.-processes ^Config other))))))
+             (.equals processes (.-processes ^Config other)))))
+
+  (toString [this]
+    (str "(Config :model " model ", :processes " processes ")")))
+
+(defmethod print-method Config [x ^java.io.Writer w]
+  (.write w (str x)))
 
 (defn config
   "An initial configuration around a given model and history."

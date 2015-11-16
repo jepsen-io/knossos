@@ -58,7 +58,7 @@
 (defn inconsistent-world?
   "Is the model for this world in an inconsistent state?"
   [world]
-  (instance? Inconsistent (:model world)))
+  (model/inconsistent? (:model world)))
 
 (defn outof
   "Like into, but uses `disj` on a hashset"

@@ -114,7 +114,10 @@
 ; transition-index:     an integer array mapping operation indices to
 ;                       transition indices.
 ; successors:           an array of transition indices to wrappers.
-(deftype AWrapper [model ^ints transition-index ^objects successors]
+(deftype AWrapper [model
+                   ^long hashCode
+                   ^ints transition-index
+                   ^objects successors]
   Wrapper
   (model [this] model)
 
@@ -127,7 +130,18 @@
 
   Object
   (toString [this]
-    (str "(wrapper " (pr-str model) ")")))
+    (str "(AWrapper " (pr-str model) ")"))
+
+  ; bwahahaha
+  (equals [this other]
+    (identical? this other))
+
+  ; muwhahahaha
+  (hashCode [this]
+    hashCode))
+
+(defmethod print-method AWrapper [x ^java.io.Writer w]
+  (.write w (str x)))
 
 (defn transition-index
   "Given a history and an array of transitions, computes an int array mapping
@@ -148,7 +162,10 @@
   [history models transitions]
   (let [transition-index (transition-index history transitions)]
     (->> (for [model models]
-           (AWrapper. model transition-index (object-array (count models))))
+           (AWrapper. model
+                      (rand-int Integer/MAX_VALUE)
+                      transition-index
+                      (object-array (count models))))
          (zipmap models))))
 
 (defn link-wrappers!
@@ -181,8 +198,7 @@
   "Given an initial model and a history, explores the state space exhaustively.
   Returns a map with:
 
-  :history  a version of the history where all equal :values are replaced by
-            *identical* references.
+  :history  a version of the history compatible with the returned model.
   :wrapper  a Model and Wrapper which can be used in place of the original
             model. Only compatible with the history provided.
 
@@ -192,4 +208,4 @@
   [model history]
   (let [history (canonical-history history)]
     {:history history
-     :wrapper (wrapper model history)}))
+     :model (wrapper model history)}))

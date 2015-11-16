@@ -94,12 +94,3 @@
   "A single mutex responding to :acquire and :release messages"
   []
   (Mutex. false))
-
-;; Model memoization
-
-; We can spend a lot of time comparing models for equality, and
-; constructing/GCing models. However, Jepsen tests generally have a relatively
-; small state space. A register, for instance, might take on 5 integer values,
-; and support 5 reads, 5 writes, and 5*5 compare-and-set transitions.
-
-; So let's do something evil. We'll read a history

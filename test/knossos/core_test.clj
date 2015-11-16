@@ -3,6 +3,7 @@
             [knossos.core :refer :all]
             [knossos.prioqueue :as prioqueue]
             [knossos.history :as history]
+            [knossos.model :as model :refer [register]]
             [knossos.op :as op]
             [clojure.pprint :refer [pprint]]))
 
@@ -29,34 +30,34 @@
              (op/ok :a :read nil)
              (op/ok :a :write 1)
              (op/ok :a :read 1)]]
-    (is (= (-> (->Register 0)
+    (is (= (-> (model/register 0)
                world
                (assoc :pending (set ops))
                (advance-world ops))
-           (assoc (world (->Register 1)) :fixed ops)))
+           (assoc (world (register 1)) :fixed ops)))
 
     (is (inconsistent-world?
-                 (advance-world (world (->Register 0))
+                 (advance-world (world (register 0))
                                 [(op/ok :a :read 1)])))))
 
 (deftest possible-worlds-test
   (testing "empty"
     ; The projection of an empty world is an empty world. I'm so alone.
-    (is (= (possible-worlds (world (->Register 1)))
-           [(world (->Register 1))])))
+    (is (= (possible-worlds (world (register 1)))
+           [(world (register 1))])))
 
   (testing "fixed history"
-    (let [w (-> (world (->Register 0))
+    (let [w (-> (world (register 0))
                 (assoc :fixed [(op/ok :a :read 0)]))]
       (is (= (possible-worlds w) [w]))))
 
   (testing "one fixed, one pending operation"
-    (let [w (-> (world (->Register 0))
+    (let [w (-> (world (register 0))
                 (assoc :fixed    [(op/ok :a :read 0)])
                 (assoc :pending #{(op/ok :a :write 1)}))]
       (is (= (set (possible-worlds w))
              ; In one world, the write occurs
-             #{(-> (world (->Register 1))
+             #{(-> (world (register 1))
                    (assoc :fixed [(op/ok :a :read 0)
                                   (op/ok :a :write 1)])
                    (assoc :pending #{}))
@@ -64,7 +65,7 @@
                w}))))
 
   (testing "Multiple pending operations with only two linear paths"
-    (let [w (-> (world (->Register 0))
+    (let [w (-> (world (register 0))
                 (assoc :pending #{(op/ok :a :read 0)
                                   (op/ok :a :write 1)
                                   (op/ok :a :read 1)}))]
@@ -78,66 +79,66 @@
                                      (op/ok :a :read 1)}))
                ; Read 0 and write 1 happened.
                (-> w
-                   (assoc :model   (->Register 1))
+                   (assoc :model   (register 1))
                    (assoc :fixed   [(op/ok :a :read 0)
                                     (op/ok :a :write 1)])
                    (assoc :pending #{(op/ok :a :read 1)}))
                ; All ops happened
                (-> w
-                   (assoc :model (->Register 1))
+                   (assoc :model (register 1))
                    (assoc :fixed [(op/ok :a :read 0)
                                   (op/ok :a :write 1)
                                   (op/ok :a :read 1)])
                    (assoc :pending #{}))
                ; Write 1 happened.
                (-> w
-                   (assoc :model (->Register 1))
+                   (assoc :model (register 1))
                    (assoc :fixed [(op/ok :a :write 1)])
                    (assoc :pending #{(op/ok :a :read 0)
                                      (op/ok :a :read 1)}))
                ; Write 1 and read 1 happened.
                (-> w
-                   (assoc :model (->Register 1))
+                   (assoc :model (register 1))
                    (assoc :fixed [(op/ok :a :write 1)
                                   (op/ok :a :read 1)])
                    (assoc :pending #{(op/ok :a :read 0)}))})))))
 
 (deftest linearizations-test
   (testing "Empty history"
-    (is (= (set (linearizations (->Register 0) []))
-           #{(world (->Register 0))})))
+    (is (= (set (linearizations (register 0) []))
+           #{(world (register 0))})))
 
   (testing "Single invocation and completion."
-    (is (= (set (linearizations (->Register 0)
+    (is (= (set (linearizations (register 0)
                                 [(op/invoke :a :read 0)
                                  (op/ok :a :read 0)]))
-           #{(-> (world (->Register 0))
+           #{(-> (world (register 0))
                  (assoc :index 2
                         :fixed [(op/invoke :a :read 0)]))})))
 
   (testing "Single invocation and failure."
-    (is (= (set (linearizations (->Register 0)
+    (is (= (set (linearizations (register 0)
                                 [(op/invoke :a :read 0)
                                  (op/fail   :a :read 0)]))
-           #{(-> (world (->Register 0))
+           #{(-> (world (register 0))
                  (assoc :index 2))})))
 
   (testing "Simple read-write race with one linearization."
-    (is (= (set (linearizations (->Register 0)
+    (is (= (set (linearizations (register 0)
                                 [(op/invoke :a :read 0)
                                  (op/ok :a :read 0)
                                  (op/invoke :a :read 1)   ; Overlaps B's write
                                  (op/invoke :b :write 1)
                                  (op/ok :a :read 1)
                                  (op/ok :b :write 1)]))
-           #{(-> (world (->Register 1))
+           #{(-> (world (register 1))
                  (assoc :index 6
                         :fixed [(op/invoke :a :read 0)
                                 (op/invoke :b :write 1)
                                 (op/invoke :a :read 1)]))})))
 
   (testing "Totally concurrent but corresponding reads/writes."
-    (is (= (->> (linearizations (->Register 0)
+    (is (= (->> (linearizations (register 0)
                                 [(op/invoke :w1 :write 1)
                                  (op/invoke :r1 :read 1)
                                  (op/invoke :w2 :write 2)
@@ -215,10 +216,10 @@
 (deftest volatile-test
   (dotimes [i 1]
     (let [history (history/complete (volatile-history 6 100 0))
-          linear  (linearizations (->Register 0) history)]
+          linear  (linearizations (register 0) history)]
       (when (empty? linear)
         (clojure.pprint/pprint history)
-        (clojure.pprint/pprint (linearizations (->Register 0) history)))
+        (clojure.pprint/pprint (linearizations (register 0) history)))
       (is (not (empty? linear))))))
 
 (deftest prioqueue-test
@@ -244,7 +245,7 @@
            {:process 9, :type :ok, :f :write, :value 0}
            {:process 19, :type :invoke, :f :read, :value 0}
            {:process 19, :type :ok, :f :read, :value 0}]
-        a (analysis (->Register 0) h)]
+        a (analysis (register 0) h)]
     (is (:valid? a))
     (when-not (:valid? a)
       (pprint h)
@@ -256,7 +257,7 @@
   (dotimes [i 1]
     (let [history (volatile-history 100 1000 1/1000)
           _       (prn (count history))
-          a       (analysis (->Register 0) history)]
+          a       (analysis (register 0) history)]
       (is (:valid? a))
       (when-not (:valid? a)
         (pprint history)
