@@ -1,0 +1,77 @@
+(ns knossos.model.memo-test
+  (:require [clojure.test :refer :all]
+            [knossos.history :as history]
+            [knossos.model :refer [register inconsistent step inconsistent?]]
+            [knossos.model.memo :refer :all]))
+
+(defn equiv-classes
+  "Groups a sequence into collections of = elements."
+  [coll]
+  (vals (reduce (fn [classes x]
+                  (assoc classes x (conj (classes x) x)))
+                {}
+                coll)))
+
+(deftest canonical-history-test
+  (let [history (take 100 (repeatedly (fn [] {:process (rand-int 5)
+                                              :f       (str (rand-int 5))
+                                              :value   [(rand-int 5)
+                                                        (rand-int 5)]})))
+        history' (canonical-history history)
+        canonical? (fn [[x & more]]
+                        (every? #(identical? x %) more))]
+    (is (= history history'))
+    (is (not (every? canonical? (equiv-classes (map :f history)))))
+    (is (not (every? canonical? (equiv-classes (map :value history)))))
+    (is (every? canonical? (equiv-classes (map :f history'))))
+    (is (every? canonical? (equiv-classes (map :value history'))))))
+
+(let [history (->> [{:type :invoke :process 0 :f :read :value :unreachable}
+                    {:type :invoke :process 1 :f :read :value 1}
+                    {:type :invoke :process 2 :f :write :value 1}
+                    {:type :invoke :process 3 :f :write :value 2}
+                    {:type :info   :process 4 :f :bad :value :bad}]
+                   history/index)]
+
+  (deftest transitions-test
+    (is (= [{:f :read :value :unreachable}
+            {:f :read :value 1}
+            {:f :write :value 1}
+            {:f :write :value 2}]
+           (transitions history))))
+
+  (deftest models-test
+    (is (= #{(register 0)
+             (register 1)
+             (register 2)
+             (inconsistent "read 1 from register 0")
+             (inconsistent "read 1 from register 2")
+             (inconsistent "read :unreachable from register 0")
+             (inconsistent "read :unreachable from register 1")
+             (inconsistent "read :unreachable from register 2")}
+           (models (transitions history) (register 0)))))
+
+  (deftest wrapper-test
+    (let [w (wrapper (register 0) history)]
+      (is (= (register 0) (model w)))
+      (is (= (register 1) (-> w (step (history 2)) model)))
+      (is (= (register 1) (-> w
+                              (step (history 2))
+                              (step (history 1))
+                              model)))
+      (is (= (register 2) (-> w
+                              (step (history 2))
+                              (step (history 1))
+                              (step (history 3))
+                              model)))
+      (is (= (inconsistent "read 1 from register 2") (-> w
+                                                         (step (history 3))
+                                                         (step (history 1)))))
+      )))
+
+(deftest index-test
+  (let [idx (index [:a :b :c])]
+    (is (= 0 (idx :a)))
+    (is (= 1 (idx :b)))
+    (is (= 2 (idx :c)))
+    (is (= -1 (idx :d)))))
