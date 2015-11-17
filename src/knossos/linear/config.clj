@@ -160,8 +160,8 @@
   returns (dec (- insertion-point)), where insertion point is where the process
   index *would* be, after insertion into the array."
   ([^ints a ^long process]
-   (loop [low       0
-          ^int high (dec (unchecked-divide-int (alength a) 2))]
+   (loop [low  0
+          high (dec (unchecked-divide-int (alength a) 2))]
      (if (> low high)
        (dec (unchecked-multiply -2 low)) ; Because indices are bounded by
                                          ; MAX_INT / 2, this is safe.
@@ -178,7 +178,7 @@
   [^ints a ^long i ^long process ^long op]
   (if (neg? i)
     ; It's not in the array currently; insert it
-    (let [i  (- (inc i))
+    (let [i  (int (- (inc i)))
           a' (int-array (+ 2 (alength a)))]
       ; Copy prefix, insert, copy postfix
       (System/arraycopy a 0 a' 0 i)

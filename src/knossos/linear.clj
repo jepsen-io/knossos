@@ -44,13 +44,15 @@
   invocations, and returns a sequence of valid configurations with that final
   invocation linearized."
   ([config final]
+   (jit-linearizations final (ArrayList.) config))
 ;   (jit-linearizations final (config/set-config-set) config))
-   (persistent!
-     (jit-linearizations final (transient []) config)))
+;   (persistent!
+;     (jit-linearizations final (transient []) config)))
   ; Build up a transient vector of resulting configs recursively.
-  ([final configs config]
+  ([final ^ArrayList configs config]
    ; Trivial case: record this configuration.
-   (let [configs        (conj! configs config)
+   (.add configs config)
+   (let [configs        configs
          final-process  (int (:process final))]
      ; Take all pending ops from the configuration *except* the final one,
      ; try linearizing that op, and if we could linearize it, explore its

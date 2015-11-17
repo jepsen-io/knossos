@@ -123,9 +123,7 @@
 
   Model
   (step [this op]
-    (->> op
-         :index
-         (aget transition-index)
+    (->> (aget transition-index (int (:index op)))
          (aget successors)))
 
   Object
