@@ -9,7 +9,8 @@
                      [history :as history]
                      [model :as model]
                      [util :refer :all]
-                     [op :as op]]))
+                     [op :as op]])
+  (:import [java.util ArrayList]))
 
 ;; Transitions between configurations
 
@@ -43,13 +44,13 @@
   invocations, and returns a sequence of valid configurations with that final
   invocation linearized."
   ([config final]
-   (jit-linearizations final (config/set-config-set) config))
-;   (persistent!
-;     (jit-linearizations final (transient []) config)))
+;   (jit-linearizations final (config/set-config-set) config))
+   (persistent!
+     (jit-linearizations final (transient []) config)))
   ; Build up a transient vector of resulting configs recursively.
   ([final configs config]
    ; Trivial case: record this configuration.
-   (let [configs        (config/add! configs config)
+   (let [configs        (conj! configs config)
          final-process  (int (:process final))]
      ; Take all pending ops from the configuration *except* the final one,
      ; try linearizing that op, and if we could linearize it, explore its
@@ -87,12 +88,16 @@
       (let [jit-configs (jit-linearizations config ok)]
         ; Apply ok op to each one and return it.
         (->> jit-configs
-             (rkeep (fn [config]
+             (rkeep (fn final-linearization [config]
                        (when-let [linearized (t-lin config ok)]
                          (t-ret linearized ok))))
              (reduce config/add! config-set))))
 
     config-set))
+
+(def ^:const parallel-threshold
+  "How many configs do we need before we start parallelizing?"
+  128)
 
 (defn step
   "Advance one step through the history. Takes a configset, returns a new
@@ -109,9 +114,21 @@
     ; If we're handling a completion, run each configuration through a
     ; just-in-time linearization, accumulating a new set of configs.
     (op/ok? op)
-    (let [configs' (config/set-config-set)]
-      (doseq [c configs]
-        (step-ok! configs' c op))
+    (let [configs' (if (< (count configs) parallel-threshold)
+                     ; Singlethreaded search
+                     (let [configs' (config/set-config-set)]
+                       (doseq [c configs]
+                         (step-ok! configs' c op))
+                       configs')
+
+                     ; Parallel search
+                     (->> configs
+                          (pmap (fn par-expand [config]
+                                  (step-ok! (config/set-config-set) config op)))
+                          (apply concat)
+                          ; Merge parallel results
+                          (reduce config/add! (config/set-config-set))))]
+
       (if (empty? configs')
         ; Out of options! Return a reduced debugging state.
         (reduced {:valid?  false
