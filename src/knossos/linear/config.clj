@@ -352,7 +352,7 @@
   "Turns a config into a nice map showing the state of the world at that point."
   [config]
   {:model   (let [m (:model config)]
-              (if (isa? Wrapper m)
+              (if (instance? Wrapper m)
                 (memo/model m)
                 m))
    :pending (into [] (calls (:processes config)))})
