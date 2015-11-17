@@ -5,8 +5,10 @@
             [potemkin :refer [definterface+ deftype+ defrecord+]]
             [knossos [core :as core]
                      [util :refer :all]
-                     [op :as op]])
+                     [op :as op]]
+            [knossos.model.memo :as memo])
     (:import knossos.model.Model
+             knossos.model.memo.Wrapper
              java.util.Arrays
              java.util.Set
              java.util.HashSet
@@ -345,6 +347,15 @@
   "An initial configuration around a given model and history."
   [model history]
   (Config. model (array-processes history)))
+
+(defn config->map
+  "Turns a config into a nice map showing the state of the world at that point."
+  [config]
+  {:model   (let [m (:model config)]
+              (if (isa? Wrapper m)
+                (memo/model m)
+                m))
+   :pending (into [] (calls (:processes config)))})
 
 ;; Non-threadsafe mutable configuration sets
 

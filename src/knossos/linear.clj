@@ -134,7 +134,7 @@
       (if (empty? configs')
         ; Out of options! Return a reduced debugging state.
         (reduced {:valid?  false
-                  :configs configs
+                  :configs (map config/config->map configs)
                   :op      op})
         ; Otherwise, return new config set.
         configs'))
@@ -162,4 +162,5 @@
     (if (reduced? res)
       res
       {:valid?  true
-       :configs res})))
+       ; Unwrap our awful internal data structures into something sane
+       :configs (map config/config->map configs)})))

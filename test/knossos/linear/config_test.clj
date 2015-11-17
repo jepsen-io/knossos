@@ -1,6 +1,7 @@
 (ns knossos.linear.config-test
   (:require [clojure.test :refer :all]
             [knossos.linear.config :refer :all]
+            [knossos.model :refer [register]]
             [knossos.op :refer :all])
   (:import (knossos.linear.config Processes)))
 
@@ -97,3 +98,10 @@
       (is (not= c1 c2))
       (is (not= c1 c3))
       (is (not= c2 c3)))))
+
+(deftest config->map-test
+  (let [h [{:index 0 :process 0 :type :invoke :f :write :value 1}]
+        c (config (register 0) h)]
+    (is (= {:model (register 0)
+            :pending []}
+           (config->map c)))))
