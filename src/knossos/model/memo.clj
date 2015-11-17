@@ -130,11 +130,12 @@
   (toString [this]
     (str "(AWrapper " (pr-str model) ")"))
 
-  ; bwahahaha
+  ; at this time, the reader is encouraged to envision
+  ; https://www.youtube.com/watch?v=ec4nMM9KSKA#t=15s
   (equals [this other]
     (identical? this other))
 
-  ; muwhahahaha
+  ; and likewise here
   (hashCode [this]
     hashCode))
 
