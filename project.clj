@@ -20,6 +20,8 @@
              "-XX:+CMSParallelRemarkEnabled"
              "-XX:+AggressiveOpts"
              "-XX:+UseFastAccessorMethods"
+             "-XX:MaxInlineLevel=32"
+             "-XX:MaxRecursiveInlineLevel=2"
 ;             "-XX:-OmitStackTraceInFastThrow"
              "-server"]
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.7.0"]
