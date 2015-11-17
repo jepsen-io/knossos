@@ -1,6 +1,7 @@
 (ns knossos.linear.config-test
   (:require [clojure.test :refer :all]
             [knossos.linear.config :refer :all]
+            [knossos.linear :refer [t-call t-lin t-ret]]
             [knossos.model :refer [register]]
             [knossos.op :refer :all])
   (:import (knossos.linear.config Processes)))
@@ -100,8 +101,22 @@
       (is (not= c2 c3)))))
 
 (deftest config->map-test
-  (let [h [{:index 0 :process 0 :type :invoke :f :write :value 1}]
-        c (config (register 0) h)]
-    (is (= {:model (register 0)
-            :pending []}
-           (config->map c)))))
+  (let [w1 {:index 0 :process 0 :type :invoke :f :write :value 1}
+        h  [w1]
+        c  (config (register 0) h)]
+    (testing "initial"
+      (is (= {:model (register 0)
+              :pending []}
+             (config->map c))))
+
+    (testing "pending"
+      (let [c (-> c (t-call w1))]
+        (is (= {:model (register 0)
+                :pending [w1]}
+               (config->map c)))))
+
+    (testing "linearized"
+      (let [c (-> c (t-call w1) (t-lin w1))]
+        (is (= {:model (register 1)
+                :pending []}
+               (config->map c)))))))

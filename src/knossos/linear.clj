@@ -163,4 +163,4 @@
       res
       {:valid?  true
        ; Unwrap our awful internal data structures into something sane
-       :configs (map config/config->map configs)})))
+       :configs (map config/config->map res)})))
