@@ -180,14 +180,14 @@
   (if (neg? i)
     ; It's not in the array currently; insert it
     (let [i  (int (- (inc i)))
-          a' (int-array (+ 2 (alength a)))]
+          a' (int-array (unchecked-add 2 (alength a)))]
       ; Copy prefix, insert, copy postfix
       (System/arraycopy a 0 a' 0 i)
       ; Believe it or not we actually burned a ton of time in the aset-int
       ; coercion wrapper
       (aset a' i        process)
       (aset a' (inc i)  op)
-      (System/arraycopy a i a' (+ i 2) (- (alength a) i))
+      (System/arraycopy a i a' (unchecked-add i 2) (- (alength a) i))
       a')
 
     ; It's already in the array; just copy and overwrite those indices.
