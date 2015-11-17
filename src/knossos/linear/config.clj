@@ -161,11 +161,11 @@
   index *would* be, after insertion into the array."
   ([^ints a ^long process]
    (loop [low       0
-          ^int high (dec (/ (alength a) 2))]
+          ^int high (dec (unchecked-divide-int (alength a) 2))]
      (if (> low high)
        (dec (unchecked-multiply -2 low)) ; Because indices are bounded by
                                          ; MAX_INT / 2, this is safe.
-       (let [mid     (quot (+ low high) 2)
+       (let [mid     (quot (unchecked-add-int low high) 2)
              mid-val (aget a (unchecked-multiply 2 mid))]
          (cond (< mid-val process)  (recur (inc mid)  high)
                (< process mid-val)  (recur low        (dec mid))
