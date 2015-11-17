@@ -9,7 +9,8 @@
     (:import knossos.model.Model
              java.util.Arrays
              java.util.Set
-             java.util.HashSet))
+             java.util.HashSet
+             java.lang.reflect.Array))
 
 ;; An immutable map of process ids to whether they are calling or returning an
 ;; op, augmented with a mutable union-find memoized equality test.
@@ -182,16 +183,18 @@
           a' (int-array (+ 2 (alength a)))]
       ; Copy prefix, insert, copy postfix
       (System/arraycopy a 0 a' 0 i)
-      (aset-int a' i       process)
-      (aset-int a' (inc i) op)
+      ; Believe it or not we actually burned a ton of time in the aset-int
+      ; coercion wrapper
+      (aset a' i        process)
+      (aset a' (inc i)  op)
       (System/arraycopy a i a' (+ i 2) (- (alength a) i))
       a')
 
     ; It's already in the array; just copy and overwrite those indices.
     (let [a' (int-array (alength a))]
       (System/arraycopy a 0 a' 0 (alength a))
-      (aset-int a' i       process)
-      (aset-int a' (inc i) op)
+      (aset a i       process)
+      (aset a' (inc i) op)
       a')))
 
 (defn array-processes-dissoc

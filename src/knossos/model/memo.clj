@@ -151,7 +151,7 @@
         table         (int-array (count history))]
     (doseq [op history]
       (let [i (-> op op->transition transition->i (or -1))]
-        (aset table (int (:index op)) i)))
+        (aset-int table (int (:index op)) i)))
     table))
 
 (defn build-wrappers
@@ -171,7 +171,7 @@
   to wrappers and an array of transitions. Mutates wrappers in place."
   [models->wrappers transitions]
   ; For each model/wrapper pair, and each transition...
-  (doseq [[model wrapper] models->wrappers
+  (doseq [[model ^AWrapper wrapper] models->wrappers
           i               (range (count transitions))]
     ; Compute the resulting model
     (let [model'   (model/step model (nth transitions i))
@@ -179,7 +179,7 @@
                      model'
                      (models->wrappers model'))]
       ; And update our graph
-      (aset (.successors wrapper) i wrapper')))
+      (aset ^objects (.successors wrapper) i wrapper')))
   models->wrappers)
 
 (defn wrapper
