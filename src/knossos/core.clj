@@ -119,9 +119,6 @@
                     vec
                     combo/subsets                   ; oh no
                     ; (r/mapcat combo/permutations) ; oh dear lord no
-                    ; core.typed unifier can't figure this out unless we force
-                    ; a particular instance of permutations, since it's
-                    ; also polymorphic
                     (r/mapcat combo/permutations)
 
                     ; For each permutation, advance the world with those
@@ -142,9 +139,6 @@
       ; All worlds were inconsistent
       (util/rempty? consistent)
       (throw (RuntimeException.
-               ; Core.typed can't infer that all worlds have inconsistent
-               ; models without more filter help than I can figure out how to
-               ; give it
                ^String (str (:msg (:model (first worlds))))))
 
       ; Return consistent worlds
@@ -197,7 +191,6 @@
       (assoc world :index   (inc (:index world))
                    :pending (disj pending inv)))))
 
-; core.typed: no idea why this fails
 (defn fold-failure-into-worlds
   "Given a sequence of worlds and a failed operation, returns only those worlds
   where that operation did not take place, and removes the operation from

@@ -1,24 +1,6 @@
 (ns knossos.history
   "Operations on histories"
   (:require [clojure.core.reducers :as r]
-            [clojure.core.typed :refer [ann
-                                        ann-form
-                                        Any
-                                        AnyInteger
-                                        All
-                                        defalias
-                                        HMap
-                                        HVec
-                                        I
-                                        IFn
-                                        Map
-                                        Option
-                                        Seqable
-                                        Set
-                                        U
-                                        Value
-                                        Vec]]
-            [knossos.extra-types]
             [knossos.op :as op])
   (:import [clojure.core.protocols CollReduce]
            [clojure.lang IMapEntry
@@ -31,12 +13,6 @@
                          ITransientVector
                          ITransientCollection]))
 
-(defalias History
-  "A history is a sequence of operations."
-  (I (Seqable op/Op)
-     clojure.lang.Sequential))
-
-(ann ^:no-check processes [History -> (Set Object)])
 (defn processes
   "What processes are in a history?"
   [history]
@@ -44,12 +20,6 @@
        (r/map :process)
        (into #{})))
 
-(ann ^:no-check pairs (IFn [History
-                  -> (Seqable (U (HVec [op/Info])
-                                 (HVec [op/Invoke (U op/OK op/Fail)])))]
-                 [(Map Object op/Invoke) (Option History)
-                  -> (Seqable (U (HVec [op/Info])
-                                 (HVec [op/Invoke (U op/OK op/Fail)])))]))
 (defn pairs
   "Pairs up ops from each process in a history. Yields a lazy sequence of [info]
   or [invoke, ok|fail] pairs."
@@ -60,17 +30,13 @@
      (when op
        (case (:type op)
          :info        (cons [op] (pairs invocations ops))
-         :invoke      (do (ann-form op op/Invoke)
-                          (assert (not (contains? invocations (:process op))))
+         :invoke      (do (assert (not (contains? invocations (:process op))))
                           (pairs (assoc invocations (:process op) op) ops))
          (:ok :fail)  (do (assert (contains? invocations (:process op)))
                           (cons [(get invocations (:process op)) op]
                                 (pairs (dissoc invocations (:process op))
                                        ops))))))))
 
-(ann ^:no-check
-     complete-fold-op [(HVec [ITransientVector ITransientMap]) op/Op ->
-                       (HVec [ITransientVector ITransientMap])])
 (defn complete-fold-op
   "Folds an operation into a completed history, keeping track of outstanding
   invocations.
@@ -123,7 +89,6 @@
     :info
     [(conj! history op) index]))
 
-(ann ^:no-check complete [History -> History])
 (defn complete
   "When a request is initiated, we may not know what the result will be--but
   find out when it completes. In the history, this might look like
@@ -150,7 +115,6 @@
        first
        persistent!))
 
-(ann ^:no-check complete [History -> History])
 (defn index
   "Attaches an :index key to each element of the history, identifying its
   position in the history vector."

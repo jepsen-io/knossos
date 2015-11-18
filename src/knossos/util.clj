@@ -1,24 +1,10 @@
 (ns knossos.util
   "Toolbox"
   (:require [clojure.core.reducers :as r]
-            [clojure.core.typed :refer [All
-                                        ann
-                                        ann-form
-                                        EmptySeqable
-                                        IFn
-                                        List
-                                        Seqable
-                                        Set
-                                        NonEmptySeqable
-                                        Value]]
             [clojure.set :as set])
   (:import [clojure.lang Reduced]
            [clojure.core.protocols CollReduce]))
 
-; Pretend reducibles are seqable: the noble lie of core.typed
-(ann ^:no-check rempty? (All [a] [(Seqable a) -> Boolean
-                                  :filters {:then (is (EmptySeqable a) 0)
-                                            :else (is (NonEmptySeqable a) 0)}]))
 (defn rempty?
   "Like empty, but for reducibles."
   [coll]
@@ -47,7 +33,6 @@
                       ret
                       (f1 ret value))))))))
 
-(ann ^:no-check foldset (All [a] [(Seqable a) -> (Set a)]))
 (defn foldset
   "Folds a reducible collection into a set."
   [coll]
@@ -55,9 +40,6 @@
           conj
           coll))
 
-(ann maybe-list (All [x]
-                     (IFn [nil -> (Value ())]
-                          [x   -> (List x)])))
 (defn maybe-list
   "If x is nil, returns the empty list. If x is not-nil, returns (x)."
   [x]

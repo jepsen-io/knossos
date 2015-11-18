@@ -1,7 +1,6 @@
 (ns knossos.history-test
   (:require [knossos.history :refer :all]
             [clojure.test :refer :all]
-            [clojure.core.typed :refer [check-ns]]
             [knossos.op :as op]))
 
 (deftest complete-test

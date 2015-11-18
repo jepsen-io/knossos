@@ -6,7 +6,6 @@
   :repositories {"sonatype-oss-public"
                  "https://oss.sonatype.org/content/groups/public/"}
   :dependencies [[org.clojure/math.combinatorics "0.1.1"]
-                 [org.clojure/core.typed.rt "0.3.16"]
                  [potemkin "0.3.4"]
                  [interval-metrics "1.0.0"]
                  [com.boundary/high-scale-lib "1.0.6"]
@@ -24,5 +23,4 @@
              "-XX:MaxRecursiveInlineLevel=2"
 ;             "-XX:-OmitStackTraceInFastThrow"
              "-server"]
-  :profiles {:dev {:dependencies [[org.clojure/clojure "1.7.0"]
-                                  [org.clojure/core.typed "0.3.16"]]}})
+  :profiles {:dev {:dependencies [[org.clojure/clojure "1.7.0"]]}})
