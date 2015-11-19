@@ -159,8 +159,8 @@
                     list
                     config/set-config-set)
         res (reduce step configs history)]
-    (if (reduced? res)
+    (if (and (map? res) (= false (:valid? res)))
+      ; Reduced error
       res
       {:valid?  true
-       ; Unwrap our awful internal data structures into something sane
        :configs (map config/config->map res)})))

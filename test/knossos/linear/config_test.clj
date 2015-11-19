@@ -102,7 +102,8 @@
 
 (deftest config->map-test
   (let [w1 {:index 0 :process 0 :type :invoke :f :write :value 1}
-        h  [w1]
+        r2 {:index 1 :process 1 :type :invoke :f :read  :value 2}
+        h  [w1 r2]
         c  (config (register 0) h)]
     (testing "initial"
       (is (= {:model (register 0)
