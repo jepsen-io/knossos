@@ -3,6 +3,7 @@
   http://www.cs.ox.ac.uk/people/gavin.lowe/LinearizabiltyTesting/paper.pdf"
   (:require [clojure.math.combinatorics :as combo]
             [clojure.core.reducers :as r]
+            [clojure.tools.logging :refer [info warn error]]
             [knossos.linear.config :as config]
             [knossos.model.memo :refer [memo]]
             [knossos [core :as core]
@@ -104,8 +105,8 @@
 (defn step
   "Advance one step through the history. Takes a configset, returns a new
   configset--or a reduced failure."
-  [configs op]
-  (prn :space (count configs) :op op)
+  [state configs op]
+  (reset! state {:running? true :configs configs :op op})
   (cond
     ; If we're invoking an operation, just add it to each config's pending ops.
     (and (op/invoke? op) (not (:fails? op)))
@@ -143,6 +144,26 @@
     true
     configs))
 
+(def reporting-interval
+  "How long (in ms) to sleep between status updates"
+  5000)
+
+(defn reporter!
+  "Spawns a reporting thread that periodically logs the state of the analysis.
+  State is an atom with :running?, :configs, and :op."
+  [state]
+  (future
+    (with-thread-name "reporter"
+      (loop [last-state nil]
+        (when (:running? @state)
+          (Thread/sleep reporting-interval)
+          (let [state @state]
+            (if (not= state last-state)
+              (do (info :space (count (:configs state))
+                        :op    (:op state))
+                  (recur state))
+              (recur last-state))))))))
+
 (defn analysis
   "Given an initial model state and a history, checks to see if the history is
   linearizable. Returns a map with a :valid? bool and a :config configset from
@@ -158,7 +179,11 @@
                     (config/config history)
                     list
                     config/set-config-set)
-        res (reduce step configs history)]
+        state (atom {:running?  true
+                     :configs   configs
+                     :op        (first history)})
+        reporter (reporter! state)
+        res (reduce (partial step state) configs history)]
     (if (and (map? res) (= false (:valid? res)))
       ; Reduced error
       res
