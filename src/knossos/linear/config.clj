@@ -19,6 +19,7 @@
 
 (definterface+ Processes
   (calls      "A reducible of called but unlinearized operations."      [ps])
+  (^long calls-count "How many calls are outstanding?"                   [ps])
 
   (call       "Adds an operation being called with the calling state."  [ps op])
   (linearize  "Changes the given operation from calling to returning."  [ps op])
@@ -230,6 +231,9 @@
                            (f acc (aget history op-index)))]
                 (recur acc' (+ i 2)))))))))
 
+  (calls-count [ps]
+    (unchecked-divide-int (alength a) 2))
+
   (call [ps op]
     (let [p  (:process op)
           op (:index op)
@@ -356,6 +360,27 @@
                 (memo/model m)
                 m))
    :pending (into [] (calls (:processes config)))})
+
+(defn gammaish
+  "Nemes approximation to the gamma function"
+  [n]
+  (let [x1 (Math/sqrt (* 2 (/ Math/PI n)))
+        x2 (+ n (/ (- (* 12 n)
+                      (/ (* 10 n)))))
+        x3 (Math/pow (/ x2 Math/E) n)]
+    (* x1 x3)))
+
+(defn estimated-cost
+  "Roughly how expensive do we think a config is going to be to JIT-linearize?
+  We'll estimate based on the cardinality of the pending set."
+  [config]
+  ; There are n 1-element histories, n * n-1 2-element histories, n * n-1 *
+  ; n-3 3-element histories, and so on, so the sum of all histories is n *
+  ; n!, which we can estimate using Stirling's approximation.
+  (let [n (-> config :processes calls-count)]
+    (if (zero? n)
+      1
+      (inc (* n (gammaish (inc n)))))))
 
 ;; Non-threadsafe mutable configuration sets
 

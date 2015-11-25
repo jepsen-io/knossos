@@ -4,6 +4,7 @@
   (:require [clojure.math.combinatorics :as combo]
             [clojure.core.reducers :as r]
             [clojure.tools.logging :refer [info warn error]]
+            [clojure.pprint :refer [cl-format]]
             [knossos.linear.config :as config]
             [knossos.model.memo :refer [memo]]
             [knossos [core :as core]
@@ -11,7 +12,9 @@
                      [model :as model]
                      [util :refer :all]
                      [op :as op]])
-  (:import [java.util ArrayList]))
+  (:import [java.util ArrayList
+                      Set]
+           [org.cliffc.high_scale_lib NonBlockingHashSet]))
 
 ;; Transitions between configurations
 
@@ -37,41 +40,61 @@
   [config op]
   (assoc config :processes (config/return (:processes config) op)))
 
+
 ;; Exploring the automaton
+
+(defn jit-linearizations-cache
+  "Construct a cache for memoizing jit-linearizations.
+
+  jit-linearizations is pure.
+
+  Assume we're processing a single ok operation with a given configset. Let c1
+  and c2 be two configs from that configset. If c1 and c2 wind up calling (at
+  any depth), jit-linearizations for *the same config*, they'll see *the same*
+  set of resulting configs, and perform *the same* final linearization and
+  final return on each. We can skip one of them.
+
+  So, we construct a concurrent hashset here and use it to prune duplicate
+  searches."
+  []
+  (NonBlockingHashSet.))
 
 (defn jit-linearizations
   "Takes an initial configuration, a collection of pending invocations, and a
   final invocation to linearize and return. Explores all orders of pending
   invocations, and returns a sequence of valid configurations with that final
   invocation linearized."
-  ([config final]
-   (jit-linearizations final (ArrayList.) config))
-;   (jit-linearizations final (config/set-config-set) config))
-;   (persistent!
-;     (jit-linearizations final (transient []) config)))
-  ; Build up a transient vector of resulting configs recursively.
-  ([final ^ArrayList configs config]
-   ; Trivial case: record this configuration.
-   (.add configs config)
-   (let [configs        configs
-         final-process  (int (:process final))]
-     ; Take all pending ops from the configuration *except* the final one,
-     ; try linearizing that op, and if we could linearize it, explore its
-     ; successive linearizations too.
-     (->> config
-          :processes
-          config/calls
-          (r/filter (fn excluder [op]
-                      (not (= final-process (int (:process op))))))
-          (rkeep    (fn linearizer [op] (t-lin config op)))
-          (reduce   (fn recurrence [configs op]
-                      (jit-linearizations final configs op))
-                  configs)))))
+  ([cache config final]
+   (jit-linearizations cache final (ArrayList.) config))
+  ([^Set cache final ^ArrayList configs config]
+   ; Record this point
+   (if-not (.add cache config)
+     ; We can skip this execution; it'll appear in some other config's
+     ; jit-linearizations
+     (do ;(info :dup config)
+         configs)
+
+     ; Trivial case: record this configuration.
+     (do (.add configs config)
+         (let [configs        configs
+               final-process  (int (:process final))]
+           ; Take all pending ops from the configuration *except* the final one,
+           ; try linearizing that op, and if we could linearize it, explore its
+           ; successive linearizations too.
+           (->> config
+                :processes
+                config/calls
+                (r/filter (fn excluder [op]
+                            (not (= final-process (int (:process op))))))
+                (rkeep    (fn linearizer [op] (t-lin config op)))
+                (reduce   (fn recurrence [configs op]
+                            (jit-linearizations cache final configs op))
+                        configs)))))))
 
 (defn step-ok!
-  "Takes a ConfigSet, a config and an ok operation. If the operation has
-  already been linearized, returns a ConfigSet containing only `configuration`,
-  but with the ok op removed from the config's rets.
+  "Takes a jit cache, a ConfigSet, a config and an ok operation. If the
+  operation has already been linearized, returns a ConfigSet containing only
+  `configuration`, but with the ok op removed from the config's rets.
 
   If the operation hasn't been linearized yet, takes all pending calls from
   other threads and linearizes them in each possible order, creating a set of
@@ -79,7 +102,7 @@
   operation on each of those configs.
 
   Returns the ConfigSet."
-  [config-set config ok]
+  [cache config-set config ok]
   (let [p (:process ok)]
     (cond
       ; Have we already linearized the ok op in this config?
@@ -88,7 +111,7 @@
 
       ; Is this operation pending?
       (config/calling? (:processes config) p)
-      (let [jit-configs (jit-linearizations config ok)]
+      (let [jit-configs (jit-linearizations cache config ok)]
         ; Apply ok op to each one and return it.
         (->> jit-configs
              (rkeep (fn final-linearization [config]
@@ -117,17 +140,18 @@
     ; If we're handling a completion, run each configuration through a
     ; just-in-time linearization, accumulating a new set of configs.
     (op/ok? op)
-    (let [configs' (if (< (count configs) parallel-threshold)
+    (let [cache    (jit-linearizations-cache)
+          configs' (if (< (count configs) parallel-threshold)
                      ; Singlethreaded search
                      (let [configs' (config/set-config-set)]
                        (doseq [c configs]
-                         (step-ok! configs' c op))
+                         (step-ok! cache configs' c op))
                        configs')
 
                      ; Parallel search
                      (->> configs
                           (pmap (fn par-expand [config]
-                                  (step-ok! (config/set-config-set) config op)))
+                                  (step-ok! cache (config/set-config-set) config op)))
                           (apply concat)
                           ; Merge parallel results
                           (reduce config/add! (config/set-config-set))))]
@@ -158,11 +182,17 @@
         (when (:running? @state)
           (Thread/sleep reporting-interval)
           (let [state @state]
-            (if (not= state last-state)
-              (do (info :space (count (:configs state))
-                        :op    (:op state))
-                  (recur state))
-              (recur last-state))))))))
+            (when (:running? state)
+              (if (not= state last-state)
+                (do (info :space (count (:configs state))
+                          :cost (->> state
+                                     :configs
+                                     (map config/estimated-cost)
+                                     (reduce +)
+                                     (cl-format nil "~,2e"))
+                          :op    (:op state))
+                    (recur state))
+                (recur last-state)))))))))
 
 (defn analysis
   "Given an initial model state and a history, checks to see if the history is
@@ -184,6 +214,8 @@
                      :op        (first history)})
         reporter (reporter! state)
         res (reduce (partial step state) configs history)]
+    (reset! state {:running? false})
+    @reporter
     (if (and (map? res) (= false (:valid? res)))
       ; Reduced error
       res
