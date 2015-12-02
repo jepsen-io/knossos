@@ -20,6 +20,19 @@
        (r/map :process)
        (into #{})))
 
+(defn sort-processes
+  "Sort a collection of processes. Puts numbers second, keywords first."
+  [coll]
+  (sort (fn comparator [a b]
+          (if (number? a)
+            (if (number? b)
+              (compare a b)
+              1)
+            (if (number? b)
+              -1
+              (compare a b))))
+        coll))
+
 (defn pairs
   "Pairs up ops from each process in a history. Yields a lazy sequence of [info]
   or [invoke, ok|fail] pairs."
@@ -36,6 +49,40 @@
                           (cons [(get invocations (:process op)) op]
                                 (pairs (dissoc invocations (:process op))
                                        ops))))))))
+
+(defn pair-index
+  "Given a history, constructs a map from operations to their
+  counterparts--invocations to their completions or completions to their
+  invocations. Infos map to nil."
+  [history]
+  (->> history
+       pairs
+       (reduce (fn [index [invoke complete]]
+                 (assert (:index invoke))
+                 (assoc! (if complete
+                           (assoc! index complete invoke)
+                           index)
+                         invoke complete))
+               (transient {}))
+       persistent!))
+
+(defn invocation
+  "Returns the invocation for an op, using a pair index. If the op is itself a
+  completion, returns the op. If the op is an invocation, looks up its
+  completion in the pair index. Infos map to nil."
+  [pair-index op]
+  (cond (op/info? op)   nil
+        (op/invoke? op) op
+        true            (pair-index op)))
+
+(defn completion
+  "Returns the completion for an op, using a pair index. If the op is itself a
+  completion, returns the op. If the op is an invocation, looks up its
+  completion in the pair index. Infos map to nil."
+  [pair-index op]
+  (cond (op/info? op)   nil
+        (op/invoke? op) (pair-index op)
+        true            op))
 
 (defn complete-fold-op
   "Folds an operation into a completed history, keeping track of outstanding
@@ -108,7 +155,6 @@
   and completion; depending on whichever has a value available. We *also* add a
   :fails? key to invocations which will fail, allowing checkers to skip them."
   [history]
-  ; Reducing with a transient means we just have "vector", not "vector of ops"
   (->> history
        (reduce complete-fold-op
                [(transient []) (transient {})])

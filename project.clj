@@ -9,6 +9,8 @@
                  [potemkin "0.3.4"]
                  [interval-metrics "1.0.0"]
                  [com.boundary/high-scale-lib "1.0.6"]
+                 [org.clojars.pallix/analemma "1.0.0"
+                  :exclusions [org.clojure/clojure]]
                  [org.clojure/tools.logging "0.2.6"]
                  [org.slf4j/slf4j-log4j12 "1.6.1"]]
   ; "-verbose:gc" "-XX:+PrintGCDetails"
@@ -21,6 +23,6 @@
              "-XX:+UseFastAccessorMethods"
              "-XX:MaxInlineLevel=32"
              "-XX:MaxRecursiveInlineLevel=2"
-;             "-XX:-OmitStackTraceInFastThrow"
+             "-XX:-OmitStackTraceInFastThrow"
              "-server"]
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.7.0"]]}})
