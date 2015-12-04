@@ -60,6 +60,21 @@
             1))
    (inc (:index (history/completion pair-index (:op analysis))))])
 
+(defn condense-time-coords
+  "Takes time coordinates (a map of op indices to [start-time end-time]), and
+  condenses times to remove sparse regions."
+  [coords]
+  (let [mapping (->> coords
+                     vals
+                     (apply concat)
+                     (into (sorted-set))
+                     (map-indexed (fn [i coord] [coord i]))
+                     (into {}))]
+    (->> coords
+         (map (fn [[k [t1 t2]]]
+                [k [(mapping t1) (mapping t2)]]))
+         (into {}))))
+
 (defn time-coords
   "Takes a pair index, time bounds, and a set of ops. Returns a map of op
   indices to logical [start-time end-time] coordinates."
@@ -73,7 +88,8 @@
                             tmax)]
                 [i [(- t1 tmin)
                     (- t2 tmin)]])))
-       (into {})))
+       (into {})
+       condense-time-coords))
 
 (defn learnings
   "What a terrible function name. We should task someone with an action item to
@@ -107,12 +123,12 @@
 (defn hscale
   "Convert our units to horizontal CSS pixels"
   [x]
-  (* x 50))
+  (* x 100))
 
 (defn vscale
   "Convert our units to vertical CSS pixels"
   [x]
-  (* x 20))
+  (* x 40))
 
 (def type->color
   {:ok   "#B3F3B5"
@@ -126,6 +142,13 @@
       (history/completion op)
       :type
       type->color))
+
+(defn transition-color
+  "What color should a transition be?"
+  [transition]
+  (if (model/inconsistent? (:model transition))
+    "#C51919"
+    "#000000"))
 
 (defn render-ops
   "Given learnings, renders all operations as a group of SVG tags."
@@ -156,50 +179,118 @@
                                  :text-anchor :middle))))))
        (apply svg/group)))
 
+(defn hover-opacity
+  "Takes an SVG element, makes it partially transparent, and adds onmouseover
+  behavior raising its opacity."
+  [e]
+  (xml/add-attrs
+    e
+    :stroke-opacity "0.2"
+    :onmouseover "this.setAttribute('stroke-opacity', '1.0');"
+    :onmouseout  "this.setAttribute('stroke-opacity', '0.2');"))
+
+(defn model-offset
+  "Where should we position this model?"
+  [model-numbers model]
+  (-> model
+      model-numbers
+      (/ (count model-numbers))
+      (* 0.75)
+      (+ 1/8)))
+
 (defn render-path
-  "Renders a particular path, given learnings."
+  "Renders a particular path, given learnings. Returns {:transitions, :models},
+  each an SVG group. We render these separately because models go *on top* of
+  ops, and transitions go *below* them."
   ([learnings path]
    (prn :render-path path)
-   (render-path learnings nil path []))
+   (render-path learnings nil path [] []))
   ([{:keys [time-coords process-coords pair-index model-numbers] :as learnings}
     [prev-x prev-y]
     path
-    svg]
+    transition-svgs
+    model-svgs]
    (if (empty? path)
      ; Done
-     (apply svg/group svg)
+     {:models      (-> (apply svg/group model-svgs) hover-opacity)
+      :transitions (-> (apply svg/group transition-svgs)
+                       hover-opacity)}
+     ; Handle this transition
      (let [[transition & path'] path
            op      (:op transition)
            model   (:model transition)
+           model-offset (model-offset model-numbers model)
            [t1 t2] (time-coords (:index op))
            p       (process-coords (:process op))
-           x       (max t1 (inc (or prev-x -1)))
+           x       (if prev-x
+                     ; Land anywhere after start of the next op AND
+                     ; the previous x
+                     (+ model-offset (max t1 prev-x))
+                     ; When we're starting out, we're coming from the
+                     ; *conclusion* of the last OK op.
+                     (+ model-offset (- t2 1)))
            y       p
            ; A line from previous coords to current coords
            line    (when prev-x
-                     (svg/line (hscale prev-x) (vscale prev-y)
-                               (hscale x)      (vscale y)
-                               :stroke "#000000"))
-           svg'    (if line (conj svg line) svg)]
-       (recur learnings [x y] path' svg')))))
+                     ; Are we going up or down in process space?
+                     (let [up? (< prev-y y)
+                           y0  (if up? (+ prev-y process-height) prev-y)
+                           y1  (if up? y      (+ y process-height))]
+                       (svg/line (hscale prev-x) (vscale y0)
+                                 (hscale x)      (vscale y1)
+                                 :stroke-width (vscale 0.1)
+                                 :stroke (transition-color transition))))
+           transition-svgs    (if line
+                                (conj transition-svgs line)
+                                transition-svgs)
+           ; A vertical line for the model
+           bar      (svg/line (hscale x) (vscale y)
+                             (hscale x) (vscale (+ y process-height))
+                             :stroke-width (vscale 0.1)
+                             :stroke (transition-color transition))
+           ; A little illustration of the model state
+           bubble   (svg/group
+                      (-> (svg/text (str model))
+                          (xml/add-attrs :x (hscale x)
+                                         :y (vscale (- y 0.1)))
+                          (svg/style :fill (transition-color transition)
+                                     :font-size (vscale (* process-height 0.5))
+                                     :font-family "sans"
+                                     :alignment-baseline :bottom
+                                     :text-anchor :middle)))
+           model-svgs (conj model-svgs bar bubble)]
+       (recur learnings [x y] path' transition-svgs model-svgs)))))
 
 (defn render-paths
-  "Renders all paths from learnings."
+  "Renders all paths from learnings. Returns {:models ..., :transitions ...}"
   [learnings]
-  (->> learnings
-       :analysis
-       :final-paths
-       (mapv (partial render-path learnings))
-       (apply svg/group)))
+  (let [paths (->> learnings
+                   :analysis
+                   :final-paths
+                   (mapv (partial render-path learnings)))]
+    {:models      (apply svg/group (map :models       paths))
+     :transitions (apply svg/group (map :transitions  paths))}))
+
+(defn svg-2
+  "Emits an SVG 2 document."
+  [& args]
+  (let [svg-1 (apply svg/svg args)]
+    (xml/set-attrs svg-1
+                   (-> (xml/get-attrs svg-1)
+                       (assoc "version" "1.0")))))
 
 (defn render-analysis!
   "Render an entire analysis."
-  [history analysis]
-  (let [learnings (learnings history analysis)]
-    (spit "out.svg"
+  [history analysis file]
+  (let [learnings                     (learnings history analysis)
+        ops                           (render-ops learnings)
+        paths                         (render-paths learnings)
+        {:keys [models transitions]}  paths]
+    (spit file
           (xml/emit
-            (svg/svg
+            (svg-2
               (-> (svg/group
-                    (render-ops   learnings)
-                    (render-paths learnings))
+                    transitions
+                    ops
+                    models)
                   (svg/translate (vscale 1) (vscale 1))))))))

@@ -20,7 +20,10 @@
 
 (defrecord Inconsistent [msg]
   Model
-  (step [this op] this))
+  (step [this op] this)
+
+  Object
+  (toString [this] msg))
 
 (defn inconsistent
   "Represents an invalid termination of a model; e.g. that an operation could
@@ -50,8 +53,10 @@
                      (= value (:value op))) ; Read was a specific value
                r
                (inconsistent
-                 (str "read " (pr-str (:value op))
-                      " from register " value))))))
+                 (str (pr-str value) "≠" (pr-str (:value op)))))))
+
+  Object
+  (toString [r] (pr-str value)))
 
 (defn register
   "A read-write register."
@@ -72,7 +77,9 @@
                      (= value (:value op)))
                r
                (inconsistent (str "can't read " (:value op)
-                                  " from register " value))))))
+                                  " from register " value)))))
+  Object
+  (toString [this] (pr-str value)))
 
 (defn cas-register
   "A compare-and-set register"
@@ -88,7 +95,10 @@
                  (Mutex. true))
       :release (if locked?
                  (Mutex. false)
-                 (inconsistent "not held")))))
+                 (inconsistent "not held"))))
+
+  Object
+  (toString [this] (if locked? "locked" "free")))
 
 (defn mutex
   "A single mutex responding to :acquire and :release messages"
