@@ -56,8 +56,6 @@
   "Given a pair index and an analysis, computes the [lower, upper] bounds on
   times for rendering a plot."
   [pair-index analysis]
-  (pprint analysis)
-  (prn (:previous-ok analysis))
   [(dec (or (:index (history/invocation pair-index (:previous-ok analysis)))
             1))
    (inc (:index (history/completion pair-index (:op analysis))))])
@@ -92,8 +90,6 @@
         process-coords  (process-coords ops)
         time-bounds     (time-bounds pair-index analysis)
         time-coords     (time-coords pair-index time-bounds ops)]
-    (pprint ops)
-    (prn :time-bounds time-bounds)
     {:history       history
      :analysis      analysis
      :pair-index    pair-index
@@ -160,18 +156,50 @@
                                  :text-anchor :middle))))))
        (apply svg/group)))
 
-(defn render-model
-  "Render one particular model's possibilities."
-  [history model ops]
-  (spit "out.svg"
-        (-> (render-ops history ops)
-            svg/svg
-            xml/emit)))
+(defn render-path
+  "Renders a particular path, given learnings."
+  ([learnings path]
+   (prn :render-path path)
+   (render-path learnings nil path []))
+  ([{:keys [time-coords process-coords pair-index model-numbers] :as learnings}
+    [prev-x prev-y]
+    path
+    svg]
+   (if (empty? path)
+     ; Done
+     (apply svg/group svg)
+     (let [[transition & path'] path
+           op      (:op transition)
+           model   (:model transition)
+           [t1 t2] (time-coords (:index op))
+           p       (process-coords (:process op))
+           x       (max t1 (inc (or prev-x -1)))
+           y       p
+           ; A line from previous coords to current coords
+           line    (when prev-x
+                     (svg/line (hscale prev-x) (vscale prev-y)
+                               (hscale x)      (vscale y)
+                               :stroke "#000000"))
+           svg'    (if line (conj svg line) svg)]
+       (recur learnings [x y] path' svg')))))
+
+(defn render-paths
+  "Renders all paths from learnings."
+  [learnings]
+  (->> learnings
+       :analysis
+       :final-paths
+       (mapv (partial render-path learnings))
+       (apply svg/group)))
 
 (defn render-analysis!
   "Render an entire analysis."
   [history analysis]
-  (spit "out.svg"
+  (let [learnings (learnings history analysis)]
+    (spit "out.svg"
           (xml/emit
             (svg/svg
-              (render-ops (learnings history analysis))))))
+              (-> (svg/group
+                    (render-ops   learnings)
+                    (render-paths learnings))
+                  (svg/translate (vscale 1) (vscale 1))))))))
