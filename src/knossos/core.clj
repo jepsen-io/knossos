@@ -232,8 +232,6 @@
   [model history]
   (assert (vector? history))
   (reduce fold-op-into-worlds
-          ; core.typed won't accept a list here, even though fold-op-into-worlds
-          ; takes any (Seqable World), because of reduce's signature.
           #{(world model)}
           history))
 

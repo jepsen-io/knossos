@@ -13,10 +13,34 @@
                     +---------+
 
       ------------ time ---------->"
-  (:require [knossos [history :as history]
-                     [op :as op]]
+  (:require [clojure.pprint :refer [pprint]]
+            [knossos [history :as history]
+                     [op :as op]
+                     [core :as core]
+                     [model :as model]]
             [analemma [xml :as xml]
                       [svg :as svg]]))
+
+(defn ops
+  "Computes distinct ops in an analysis."
+  [analysis]
+  (->> analysis
+       :final-paths
+       (mapcat (partial map :op))
+       distinct))
+
+(defn models
+  "Computes distinct models in an analysis."
+  [analysis]
+  (->> analysis
+       :final-paths
+       (mapcat (partial map :model))
+       distinct))
+
+(defn model-numbers
+  "A map which takes models and returns an integer."
+  [models]
+  (->> models (map-indexed (fn [i x] [x i])) (into {})))
 
 (defn process-coords
   "Given a set of operations, computes a map of process identifiers to their
@@ -28,24 +52,57 @@
        (map-indexed (fn [i process] [process (* 2 i)]))
        (into {})))
 
+(defn time-bounds
+  "Given a pair index and an analysis, computes the [lower, upper] bounds on
+  times for rendering a plot."
+  [pair-index analysis]
+  (pprint analysis)
+  (prn (:previous-ok analysis))
+  [(dec (or (:index (history/invocation pair-index (:previous-ok analysis)))
+            1))
+   (inc (:index (history/completion pair-index (:op analysis))))])
+
 (defn time-coords
-  "Takes a pair index and a set of operations from the history that generated
-  it. Returns a map of indices to logical [start-time end-time] coordinates."
-  [pair-index ops]
-  (let [tmax (->> ops
-                  (map (fn [op]
-                         (:index (or (history/completion pair-index op)
-                                     op))))
-                  (reduce max 0))]
-    (->> ops
-         (map (fn [op]
-                 (let [t1 (:index op)
-                       _  (assert t1)
-                       t2 (:index (pair-index op))]
-                   [t1 (if t2
-                         (sort (list t1 t2))
-                         (list t1 tmax))])))
-         (into {}))))
+  "Takes a pair index, time bounds, and a set of ops. Returns a map of op
+  indices to logical [start-time end-time] coordinates."
+  [pair-index [tmin tmax] ops]
+  (->> ops
+       (map (fn [op]
+              (let [i   (:index op)
+                    _   (assert i)
+                    t1  (max tmin (:index (history/invocation pair-index op)))
+                    t2  (or (:index (history/completion pair-index op))
+                            tmax)]
+                [i [(- t1 tmin)
+                    (- t2 tmin)]])))
+       (into {})))
+
+(defn learnings
+  "What a terrible function name. We should task someone with an action item to
+  double-click down on this refactor.
+
+  Basically we're taking an analysis and figuring out all the stuff we're gonna
+  need to render it."
+  [history analysis]
+  (let [history         (history/index (history/complete history))
+        pair-index      (history/pair-index history)
+        ops             (ops analysis)
+        models          (models analysis)
+        model-numbers   (model-numbers models)
+        process-coords  (process-coords ops)
+        time-bounds     (time-bounds pair-index analysis)
+        time-coords     (time-coords pair-index time-bounds ops)]
+    (pprint ops)
+    (prn :time-bounds time-bounds)
+    {:history       history
+     :analysis      analysis
+     :pair-index    pair-index
+     :ops           ops
+     :models        models
+     :model-numbers model-numbers
+     :process-coords process-coords
+     :time-bounds   time-bounds
+     :time-coords   time-coords}))
 
 (def process-height
   "How tall should an op be in process space?"
@@ -54,12 +111,12 @@
 (defn hscale
   "Convert our units to horizontal CSS pixels"
   [x]
-  (* x 100))
+  (* x 50))
 
 (defn vscale
   "Convert our units to vertical CSS pixels"
   [x]
-  (* x 50))
+  (* x 20))
 
 (def type->color
   {:ok   "#B3F3B5"
@@ -75,84 +132,46 @@
       type->color))
 
 (defn render-ops
-  "Given a history and some operations from it, renders that history as svg
-  tags."
-  [history ops]
-  (let [process-coords (process-coords ops)
-        pair-index     (history/pair-index history)
-        time-coords    (time-coords pair-index ops)
-        tmin           (->> time-coords
-                            vals
-                            (map first)
-                            (reduce min Double/POSITIVE_INFINITY))
-        tmax           (->> time-coords
-                            vals
-                            (map second)
-                            (reduce max 0))
-        pmin           (reduce min Double/POSITIVE_INFINITY
-                               (vals process-coords))
-        pmax           (reduce max 0 (vals process-coords))]
-    (->> ops
-         (map (fn [op]
-                (let [[t1 t2] (time-coords    (:index op))
-                      p       (process-coords (:process op))
-                      width   (- t2 t1)]
-                  (svg/group
-                    (svg/rect (hscale t1)
-                              (vscale p)
-                              (vscale process-height)
-                              (hscale width)
-                              :rx (hscale 0.1)
-                              :ry (hscale 0.1)
-                              :fill (op-color pair-index op))
-                    (-> (svg/text (str (name (:f op)) " "
-                                       (pr-str (:value op))))
-                        (xml/add-attrs :x (hscale (+ t1 (/ width 2.0)))
-                                       :y (vscale (+ p (/ process-height
-                                                          2.0))))
-                        (svg/style :fill "#000000"
-                                   :font-size (vscale (* process-height 0.6))
-                                   :font-family "sans"
-                                   :alignment-baseline :middle
-                                   :text-anchor :middle))))))
-         (apply svg/group))))
+  "Given learnings, renders all operations as a group of SVG tags."
+  [{:keys [time-coords process-coords pair-index ops]}]
+  (->> ops
+       (mapv (fn [op]
+              (let [[t1 t2] (time-coords    (:index op))
+                    p       (process-coords (:process op))
+                    width   (- t2 t1)]
+                (prn :rendering op :to [t1 t2] p)
+                (svg/group
+                  (svg/rect (hscale t1)
+                            (vscale p)
+                            (vscale process-height)
+                            (hscale width)
+                            :rx (hscale 0.1)
+                            :ry (hscale 0.1)
+                            :fill (op-color pair-index op))
+                  (-> (svg/text (str (name (:f op)) " "
+                                     (pr-str (:value op))))
+                      (xml/add-attrs :x (hscale (+ t1 (/ width 2.0)))
+                                     :y (vscale (+ p (/ process-height
+                                                        2.0))))
+                      (svg/style :fill "#000000"
+                                 :font-size (vscale (* process-height 0.6))
+                                 :font-family "sans"
+                                 :alignment-baseline :middle
+                                 :text-anchor :middle))))))
+       (apply svg/group)))
 
 (defn render-model
   "Render one particular model's possibilities."
   [history model ops]
   (spit "out.svg"
         (-> (render-ops history ops)
-            (svg/transform "scale(0.5)")
             svg/svg
             xml/emit)))
 
 (defn render-analysis!
   "Render an entire analysis."
   [history analysis]
-  (let [history     (history/index (history/complete history))
-        pair-index  (history/pair-index history)
-        final-op    (history/invocation pair-index (:op analysis))
-        ; Reach backwards in time to the previous OK op. This is where the
-        ; linear analyzer obtained its current set of models.
-        first-op    (loop [i (dec (:index (:op analysis)))]
-                      (when-let [op (nth history i)]
-                        (if (op/ok? op)
-                          op
-                          (recur (dec i)))))
-        ; Where should we start the plot? Just before the first OK's
-        ; invocation.
-        tmin        (if first-op
-                      (dec (:index (pair-index first-op)))
-                      0)
-        ; Where should we end the plot? At the time of the final ok completion.
-        tmax        (if final-op
-                      (:index final-op)
-                      (count history))
-        ; Group models together
-        models->configs (group-by :model (:configs analysis))]
-    (doseq [[model configs] models->configs]
-      (let [ops (->> configs (mapcat :pending) set)
-            ops (if final-op (conj ops final-op) ops)
-            ops (if first-op (conj ops first-op) ops)]
-        (prn :ops ops)
-        (render-model history model ops)))))
+  (spit "out.svg"
+          (xml/emit
+            (svg/svg
+              (render-ops (learnings history analysis))))))
