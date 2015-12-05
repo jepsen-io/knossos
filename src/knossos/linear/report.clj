@@ -123,7 +123,7 @@
 (defn hscale
   "Convert our units to horizontal CSS pixels"
   [x]
-  (* x 100))
+  (* x 150))
 
 (defn vscale
   "Convert our units to vertical CSS pixels"
@@ -198,6 +198,85 @@
       (* 0.75)
       (+ 1/8)))
 
+(defn path-bounds
+  "Assign an initial :min-x and :max-x to every transition in a path."
+  [{:keys [time-coords]} path]
+  (map (fn [transition]
+         (let [op      (:op transition)
+               [t1 t2] (time-coords (:index op))]
+           (assoc transition
+                  :min-x t1
+                  :x t1
+                  :max-x t2)))
+       path))
+
+(defn constrain-path
+  "Applies constraints to a path, ensuring x coordinates are sequential and lie
+  within the bounds of their parent operations."
+  [path]
+  (let [[ok? _ path] (reduce (fn [[ok? last-x path]
+                                  {:keys [min-x x max-x] :as transition}]
+                               (let [x' (cond (<= x min-x)  (+ min-x 0.1)
+                                              (<= max-x x)  (- max-x 0.1)
+                                              (<= x last-x) (+ last-x 0.1)
+                                              true          x)]
+                                 [(and ok? (= x x'))
+                                  x'
+                                  (conj path (assoc transition :x x'))]))
+                             [true Double/NEGATIVE_INFINITY []]
+                             path)]
+    (if ok?
+      path
+      (recur path))))
+
+(defn relax-path
+  "Takes a single path and relaxes xs closer to their means."
+  [path]
+  (let [path   (transient (vec path))
+        ; Relax final index to the maximum possible
+        path   (if (zero? (count path))
+                 path
+                 (let [tfinal (nth path (dec (count path)))]
+                   (assoc! path (dec (count path))
+                           (assoc tfinal :x (:max-x tfinal)))))]
+    (loop [i     (- (count path) 2)
+           path  path]
+      (if (zero? i)
+        (persistent! path)
+        (let [t0 (nth path (dec i))
+              t1 (nth path i)
+              t2 (nth path (inc i))]
+          (recur (dec i)
+                 (assoc! path i (assoc t1 :x (/ (+ (:x t0) (:x t2)) 2)))))))))
+
+(defn relax-paths
+  "We need a data structure that represents the visual layout of paths through
+  operations, in a way that allows us to iteratively relax the layout into
+  something more readable *while* preserving topological constraints. We'll
+  augment an analysis path with :min-x, :max-x, and :x coordinates, and
+  gradually manipulate :x given:
+
+  Constraints:
+
+    - Models must remain within the bounds of their parent operation
+    - Models must lie between their previous and successor models in every path
+      that touches them
+
+  Relaxation:
+
+    - Collapse identical models on the same op when possible
+    - Push distinct models on an operation apart
+    - Move models towards the mean of their neighbors."
+  [paths]
+  (loop [i     10
+         paths paths]
+    (if (zero? i)
+      paths
+      (recur (dec i)
+             (->> paths
+                  (map relax-path)
+                  (map constrain-path))))))
+
 (defn render-path
   "Renders a particular path, given learnings. Returns {:transitions, :models},
   each an SVG group. We render these separately because models go *on top* of
@@ -219,17 +298,8 @@
      (let [[transition & path'] path
            op      (:op transition)
            model   (:model transition)
-           model-offset (model-offset model-numbers model)
-           [t1 t2] (time-coords (:index op))
-           p       (process-coords (:process op))
-           x       (if prev-x
-                     ; Land anywhere after start of the next op AND
-                     ; the previous x
-                     (+ model-offset (max t1 prev-x))
-                     ; When we're starting out, we're coming from the
-                     ; *conclusion* of the last OK op.
-                     (+ model-offset (- t2 1)))
-           y       p
+           x       (:x transition)
+           y       (process-coords (:process op))
            ; A line from previous coords to current coords
            line    (when prev-x
                      ; Are we going up or down in process space?
@@ -267,6 +337,8 @@
   (let [paths (->> learnings
                    :analysis
                    :final-paths
+                   (map (partial path-bounds learnings))
+                   relax-paths
                    (mapv (partial render-path learnings)))]
     {:models      (apply svg/group (map :models       paths))
      :transitions (apply svg/group (map :transitions  paths))}))
