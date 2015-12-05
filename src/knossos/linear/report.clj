@@ -249,6 +249,35 @@
           (recur (dec i)
                  (assoc! path i (assoc t1 :x (/ (+ (:x t0) (:x t2)) 2)))))))))
 
+(defn normalize
+  "Normalizes a number to +1 or -1."
+  [x]
+  (if (neg? x) -1 1))
+
+(def cluster-force
+  0.1)
+
+(defn cluster-transitions
+  "Given a collection of transitions occurring on a single operation,
+  identifies transitions with the same model and collapses their :x coordinate.
+  Returns the new transitions in the same order.
+
+  We want to establish clusters, but we don't necessarily know the scale or how
+  many clusters should exist--and grouping to a single cluster will slap us up
+  against the constraints. We'll take a gentler approach: apply an inverse
+  quadratic force pushing apart different models and pulling together similar
+  ones."
+  [transitions]
+  (for [t1 transitions]
+    (for [t2 transitions]
+      ; Compute force of t2 on t1
+      (let [dist   (- t2 t1)
+            dir    (normalize dist)
+            charge (if (= (:model t1) (:model t2)) 1 -1)
+            scale  (/ (Math/pow dist 2))]
+        (* dir charge scale cluster-force)))))
+
+
 (defn relax-paths
   "We need a data structure that represents the visual layout of paths through
   operations, in a way that allows us to iteratively relax the layout into
