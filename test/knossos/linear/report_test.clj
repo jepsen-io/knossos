@@ -31,4 +31,5 @@
   (let [history  (read-string (slurp "data/rethink-fail.edn"))
         model    (cas-register 0)
         analysis (linear/analysis model history)]
-    (render-analysis! history analysis "rethink.svg")))
+    (render-analysis! history analysis "rethink.svg")
+))
