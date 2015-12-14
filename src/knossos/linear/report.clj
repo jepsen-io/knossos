@@ -23,6 +23,8 @@
             [analemma [xml :as xml]
                       [svg :as svg]]))
 
+(def font "'Helvetica Neue', Helvetica, sans-serif")
+
 (defn ops
   "Computes distinct ops in an analysis."
   [analysis]
@@ -309,7 +311,7 @@
 
 (def process-height
   "How tall should an op be in process space?"
-  0.6)
+  0.4)
 
 (defn hscale
   "Convert our units to horizontal CSS pixels"
@@ -319,7 +321,7 @@
 (defn vscale
   "Convert our units to vertical CSS pixels"
   [x]
-  (* x 40))
+  (* x 60))
 
 (def type->color
   {:ok   "#B3F3B5"
@@ -364,10 +366,12 @@
                                                         2.0))))
                       (svg/style :fill "#000000"
                                  :font-size (vscale (* process-height 0.6))
-                                 :font-family "sans"
+                                 :font-family font
                                  :alignment-baseline :middle
                                  :text-anchor :middle))))))
        (apply svg/group)))
+
+(def faded "opacity" "0.15")
 
 (defn activate-line
   "On hover, highlights all related IDs for this element."
@@ -379,20 +383,29 @@
                  (str/join ","))]
     (xml/add-attrs
       element
-      :stroke-opacity "0.15"
-      :onmouseover (str "[" ids "].forEach(function(id) { document.getElementById(id).setAttribute('stroke-opacity', '1.0'); })")
-      :onmouseout  (str "[" ids "].forEach(function(id) { document.getElementById(id).setAttribute('stroke-opacity', '0.15'); })"))))
+      :onmouseover (str "[" ids "].forEach(function(id) { document.getElementById(id).setAttribute('opacity', '1.0'); })")
+      :onmouseout  (str "[" ids "].forEach(function(id) { document.getElementById(id).setAttribute('opacity', '" faded "'); })"))))
 
 (defn render-bars
   "Given learnings, renders all bars as a group of SVG tags."
   [{:keys [bars reachable]}]
   (->> bars
        (map (fn [[{:keys [x y]} {:keys [id model] :as bar}]]
-              (-> (svg/line (hscale x) (vscale y)
-                            (hscale x) (vscale (+ y process-height))
-                            :id (str "bar-" id)
-                            :stroke-width (vscale 0.05)
-                            :stroke       (transition-color bar))
+              (-> (svg/group
+                    (-> (svg/line (hscale x) (vscale y)
+                                  (hscale x) (vscale (+ y process-height))
+                                  :stroke-width (vscale 0.05)
+                                  :stroke       (transition-color bar)))
+                    (-> (svg/text (str model))
+                        (xml/add-attrs :x (hscale x)
+                                       :y (vscale (- y 0.1)))
+                        (svg/style :fill (transition-color bar)
+                                   :font-size (vscale (* process-height 0.5))
+                                   :font-family font
+                                   :alignment-baseline :bottom
+                                   :text-anchor :middle)))
+                  (xml/add-attrs :id (str "bar-" id)
+                                 :opacity faded)
                   (activate-line reachable))))
        (apply svg/group)))
 
@@ -409,7 +422,8 @@
                                (hscale x1) (vscale y1)
                                :id            (str "line-" id)
                                :stroke-width  (vscale 0.05)
-                               :stroke        (transition-color line))
+                               :stroke        (transition-color line)
+                               :opacity       faded)
                      (activate-line reachable)))))
        (apply svg/group)))
 
@@ -461,7 +475,7 @@
                                          :y (vscale (- y 0.1)))
                           (svg/style :fill (transition-color transition)
                                      :font-size (vscale (* process-height 0.5))
-                                     :font-family "sans"
+                                     :font-family font
                                      :alignment-baseline :bottom
                                      :text-anchor :middle)))
            model-svgs (conj model-svgs bar bubble)]
