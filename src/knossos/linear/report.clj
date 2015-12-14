@@ -15,6 +15,7 @@
       ------------ time ---------->"
   (:require [clojure.pprint :refer [pprint]]
             [clojure.set :as set]
+            [clojure.string :as str]
             [knossos [history :as history]
                      [op :as op]
                      [core :as core]
@@ -129,11 +130,15 @@
                                       model (:model transition)
                                       x1 (loop [x1 (max (+ x0 min-step)
                                                         (:min-x transition))]
-                                           (let [m (models {:x x1, :y y1})]
+                                           (let [m (:model
+                                                     (models {:x x1, :y y1}))]
                                              (if (and m (not= m model))
                                                ; Taken
                                                (recur (+ x1 min-step))
-                                               x1)))]
+                                               x1)))
+                                      bar (get models {:x x1 :y y1}
+                                               {:model  model
+                                                :id     (count lines)})]
                                   (assert (<= x1 (:max-x transition))
                                           (str x1 " starting at " x0
                                                " is outside ["
@@ -154,14 +159,15 @@
                                      y1]
                                     ; Recurrence
                                     [(conj path (assoc transition
-                                                       :line-id (count lines)))
+                                                       :line-id (count lines)
+                                                       :bar-id  (:id bar)))
                                      (conj lines {:id      (count lines)
                                                   :model   (:model transition)
                                                   :x0      x0
                                                   :y0      y0
                                                   :x1      x1
                                                   :y1      y1})
-                                     (assoc models {:x x1 :y y1} model)
+                                     (assoc models {:x x1 :y y1} bar)
                                      x1
                                      y1])))
                               [[] lines models Double/NEGATIVE_INFINITY nil]
@@ -241,13 +247,33 @@
         [lines mapping]       (merge-lines lines)
         lines           (into {} (map (juxt :id identity) (remove nil? lines)))
         mapping         (collapse-mapping mapping)
+        _ (pprint mapping)
         paths           (map (fn [path]
                                (map (fn [transition]
-                                      (assoc transition :line-id
-                                             (mapping (:line-id transition))))
+                                      (if-let [id (mapping
+                                                      (:line-id transition))]
+                                        (assoc transition :line-id id)
+                                        transition))
                                     path))
                                paths)]
     [paths lines models]))
+
+(defn reachable
+  "A map of an id (bar- or line-) to all ids for all paths that touch that id."
+  [paths]
+  (pprint (map (partial map (juxt :line-id :bar-id)) paths))
+  (reduce (fn [rs path]
+            (let [ids (mapcat (fn [transition]
+                                (when-let [l (:line-id transition)]
+                                  (when-let [b (:bar-id transition)]
+                                    (list (str "line-" l) (str "bar-"  b)))))
+                              path)]
+              (reduce (fn [rs id]
+                        (assoc rs id (into (get rs id #{}) ids)))
+                      rs
+                      ids)))
+          {}
+          paths))
 
 (defn learnings
   "What a terrible function name. We should task someone with an action item to
@@ -265,7 +291,8 @@
         time-bounds     (time-bounds pair-index analysis)
         time-coords     (time-coords pair-index time-bounds ops)
         paths           (paths analysis time-coords process-coords )
-        [paths lines bars] (paths->lines paths)]
+        [paths lines bars] (paths->lines paths)
+        reachable       (reachable paths)]
     {:history       history
      :analysis      analysis
      :pair-index    pair-index
@@ -277,7 +304,8 @@
      :time-coords   time-coords
      :paths         paths
      :lines         lines
-     :bars          models}))
+     :bars          bars
+     :reachable     reachable}))
 
 (def process-height
   "How tall should an op be in process space?"
@@ -341,33 +369,49 @@
                                  :text-anchor :middle))))))
        (apply svg/group)))
 
+(defn activate-line
+  "On hover, highlights all related IDs for this element."
+  [element reachable]
+  (let [ids (->> (xml/get-attrs element)
+                 :id
+                 reachable
+                 (map (fn [id] (str "'" id "'")))
+                 (str/join ","))]
+    (xml/add-attrs
+      element
+      :stroke-opacity "0.15"
+      :onmouseover (str "[" ids "].forEach(function(id) { document.getElementById(id).setAttribute('stroke-opacity', '1.0'); })")
+      :onmouseout  (str "[" ids "].forEach(function(id) { document.getElementById(id).setAttribute('stroke-opacity', '0.15'); })"))))
+
+(defn render-bars
+  "Given learnings, renders all bars as a group of SVG tags."
+  [{:keys [bars reachable]}]
+  (->> bars
+       (map (fn [[{:keys [x y]} {:keys [id model] :as bar}]]
+              (-> (svg/line (hscale x) (vscale y)
+                            (hscale x) (vscale (+ y process-height))
+                            :id (str "bar-" id)
+                            :stroke-width (vscale 0.05)
+                            :stroke       (transition-color bar))
+                  (activate-line reachable))))
+       (apply svg/group)))
+
 (defn render-lines
   "Given learnings, renders all lines as a group of SVG tags."
-  [{:keys [lines]}]
+  [{:keys [lines reachable]}]
   (->> lines
        vals
        (map (fn [{:keys [id x0 y0 x1 y1] :as line}]
-              (prn line)
                (let [up? (< y0 y1)
                      y0  (if up? (+ y0 process-height) y0)
                      y1  (if up? y1 (+ y1 process-height))]
-                 (prn :line line)
-                 (svg/line (hscale x0) (vscale y0)
-                           (hscale x1) (vscale y1)
-                           :id            (str "line-" id)
-                           :stroke-width  (vscale 0.025)
-                           :stroke        (transition-color line)))))
+                 (-> (svg/line (hscale x0) (vscale y0)
+                               (hscale x1) (vscale y1)
+                               :id            (str "line-" id)
+                               :stroke-width  (vscale 0.05)
+                               :stroke        (transition-color line))
+                     (activate-line reachable)))))
        (apply svg/group)))
-
-(defn hover-opacity
-  "Takes an SVG element, makes it partially transparent, and adds onmouseover
-  behavior raising its opacity."
-  [e]
-  (xml/add-attrs
-    e
-    :stroke-opacity "0.2"
-    :onmouseover "this.setAttribute('stroke-opacity', '1.0');"
-    :onmouseout  "this.setAttribute('stroke-opacity', '0.2');"))
 
 (comment
 (defn render-path
@@ -447,13 +491,14 @@
   "Render an entire analysis."
   [history analysis file]
   (let [learnings  (learnings history analysis)
-        ops        (render-ops learnings)
-;        paths      (render-paths learnings)
+        ops        (render-ops   learnings)
+        bars       (render-bars  learnings)
         lines      (render-lines learnings)]
     (spit file
           (xml/emit
             (svg-2
               (-> (svg/group
                     lines
-                    ops)
+                    ops
+                    bars)
                   (svg/translate (vscale 1) (vscale 1))))))))
