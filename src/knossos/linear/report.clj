@@ -25,6 +25,11 @@
 
 (def font "'Helvetica Neue', Helvetica, sans-serif")
 
+(defn set-attr
+  "Set a single xml attribute"
+  [elem attr value]
+  (xml/set-attrs elem (assoc (xml/get-attrs elem) attr value)))
+
 (defn ops
   "Computes distinct ops in an analysis."
   [analysis]
@@ -373,6 +378,27 @@
 
 (def faded "opacity" "0.15")
 
+(def activate-script
+  (str "<![CDATA[
+function abar(id) {
+  var bar = document.getElementById(id);
+  bar.setAttribute('opacity', '1.0');
+  var model = bar.getElementsByClassName('model')[0];
+  if (model != undefined) {
+    model.setAttribute('opacity', '1.0');
+  }
+}
+
+function dbar(id) {
+  var bar = document.getElementById(id);
+  bar.setAttribute('opacity', '" faded "');
+  var model = bar.getElementsByClassName('model')[0];
+  if (model != undefined) {
+    model.setAttribute('opacity', '0.0');
+  }
+}
+]]>"))
+
 (defn activate-line
   "On hover, highlights all related IDs for this element."
   [element reachable]
@@ -383,8 +409,12 @@
                  (str/join ","))]
     (xml/add-attrs
       element
-      :onmouseover (str "[" ids "].forEach(function(id) { document.getElementById(id).setAttribute('opacity', '1.0'); })")
-      :onmouseout  (str "[" ids "].forEach(function(id) { document.getElementById(id).setAttribute('opacity', '" faded "'); })"))))
+      :onmouseover (str "[" ids "].forEach(abar);")
+      :onmouseout  (str "[" ids "].forEach(dbar);"))))
+
+(defn outline-text
+  [element]
+  (xml/add-attrs element :filter "url(#glow)"))
 
 (defn render-bars
   "Given learnings, renders all bars as a group of SVG tags."
@@ -397,13 +427,16 @@
                                   :stroke-width (vscale 0.05)
                                   :stroke       (transition-color bar)))
                     (-> (svg/text (str model))
-                        (xml/add-attrs :x (hscale x)
+                        (xml/add-attrs :class "model"
+                                       :opacity "0.0"
+                                       :x (hscale x)
                                        :y (vscale (- y 0.1)))
                         (svg/style :fill (transition-color bar)
                                    :font-size (vscale (* process-height 0.5))
                                    :font-family font
                                    :alignment-baseline :bottom
-                                   :text-anchor :middle)))
+                                   :text-anchor :middle)
+                        outline-text))
                   (xml/add-attrs :id (str "bar-" id)
                                  :opacity faded)
                   (activate-line reachable))))
@@ -427,79 +460,25 @@
                      (activate-line reachable)))))
        (apply svg/group)))
 
-(comment
-(defn render-path
-  "Renders a particular path, given learnings. Returns {:transitions, :models},
-  each an SVG group. We render these separately because models go *on top* of
-  ops, and transitions go *below* them."
-  ([learnings path]
-   (render-path learnings nil path [] []))
-  ([{:keys [time-coords process-coords pair-index model-numbers] :as learnings}
-    [prev-x prev-y]
-    path
-    transition-svgs
-    model-svgs]
-   (if (empty? path)
-     ; Done
-     {:models      (-> (apply svg/group model-svgs) hover-opacity)
-      :transitions (-> (apply svg/group transition-svgs)
-                       hover-opacity)}
-     ; Handle this transition
-     (let [[transition & path'] path
-           op      (:op transition)
-           model   (:model transition)
-           x       (:x transition)
-           y       (process-coords (:process op))
-           ; A line from previous coords to current coords
-           line    (when prev-x
-                     ; Are we going up or down in process space?
-                     (let [up? (< prev-y y)
-                           y0  (if up? (+ prev-y process-height) prev-y)
-                           y1  (if up? y      (+ y process-height))]
-                       (svg/line (hscale prev-x) (vscale y0)
-                                 (hscale x)      (vscale y1)
-                                 :stroke-width (vscale 0.1)
-                                 :stroke (transition-color transition))))
-           transition-svgs    (if line
-                                (conj transition-svgs line)
-                                transition-svgs)
-           ; A vertical line for the model
-           bar      (svg/line (hscale x) (vscale y)
-                             (hscale x) (vscale (+ y process-height))
-                             :stroke-width (vscale 0.1)
-                             :stroke (transition-color transition))
-           ; A little illustration of the model state
-           bubble   (svg/group
-                      (-> (svg/text (str model))
-                          (xml/add-attrs :x (hscale x)
-                                         :y (vscale (- y 0.1)))
-                          (svg/style :fill (transition-color transition)
-                                     :font-size (vscale (* process-height 0.5))
-                                     :font-family font
-                                     :alignment-baseline :bottom
-                                     :text-anchor :middle)))
-           model-svgs (conj model-svgs bar bubble)]
-       (recur learnings [x y] path' transition-svgs model-svgs)))))
-
-(defn render-paths
-  "Renders all paths from learnings. Returns {:models ..., :transitions ...}"
-  [learnings]
-  (let [paths (->> learnings
-                   :analysis
-                   :final-paths
-                   (map (partial path-bounds learnings))
-                   relax-paths
-                   (mapv (partial render-path learnings)))]
-    {:models      (apply svg/group (map :models       paths))
-     :transitions (apply svg/group (map :transitions  paths))})))
-
 (defn svg-2
   "Emits an SVG 2 document."
   [& args]
-  (let [svg-1 (apply svg/svg args)]
-    (xml/set-attrs svg-1
-                   (-> (xml/get-attrs svg-1)
-                       (assoc "version" "1.0")))))
+  (-> (apply svg/svg args)
+      (set-attr "version" "2.0")))
+
+(defn glow-filter
+  []
+  (svg/defs ["glow" [:filter {:x "0" :y "0"}
+                     [:feGaussianBlur {:in "SourceAlpha"
+                                       :stdDeviation "2"
+                                       :result "blurred"}]
+                     [:feFlood {:flood-color "#fff"}]
+                     [:feComposite {:operator "in" :in2 "blurred"}]
+                     [:feComponentTransfer
+                      [:feFuncA {:type "linear" :slope "10" :intercept 0}]]
+                     [:feMerge
+                      [:feMergeNode]
+                      [:feMergeNode {:in "SourceGraphic"}]]]]))
 
 (defn render-analysis!
   "Render an entire analysis."
@@ -511,6 +490,8 @@
     (spit file
           (xml/emit
             (svg-2
+              [:script {:type "application/ecmascript"} activate-script]
+              (glow-filter)
               (-> (svg/group
                     lines
                     ops
