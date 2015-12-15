@@ -141,7 +141,15 @@ function dbar(id) {
   [pair-index analysis]
   [(dec (or (:index (history/invocation pair-index (:previous-ok analysis)))
             1))
-   (inc (:index (history/completion pair-index (:op analysis))))])
+   (->> analysis
+        :final-paths
+        (mapcat (partial keep (fn [transition]
+                                (->> transition
+                                     :op
+                                     (history/completion pair-index)
+                                     :index))))
+        (reduce max 0)
+        inc)])
 
 (defn condense-time-coords
   "Takes time coordinates (a map of op indices to [start-time end-time]), and
