@@ -202,7 +202,7 @@ function dbar(id) {
                                                x1)))
                                       bar (get models {:x x1 :y y1}
                                                {:model  model
-                                                :id     (count lines)})]
+                                                :id     (count models)})]
                                   (assert (<= x1 (:max-x transition))
                                           (str x1 " starting at " x0
                                                " is outside ["
@@ -216,9 +216,10 @@ function dbar(id) {
 
                                   (if (nil? y0)
                                     ; First step
-                                    [(conj path transition)
+                                    [(conj path (assoc transition
+                                                       :bar-id (:id bar)))
                                      lines
-                                     models
+                                     (assoc models {:x x1 :y y1} bar)
                                      x1
                                      y1]
                                     ; Recurrence
@@ -326,9 +327,10 @@ function dbar(id) {
   [paths]
   (reduce (fn [rs path]
             (let [ids (mapcat (fn [transition]
-                                (when-let [l (:line-id transition)]
-                                  (when-let [b (:bar-id transition)]
-                                    (list (str "line-" l) (str "bar-"  b)))))
+                                (when-let [b (:bar-id transition)]
+                                  (if-let [l (:line-id transition)]
+                                    (list (str "line-" l) (str "bar-"  b))
+                                    (list (str "bar-" b)))))
                               path)]
               (reduce (fn [rs id]
                         (assoc rs id (into (get rs id #{}) ids)))
