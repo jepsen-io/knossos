@@ -29,10 +29,12 @@
   "How tall should an op be in process space?"
   0.4)
 
+(def hscale- 150.0)
+
 (defn hscale
   "Convert our units to horizontal CSS pixels"
   [x]
-  (* x 150.0))
+  (* x hscale-))
 
 (defn vscale
   "Convert our units to vertical CSS pixels"
@@ -81,6 +83,21 @@ function dbar(id) {
   }
 }
 ]]>"))
+
+(defn glow-filter
+  []
+  (svg/defs ["glow" [:filter {:x "0" :y "0"}
+                     [:feGaussianBlur {:in "SourceAlpha"
+                                       :stdDeviation "2"
+                                       :result "blurred"}]
+                     [:feFlood {:flood-color "#fff"}]
+                     [:feComposite {:operator "in" :in2 "blurred"}]
+                     [:feComponentTransfer
+                      [:feFuncA {:type "linear" :slope "10" :intercept 0}]]
+                     [:feMerge
+                      [:feMergeNode]
+                      [:feMergeNode {:in "SourceGraphic"}]]]]))
+
 
 (defn set-attr
   "Set a single xml attribute"
@@ -380,7 +397,6 @@ function dbar(id) {
                (into {}))]
     (fn [t]
       (let [{:keys [offset scale]} (m (Math/floor t))]
-        (prn :scale t :by offset scale)
         (+ offset (* scale (mod t 1)))))))
 
 (defn learnings
@@ -506,25 +522,74 @@ function dbar(id) {
                      (activate-line reachable)))))
        (apply svg/group)))
 
+(def legend-height
+  (* process-height 0.6))
+
+(defn legend-text
+  [s x y & style]
+  (apply svg/style
+         (-> (svg/text s)
+             (xml/add-attrs :x (hscale x)
+                            :y (vscale y)))
+         :fill "#666"
+         :font-size (vscale legend-height)
+         :font-family font
+         style))
+
+(defn render-process-legend
+  "Process numbers and time arrow"
+  [{:keys [process-coords]}]
+  (->> process-coords
+       (map (fn [[process y]]
+              (legend-text (str process)
+                           -0.1 (+ y (/ process-height 2.0))
+                           :alignment-baseline :middle
+                           :text-anchor :end)))
+       (apply svg/group)))
+
+(defn render-legend
+  [learnings]
+  (let [y (->> learnings :process-coords vals (reduce max 0)
+               (+ process-height 0.5))
+        nonlinear-hscale (:hscale learnings)
+        xmax   (/ (->> learnings :time-coords vals (map second)
+                       (reduce max 0) nonlinear-hscale)
+                  hscale-)]
+    (svg/group
+      (legend-text "Process" -0.1 y :alignment-baseline :top :text-anchor :end)
+      (legend-text "Time ─────▶"
+                   0 y
+                   :alignment-baseline :top
+                   :text-anchor :start)
+      (legend-text "Crashed Op"
+                   (- xmax 0.85) y
+                   :alignment-baseline :top
+                   :text-anchor :end)
+      (svg/rect (hscale (- xmax 0.8))
+                (vscale (- y legend-height -0.03))
+                (vscale legend-height)
+                (hscale 0.16)
+                :rx (vscale 0.05)
+                :ry (vscale 0.05)
+                :fill (type->color nil))
+      (legend-text "OK Op"
+                   (- xmax 0.21) y
+                   :alignment-baseline :top
+                   :text-anchor :end)
+      (svg/rect (hscale (- xmax 0.16))
+                (vscale (- y legend-height -0.03))
+                (vscale legend-height)
+                (hscale 0.16)
+                :rx (vscale 0.05)
+                :ry (vscale 0.05)
+                :fill (type->color :ok))
+      (render-process-legend learnings))))
+
 (defn svg-2
   "Emits an SVG 2 document."
   [& args]
   (-> (apply svg/svg args)
       (set-attr "version" "2.0")))
-
-(defn glow-filter
-  []
-  (svg/defs ["glow" [:filter {:x "0" :y "0"}
-                     [:feGaussianBlur {:in "SourceAlpha"
-                                       :stdDeviation "2"
-                                       :result "blurred"}]
-                     [:feFlood {:flood-color "#fff"}]
-                     [:feComposite {:operator "in" :in2 "blurred"}]
-                     [:feComponentTransfer
-                      [:feFuncA {:type "linear" :slope "10" :intercept 0}]]
-                     [:feMerge
-                      [:feMergeNode]
-                      [:feMergeNode {:in "SourceGraphic"}]]]]))
 
 (defn render-analysis!
   "Render an entire analysis."
@@ -532,7 +597,8 @@ function dbar(id) {
   (let [learnings  (learnings history analysis)
         ops        (render-ops   learnings)
         bars       (render-bars  learnings)
-        lines      (render-lines learnings)]
+        lines      (render-lines learnings)
+        legend     (render-legend learnings)]
     (spit file
           (xml/emit
             (svg-2
@@ -541,5 +607,6 @@ function dbar(id) {
               (-> (svg/group
                     lines
                     ops
-                    bars)
-                  (svg/translate (vscale 1) (vscale 1))))))))
+                    bars
+                    legend)
+                  (svg/translate (vscale 1.4) (vscale 0.4))))))))
