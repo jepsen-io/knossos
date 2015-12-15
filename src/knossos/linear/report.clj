@@ -41,6 +41,9 @@
   [x]
   (* x 60.0))
 
+(def stroke-width
+  (vscale 0.05))
+
 (def type->color
   {:ok   "#B3F3B5"
    nil   "#F2F3B3"
@@ -494,7 +497,7 @@ function dbar(id) {
               (-> (svg/group
                     (-> (svg/line (hscale x) (vscale y)
                                   (hscale x) (vscale (+ y process-height))
-                                  :stroke-width (vscale 0.05)
+                                  :stroke-width stroke-width
                                   :stroke       (transition-color bar)))
                     (-> (svg/text (str model))
                         (xml/add-attrs :class "model"
@@ -524,7 +527,7 @@ function dbar(id) {
                  (-> (svg/line (hscale x0) (vscale y0)
                                (hscale x1) (vscale y1)
                                :id            (str "line-" id)
-                               :stroke-width  (vscale 0.05)
+                               :stroke-width  stroke-width
                                :stroke        (transition-color line)
                                :opacity       faded)
                      (activate-line reachable)))))
@@ -569,6 +572,29 @@ function dbar(id) {
                    0 y
                    :alignment-baseline :top
                    :text-anchor :start)
+
+      (legend-text "Legal"
+                   (- xmax 2.2) y
+                   :alignment-baseline :top
+                   :text-anchor :end)
+      (svg/line (hscale (- xmax 2.15))
+                (vscale (+ y (* legend-height -0.3)))
+                (hscale (- xmax 2.05))
+                (vscale (+ y (* legend-height -0.3)))
+                :stroke-width stroke-width
+                :stroke (transition-color nil))
+
+      (legend-text "Illegal"
+                   (- xmax 1.65) y
+                   :alignment-baseline :top
+                   :text-anchor :end)
+      (svg/line (hscale (- xmax 1.6))
+                (vscale (+ y (* legend-height -0.3)))
+                (hscale (- xmax 1.5))
+                (vscale (+ y (* legend-height -0.3)))
+                :stroke-width stroke-width
+                :stroke (transition-color {:model (model/inconsistent nil)}))
+
       (legend-text "Crashed Op"
                    (- xmax 0.85) y
                    :alignment-baseline :top
@@ -580,6 +606,7 @@ function dbar(id) {
                 :rx (vscale 0.05)
                 :ry (vscale 0.05)
                 :fill (type->color nil))
+
       (legend-text "OK Op"
                    (- xmax 0.21) y
                    :alignment-baseline :top
