@@ -25,6 +25,63 @@
 
 (def font "'Helvetica Neue', Helvetica, sans-serif")
 
+(def process-height
+  "How tall should an op be in process space?"
+  0.4)
+
+(defn hscale
+  "Convert our units to horizontal CSS pixels"
+  [x]
+  (* x 150.0))
+
+(defn vscale
+  "Convert our units to vertical CSS pixels"
+  [x]
+  (* x 60.0))
+
+(def type->color
+  {:ok   "#B3F3B5"
+   nil   "#F2F3B3"
+   :fail "#F3B3B3"})
+
+(defn op-color
+  "What color should an op be?"
+  [pair-index op]
+  (-> pair-index
+      (history/completion op)
+      :type
+      type->color))
+
+(defn transition-color
+  "What color should a transition be?"
+  [transition]
+  (if (model/inconsistent? (:model transition))
+    "#C51919"
+    "#000000"))
+
+(def faded "opacity" "0.15")
+
+(def activate-script
+  (str "<![CDATA[
+function abar(id) {
+  var bar = document.getElementById(id);
+  bar.setAttribute('opacity', '1.0');
+  var model = bar.getElementsByClassName('model')[0];
+  if (model != undefined) {
+    model.setAttribute('opacity', '1.0');
+  }
+}
+
+function dbar(id) {
+  var bar = document.getElementById(id);
+  bar.setAttribute('opacity', '" faded "');
+  var model = bar.getElementsByClassName('model')[0];
+  if (model != undefined) {
+    model.setAttribute('opacity', '0.0');
+  }
+}
+]]>"))
+
 (defn set-attr
   "Set a single xml attribute"
   [elem attr value]
@@ -254,7 +311,6 @@
         [lines mapping]       (merge-lines lines)
         lines           (into {} (map (juxt :id identity) (remove nil? lines)))
         mapping         (collapse-mapping mapping)
-        _ (pprint mapping)
         paths           (map (fn [path]
                                (map (fn [transition]
                                       (if-let [id (mapping
@@ -268,7 +324,6 @@
 (defn reachable
   "A map of an id (bar- or line-) to all ids for all paths that touch that id."
   [paths]
-  (pprint (map (partial map (juxt :line-id :bar-id)) paths))
   (reduce (fn [rs path]
             (let [ids (mapcat (fn [transition]
                                 (when-let [l (:line-id transition)]
@@ -281,6 +336,50 @@
                       ids)))
           {}
           paths))
+
+(defn coordinate-density
+  "Construct a sorted map of coordinate regions to the maximum number of bars
+  in a process in that region."
+  [bars]
+  (->> bars
+       keys
+       (map (fn [{:keys [x y]}] [(Math/floor x) y]))
+       (group-by first)
+       (map (fn [[x ys]]
+              [x (->> ys
+                      frequencies
+                      vals
+                      (reduce max 0))]))
+       (into (sorted-map))))
+
+(defn warp-time-coordinates
+  "Often times there are dead spots or very dense spots in the time axis. We
+  want to make the plot easier to read by compacting unused regions. Returns a
+  function of times to warped times."
+  [time-coords bars]
+  (let [density     (coordinate-density bars)
+        dmax        (->> density vals (reduce max))
+        tmin        (->> time-coords vals flatten (reduce min))
+        tmax        (->> time-coords vals flatten (reduce max))
+        m (->> (range tmin (inc tmax) 1)
+               ; Build [lower-time, scale] pairs.
+               (map (fn [t]
+                      (let [t (Math/floor t)
+                            d (/ (get density t 1) dmax)]
+                        [t d])))
+               ; Transform to cumulative offsets and scales
+               (reduce (fn [[pairs offset] [t d]]
+                         [(conj pairs [t {:offset offset
+                                          :scale  d}])
+                          (+ offset d)])
+                       [[] 0])
+               ; Build a map of times to {offset, scale} maps
+               first
+               (into {}))]
+    (fn [t]
+      (let [{:keys [offset scale]} (m (Math/floor t))]
+        (prn :scale t :by offset scale)
+        (+ offset (* scale (mod t 1)))))))
 
 (defn learnings
   "What a terrible function name. We should task someone with an action item to
@@ -299,7 +398,8 @@
         time-coords     (time-coords pair-index time-bounds ops)
         paths           (paths analysis time-coords process-coords )
         [paths lines bars] (paths->lines paths)
-        reachable       (reachable paths)]
+        reachable       (reachable paths)
+        hscale          (comp hscale (warp-time-coordinates time-coords bars))]
     {:history       history
      :analysis      analysis
      :pair-index    pair-index
@@ -312,61 +412,28 @@
      :paths         paths
      :lines         lines
      :bars          bars
-     :reachable     reachable}))
-
-(def process-height
-  "How tall should an op be in process space?"
-  0.4)
-
-(defn hscale
-  "Convert our units to horizontal CSS pixels"
-  [x]
-  (* x 150))
-
-(defn vscale
-  "Convert our units to vertical CSS pixels"
-  [x]
-  (* x 60))
-
-(def type->color
-  {:ok   "#B3F3B5"
-   nil   "#F2F3B3"
-   :fail "#F3B3B3"})
-
-(defn op-color
-  "What color should an op be?"
-  [pair-index op]
-  (-> pair-index
-      (history/completion op)
-      :type
-      type->color))
-
-(defn transition-color
-  "What color should a transition be?"
-  [transition]
-  (if (model/inconsistent? (:model transition))
-    "#C51919"
-    "#000000"))
+     :reachable     reachable
+     :hscale        hscale}))
 
 (defn render-ops
   "Given learnings, renders all operations as a group of SVG tags."
-  [{:keys [time-coords process-coords pair-index ops]}]
+  [{:keys [hscale time-coords process-coords pair-index ops]}]
   (->> ops
        (mapv (fn [op]
               (let [[t1 t2] (time-coords    (:index op))
                     p       (process-coords (:process op))
-                    width   (- t2 t1)]
+                    width   (- (hscale t2) (hscale t1))] ; nonlinear coords
                 (svg/group
                   (svg/rect (hscale t1)
                             (vscale p)
                             (vscale process-height)
-                            (hscale width)
+                            width
                             :rx (vscale 0.1)
                             :ry (vscale 0.1)
                             :fill (op-color pair-index op))
                   (-> (svg/text (str (name (:f op)) " "
                                      (pr-str (:value op))))
-                      (xml/add-attrs :x (hscale (+ t1 (/ width 2.0)))
+                      (xml/add-attrs :x (+ (hscale t1) (/ width 2.0))
                                      :y (vscale (+ p (/ process-height
                                                         2.0))))
                       (svg/style :fill "#000000"
@@ -375,29 +442,6 @@
                                  :alignment-baseline :middle
                                  :text-anchor :middle))))))
        (apply svg/group)))
-
-(def faded "opacity" "0.15")
-
-(def activate-script
-  (str "<![CDATA[
-function abar(id) {
-  var bar = document.getElementById(id);
-  bar.setAttribute('opacity', '1.0');
-  var model = bar.getElementsByClassName('model')[0];
-  if (model != undefined) {
-    model.setAttribute('opacity', '1.0');
-  }
-}
-
-function dbar(id) {
-  var bar = document.getElementById(id);
-  bar.setAttribute('opacity', '" faded "');
-  var model = bar.getElementsByClassName('model')[0];
-  if (model != undefined) {
-    model.setAttribute('opacity', '0.0');
-  }
-}
-]]>"))
 
 (defn activate-line
   "On hover, highlights all related IDs for this element."
@@ -418,7 +462,7 @@ function dbar(id) {
 
 (defn render-bars
   "Given learnings, renders all bars as a group of SVG tags."
-  [{:keys [bars reachable]}]
+  [{:keys [hscale bars reachable]}]
   (->> bars
        (map (fn [[{:keys [x y]} {:keys [id model] :as bar}]]
               (-> (svg/group
@@ -444,7 +488,7 @@ function dbar(id) {
 
 (defn render-lines
   "Given learnings, renders all lines as a group of SVG tags."
-  [{:keys [lines reachable]}]
+  [{:keys [hscale lines reachable]}]
   (->> lines
        vals
        (map (fn [{:keys [id x0 y0 x1 y1] :as line}]
