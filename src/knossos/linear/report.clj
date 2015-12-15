@@ -206,7 +206,7 @@ function dbar(id) {
        (map (partial path-bounds {:time-coords    time-coords
                                   :process-coords process-coords}))))
 
-(def min-step 1/6)
+(def min-step 1/8)
 
 (defn path->line
   "Takes a map of coordinates to models, path, a collection of lines, and emits
