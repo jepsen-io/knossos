@@ -24,7 +24,7 @@
                                   :value    1}]}]
             :final-paths #{[{:model (register 0) :op nil}
                             {:model (inconsistent
-                                      "read 1 from register 0")
+                                      "0≠1")
                              :op {:process 0
                                   :index 1
                                   :type :ok

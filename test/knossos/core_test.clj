@@ -279,5 +279,5 @@
     (is (= (:inconsistent-op a)
            {:value 2, :process 1, :type :ok, :f :read}))
     (is (= (set (:inconsistent-transitions a))
-           #{[(register 0) "read 2 from register 0"]
-             [(register 1) "read 2 from register 1"]}))))
+           #{[(register 0) "0≠2"]
+             [(register 1) "1≠2"]}))))

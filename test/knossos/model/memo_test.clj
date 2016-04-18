@@ -44,11 +44,11 @@
     (is (= #{(register 0)
              (register 1)
              (register 2)
-             (inconsistent "read 1 from register 0")
-             (inconsistent "read 1 from register 2")
-             (inconsistent "read :unreachable from register 0")
-             (inconsistent "read :unreachable from register 1")
-             (inconsistent "read :unreachable from register 2")}
+             (inconsistent "0≠1")
+             (inconsistent "0≠:unreachable")
+             (inconsistent "1≠:unreachable")
+             (inconsistent "2≠1")
+             (inconsistent "2≠:unreachable")}
            (models (transitions history) (register 0)))))
 
   (deftest wrapper-test
