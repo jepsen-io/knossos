@@ -67,9 +67,9 @@
                               (step (history 1))
                               (step (history 3))
                               model)))
-      (is (= (inconsistent "read 1 from register 2") (-> w
-                                                         (step (history 3))
-                                                         (step (history 1)))))
+      (is (= (inconsistent "2≠1") (-> w
+                                      (step (history 3))
+                                      (step (history 1)))))
 
       (is (= (-> w
                  (step (history 2))
