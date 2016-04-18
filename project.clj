@@ -1,4 +1,4 @@
-(defproject knossos "0.2.5"
+(defproject knossos "0.2.6-SHAPSHOT"
   :description "Linearizability checker"
   :url "https://github.com/aphyr/knossos"
   :license {:name "Eclipse Public License"
