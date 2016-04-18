@@ -23,6 +23,8 @@
             [analemma [xml :as xml]
                       [svg :as svg]]))
 
+(def min-step "How small should we quantize the graph?" 1/10)
+
 (def font "'Helvetica Neue', Helvetica, sans-serif")
 
 (def process-height
@@ -205,8 +207,6 @@ function dbar(id) {
        :final-paths
        (map (partial path-bounds {:time-coords    time-coords
                                   :process-coords process-coords}))))
-
-(def min-step 1/8)
 
 (defn path->line
   "Takes a map of coordinates to models, path, a collection of lines, and emits
