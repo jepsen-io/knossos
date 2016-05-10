@@ -15,7 +15,7 @@
                  [org.slf4j/slf4j-log4j12 "1.7.21"]]
   ; "-verbose:gc" "-XX:+PrintGCDetails"
   :test-selectors {:focus :focus}
-  :jvm-opts ["-Xmx24g"
+  :jvm-opts ["-Xmx1g"
              "-XX:+UseConcMarkSweepGC"
              "-XX:+UseParNewGC"
              "-XX:+CMSParallelRemarkEnabled"
@@ -23,6 +23,6 @@
              "-XX:+UseFastAccessorMethods"
              "-XX:MaxInlineLevel=32"
              "-XX:MaxRecursiveInlineLevel=2"
-             "-XX:-OmitStackTraceInFastThrow"
+;             "-XX:-OmitStackTraceInFastThrow"
              "-server"]
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.8.0"]]}})

@@ -5,7 +5,8 @@
             [clojure.pprint :refer [pprint]]
             [clojure.tools.logging :refer :all]
             [knossos.model :as model]
-            [knossos.linear :as linear])
+            [knossos.linear :as linear]
+            [knossos.memory :as memory])
   (:import (java.io PushbackReader)))
 
 (defn tuple?

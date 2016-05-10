@@ -10,6 +10,7 @@
             [knossos.model.memo :as memo :refer [memo]]
             [knossos [core :as core]
                      [history :as history]
+                     [memory :as memory]
                      [model :as model]
                      [util :refer :all]
                      [op :as op]])
@@ -69,6 +70,9 @@
   ([cache config final]
    (jit-linearizations cache final (ArrayList.) config))
   ([^Set cache final ^ArrayList configs config]
+   (when (Thread/interrupted)
+     (throw (InterruptedException.)))
+
    ; Record this point
    (if-not (.add cache config)
      ; We can skip this execution; it'll appear in some other config's
@@ -218,14 +222,10 @@
   "Advance one step through the history. Takes a configset, returns a new
   configset--or a reduced failure."
   [history state configs op]
-  (swap! state
-         (fn [state]
-             {:running? true
-              :configs configs
-              :op op}))
-
+  (swap! state assoc :configs configs, :op op)
   (cond
-    ; If we're invoking an operation, just add it to each config's pending ops.
+    ; If we're invoking an operation, just add it to each config's pending
+    ; ops.
     (and (op/invoke? op) (not (:fails? op)))
     (->> configs
          (map #(t-call % op))
@@ -245,7 +245,8 @@
                      ; Parallel search
                      (->> configs
                           (pmap (fn par-expand [config]
-                                  (step-ok! cache (config/set-config-set) config op)))
+                                  (step-ok! cache (config/set-config-set)
+                                            config op)))
                           (apply concat)
                           ; Merge parallel results
                           (reduce config/add! (config/set-config-set))))]
@@ -308,11 +309,32 @@
         state (atom {:running?  true
                      :configs   configs
                      :op        nil})
-        reporter (reporter! state)
-        res (reduce (partial step history state) configs history)]
-    (reset! state {:running? false})
-    (if (and (map? res) (= false (:valid? res)))
-      ; Reduced error
-      res
-      {:valid?  true
-       :configs (map config/config->map res)})))
+        thread (Thread/currentThread)
+        mem-watch (memory/on-low-mem!
+                    (fn abort []
+                      (let [s @state]
+                        (warn "Out of memory; aborting search at op"
+                              (:index (:op s)) "/" (count history)))
+                      (swap! state assoc
+                             :running? false
+                             :cause    :out-of-memory)
+                      (.interrupt thread)))
+        reporter (reporter! state)]
+    ; Perform search
+    (try (let [res (reduce (partial step history state) configs history)]
+           (if (and (map? res) (= false (:valid? res)))
+             ; Reduced error
+             res
+             {:valid?  true
+              :configs (map config/config->map res)}))
+         (catch InterruptedException e
+           (let [{:keys [cause configs op]} @state]
+             {:valid?       :unknown
+              :cause        cause
+              :configs      (map config/config->map configs)
+              :previous-ok  (previous-ok history op)
+              :op           op}))
+         (finally
+           ; Reset memory watchdog and status reporter
+           (mem-watch)
+           (reset! state {:running? false})))))

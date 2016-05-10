@@ -38,9 +38,8 @@
           _       (prn (count history))
           a       (analysis (register 0) history)]
       (is (:valid? a))
-;      (pprint a)
-      (when-not (:valid? a)
-        (pprint history)
+      (when (not= true (:valid? a))
+;        (pprint history)
         (println "history length" (count history))
         (prn)
-        (pprint a)))))
+        (pprint (assoc a :configs (take 2 (:configs a))))))))
