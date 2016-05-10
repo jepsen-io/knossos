@@ -6,6 +6,7 @@
             [knossos.op :refer :all])
   (:import (knossos.linear.config Processes)))
 
+(.clear array-processes-pool)
 
 (deftest set-config-set-test
   (let [s (set-config-set)]

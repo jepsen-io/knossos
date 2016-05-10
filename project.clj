@@ -15,6 +15,7 @@
                  [org.slf4j/slf4j-log4j12 "1.7.21"]]
   ; "-verbose:gc" "-XX:+PrintGCDetails"
   :test-selectors {:focus :focus}
+  :java-source-paths ["java"]
   :jvm-opts ["-Xmx24g"
              "-XX:+UseConcMarkSweepGC"
              "-XX:+UseParNewGC"

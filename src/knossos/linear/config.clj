@@ -2,6 +2,7 @@
   "Datatypes for search configurations"
   (:require [clojure.string :as str]
             [clojure.core.reducers :as r]
+            [clojure.tools.logging :refer :all]
             [potemkin :refer [definterface+ deftype+ defrecord+]]
             [knossos [core :as core]
                      [util :refer :all]
@@ -12,10 +13,12 @@
              java.util.Arrays
              java.util.Set
              java.util.HashSet
-             java.lang.reflect.Array))
+             java.lang.reflect.Array
+             java.lang.ref.WeakReference
+             jsr166y.ConcurrentWeakHashMap))
 
 ;; An immutable map of process ids to whether they are calling or returning an
-;; op, augmented with a mutable union-find memoized equality test.
+;; op
 
 (definterface+ Processes
   (calls      "A reducible of called but unlinearized operations."      [ps])
@@ -209,7 +212,34 @@
     (System/arraycopy a (+ i 2) a' i (- (alength a') i))
     a'))
 
-(deftype ArrayProcesses [^objects history ^ints a]
+
+(def ^ConcurrentWeakHashMap array-processes-pool
+  "Because ArrayProcesses is pure, and we're likely to return to the same state
+  in multiple configurations, we can reduce memory usage and speed up equality
+  comparisons by interning ArrayProcesses in a weakref pool."
+  (ConcurrentWeakHashMap. 16 0.75 (.. Runtime getRuntime availableProcessors)))
+
+(defn intern-array-processes
+  "Takes an ArrayProcesses and returns an equivalent ArrayProcesses, re-using
+  existing objects where possible."
+  [array-processes]
+  ; Get is unsynchronized, so we'll pay the rehashing cost to avoid lock
+  ; contention unless we truly have something new.
+  (or (when-let [^WeakReference extant (.get array-processes-pool
+                                             array-processes)]
+;        (info "Extant" (str (.get extant)))
+        (.get extant))
+      (when-let [^WeakReference extant (.putIfAbsent
+                                         array-processes-pool
+                                         array-processes
+                                         ; WeakHashMap uses strong-ref values
+                                         (WeakReference. array-processes))]
+;        (info "Contended extant" (str (.get extant)))
+        (.get extant))
+      ; We added it to the map
+      array-processes))
+
+(deftype+ ArrayProcesses [^objects history ^ints a]
   Processes
   (calls [ps]
     ; Wish I could find an efficient way to get a reducible out of, say,
@@ -241,7 +271,8 @@
       ; The process should not be present yet.
       (assert (neg? i))
       (assert (integer? op))
-      (ArrayProcesses. history (array-processes-assoc a i p op))))
+;      (intern-array-processes
+        (ArrayProcesses. history (array-processes-assoc a i p op))))
 
   (linearize [ps op]
     (let [p  (:process op)
@@ -250,7 +281,8 @@
       ; The process should be present and being called.
       (assert (not (neg? i)))
       (assert (not (neg? (aget a (inc i)))))
-      (ArrayProcesses. history (array-processes-assoc a i p (dec (- op))))))
+;      (intern-array-processes
+        (ArrayProcesses. history (array-processes-assoc a i p (dec (- op))))))
 
   (return [ps op]
     (let [p  (:process op)
@@ -259,7 +291,8 @@
       ; The process should be present and returning.
       (assert (not (neg? i)))
       (assert (neg? (aget a (inc i))))
-      (ArrayProcesses. history (array-processes-dissoc a i))))
+;      (intern-array-processes
+        (ArrayProcesses. history (array-processes-dissoc a i))))
 
   (idle? [ps p]
     (neg? (array-processes-search a p)))
@@ -278,9 +311,16 @@
   (hashCode [ps]
     (Arrays/hashCode a))
 
+  ; We're going to cheat on equality semantics a bit; all comparisons should
+  ; be on ArrayProcesses using the exact same history, so we do a reference
+  ; comparison instead of traversing the full array. Much faster; means you
+  ; can't construct process states on arbitrary histories and expect equality
+  ; though.
   (equals [ps other]
-    (and (instance? ArrayProcesses other)
-         (Arrays/equals a ^ints (.a ^ArrayProcesses other)))))
+;    (or (identical? ps other)
+        (and (instance? ArrayProcesses other)
+             (identical? history ^objects (.history ^ArrayProcesses other))
+             (Arrays/equals a ^ints (.a ^ArrayProcesses other)))))
 
 (defn array-processes
   "A process tracker backed by a sorted array, closing over the given history.
@@ -294,7 +334,7 @@
 ; One particular path through the history, comprised of a model and a tracker
 ; for process states.
 
-(deftype Config [model processes]
+(deftype+ Config [model processes]
   clojure.lang.IKeywordLookup
   ; Why can't we just use defrecord? Because defrecord computes hashcodes via
   ; APersistentMap/mapHasheq which pretty darn expensive when we just want to
