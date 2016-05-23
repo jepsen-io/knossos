@@ -75,7 +75,15 @@
     (is (= {:process 76, :type :ok, :f :write, :value 2, :index 472}
            (:last-op a)))
 
-    (is (= []
+    ; There are two possible options: write 2, CAS 1->1, or write 2, read 0.
+    (is (= #{[{:model (cas-register 2)
+               :op {:f :write :index 472 :process 76 :type :ok :value 2}}
+              {:model (inconsistent "can't CAS 2 from 1 to 1")
+               :op {:f :cas :index 463 :process 77 :type :invoke :value [1 1]}}]
+             [{:model (cas-register 2)
+               :op {:f :write :index 472 :process 76 :type :ok :value 2}}
+              {:model (inconsistent "can't read 0 from register 2")
+               :op {:f :read :index 491 :process 70 :type :ok :value 0}}]}
            (:final-paths a)))))
 
 (deftest volatile-linearizable-test

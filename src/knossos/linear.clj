@@ -191,28 +191,24 @@
   Returns a set of paths, where a path is a sequence of transitions like:
 
       {:op    some-op
-       :model model-resulting-from-applying-op}
-
-  All paths start with the previous completion operation."
+       :model model-resulting-from-applying-op}"
   [history op configs]
-  ; Look backwards to find the last completion operation.
-  (let [previous-ok (previous-ok history op)]
-    (->> configs
-         (map (fn [config]
-                (final-paths-for-config [{:op previous-ok
-                                          :model (:model config)}]
-                                        op
-                                        config)))
-         (reduce set/union)
-         ; And now unwrap memoization
-         (map (fn [path]
-                (mapv (fn [transition]
-                        (let [m (:model transition)]
-                          (if (instance? Wrapper m)
-                            (assoc transition :model (memo/model m))
-                            transition)))
-                      path)))
-         set)))
+  (->> configs
+       (map (fn [config]
+              (final-paths-for-config [{:op    (:last-op config)
+                                        :model (:model config)}]
+                                      op
+                                      config)))
+       (reduce set/union)
+       ; And now unwrap memoization
+       (map (fn [path]
+              (mapv (fn [transition]
+                      (let [m (:model transition)]
+                        (if (instance? Wrapper m)
+                          (assoc transition :model (memo/model m))
+                          transition)))
+                    path)))
+       set))
 
 (def ^:const parallel-threshold
   "How many configs do we need before we start parallelizing?"

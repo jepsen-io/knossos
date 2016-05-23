@@ -144,7 +144,7 @@ function dbar(id) {
   "Given a pair index and an analysis, computes the [lower, upper] bounds on
   times for rendering a plot."
   [pair-index analysis]
-  [(dec (or (:index (history/invocation pair-index (:previous-ok analysis)))
+  [(dec (or (:index (history/invocation pair-index (:previous-op analysis)))
             1))
    (->> analysis
         :final-paths
