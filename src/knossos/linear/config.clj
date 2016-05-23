@@ -292,9 +292,10 @@
   (ArrayProcesses. (object-array history) (int-array 0)))
 
 ; One particular path through the history, comprised of a model and a tracker
-; for process states.
-
-(deftype Config [model processes]
+; for process states. Last-lin-op is the last op linearized in this config, and
+; is used purely for constructing debugging traces. For performance reasons, it
+; does not factor into equality, hashing, or kw lookup/assoc.
+(deftype+ Config [model processes last-op]
   clojure.lang.IKeywordLookup
   ; Why can't we just use defrecord? Because defrecord computes hashcodes via
   ; APersistentMap/mapHasheq which pretty darn expensive when we just want to
@@ -312,13 +313,18 @@
         :processes (reify clojure.lang.ILookupThunk
                      (get [thunk gtarget]
                        (if (identical? (class gtarget) gclass)
-                         (.-processes ^Config gtarget)))))))
+                         (.-processes ^Config gtarget))))
+        :last-op (reify clojure.lang.ILookupThunk
+                       (get [thunk gtarget]
+                         (if (identical? (class gtarget) gclass)
+                           (.-last-op ^Config gtarget)))))))
 
+  ; Override assoc for performance. I am a terrible human being.
   clojure.lang.IPersistentMap
   (assoc [this k v]
     (condp identical? k
-      :model      (Config. v processes)
-      :processes  (Config. model v)))
+      :model      (Config. v processes last-op)
+      :processes  (Config. model v last-op)))
 
   clojure.lang.IHashEq
   (hasheq [this] (bit-xor (hash model) (hash processes)))
@@ -350,15 +356,16 @@
 (defn config
   "An initial configuration around a given model and history."
   [model history]
-  (Config. model (array-processes history)))
+  (Config. model (array-processes history) nil))
 
 (defn config->map
   "Turns a config into a nice map showing the state of the world at that point."
-  [config]
+  [^Config config]
   {:model   (let [m (:model config)]
               (if (instance? Wrapper m)
                 (memo/model m)
                 m))
+   :last-op (:last-op config)
    :pending (into [] (calls (:processes config)))})
 
 (defn gammaish

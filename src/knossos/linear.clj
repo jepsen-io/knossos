@@ -30,19 +30,19 @@
 (defn t-lin
   "A pending call can be linearized by transforming the current state, moving
   the invocation from calls to rets. Returns nil if linearizing this operation
-  would be inconsistent."
+  would be inconsistent. Updates last-lin-op for the config."
   [config op]
   (let [model' (model/step (:model config) op)]
     (when-not (model/inconsistent? model')
       (config/->Config model'
-                       (config/linearize (:processes config) op)))))
+                       (config/linearize (:processes config) op)
+                       op))))
 
 (defn t-ret
   "A pending return can be completed. It's legal to provide an invocation or a
   completion here--all that matters is the :process"
   [config op]
   (assoc config :processes (config/return (:processes config) op)))
-
 
 ;; Exploring the automaton
 
@@ -257,6 +257,14 @@
                   :configs      (map config/config->map configs)
                   :final-paths  (final-paths history op configs)
                   :previous-ok  (previous-ok history op)
+                  :last-op  (reduce (fn [op config]
+                                      (if (or (nil? op)
+                                              (< (:index op)
+                                                 (:index (:last-op config))))
+                                        (:last-op config)
+                                        op))
+                                    nil
+                                    configs)
                   :op           op})
         ; Otherwise, return new config set.
         configs'))
@@ -333,6 +341,15 @@
               :cause        cause
               :configs      (map config/config->map configs)
               :previous-ok  (previous-ok history op)
+              :last-op      (reduce (fn [op config]
+                                      (if (or (nil? op)
+                                              (< (:index op)
+                                                 (:index (:last-op
+                                                           config))))
+                                        (:last-op config))
+                                      op)
+                                    nil
+                                    configs)
               :op           op}))
          (finally
            ; Reset memory watchdog and status reporter

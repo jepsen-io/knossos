@@ -107,17 +107,20 @@
         c  (config (register 0) h)]
     (testing "initial"
       (is (= {:model (register 0)
+              :last-op nil
               :pending []}
              (config->map c))))
 
     (testing "pending"
       (let [c (-> c (t-call w1))]
         (is (= {:model (register 0)
+                :last-op nil
                 :pending [w1]}
                (config->map c)))))
 
     (testing "linearized"
       (let [c (-> c (t-call w1) (t-lin w1))]
         (is (= {:model (register 1)
+                :last-op w1
                 :pending []}
                (config->map c)))))))
