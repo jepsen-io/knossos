@@ -27,9 +27,14 @@
         analysis (linear/analysis model history)]
     (render-analysis! history analysis "out.svg")))
 
-(deftest bad-analysis-test-2
+(deftest rethink-analysis
   (let [history  (read-string (slurp "data/rethink-fail.edn"))
         model    (cas-register 0)
         analysis (linear/analysis model history)]
-    (render-analysis! history analysis "rethink.svg")
-))
+    (render-analysis! history analysis "rethink.svg")))
+
+(deftest cas-failure
+  (let [history  (ct/read-history "data/cas-failure.edn")
+        model    (cas-register nil)
+        analysis (linear/analysis model history)]
+    (render-analysis! history analysis "cas-failure.svg")))

@@ -5,7 +5,23 @@
             [knossos.history :as history]
             [knossos.model :as model :refer [register]]
             [knossos.op :as op]
-            [clojure.pprint :refer [pprint]]))
+            [clojure.pprint :refer [pprint]]
+            [clojure.java.io :as io]
+            [clojure.edn :as edn])
+  (:import (java.io PushbackReader)))
+
+(defn read-history
+    "Reads a history file of [process type f value] tuples."
+    [f]
+    (with-open [r (PushbackReader. (io/reader f))]
+      (->> (repeatedly #(edn/read {:eof nil} r))
+           (take-while identity)
+           (map (fn [[process type f value]]
+                  {:process process
+                   :type    type
+                   :f       f
+                   :value   value}))
+           vec)))
 
 (comment
   (deftest keep-singular-test

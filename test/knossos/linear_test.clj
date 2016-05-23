@@ -1,26 +1,10 @@
 (ns knossos.linear-test
   (:require [clojure.test :refer :all]
-            [clojure.java.io :as io]
-            [clojure.edn :as edn]
             [knossos.linear :refer :all]
             [knossos.op :refer :all]
             [knossos.model :refer [cas-register register inconsistent]]
             [knossos.core-test :as ct]
-            [clojure.pprint :refer [pprint]])
-  (:import (java.io PushbackReader)))
-
-(defn read-history
-  "Reads a history file of [process type f value] tuples."
-  [f]
-  (with-open [r (PushbackReader. (io/reader f))]
-    (->> (repeatedly #(edn/read {:eof nil} r))
-         (take-while identity)
-         (map (fn [[process type f value]]
-                {:process process
-                 :type    type
-                 :f       f
-                 :value   value}))
-         vec)))
+            [clojure.pprint :refer [pprint]]))
 
 (deftest bad-analysis-test
   (let [history [{:process 0 :type :invoke :f :read :value 1}
@@ -51,7 +35,7 @@
            (analysis (register 0) history)))))
 
 (deftest bad-analysis-test-2
-  (let [a (analysis (cas-register 0) (read-history "data/cas-failure.edn"))]
+  (let [a (analysis (cas-register 0) (ct/read-history "data/cas-failure.edn"))]
     ; In this particular history, we know the value is 0, then we have
     ; concurrent reads of 0 and a write of 2 by process 76, followed by another
     ; read of 0 by process 70. The only legal linearization to that final read
