@@ -1,0 +1,1247 @@
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil]],
+ :process 3,
+ :time 7686455705}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:read :y nil]],
+ :process 2,
+ :time 7686334122}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:read :y nil]],
+ :process 0,
+ :time 7686447618}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :y 2]],
+ :process 4,
+ :time 7686306180}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 0]],
+ :process 1,
+ :time 7686316119}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0]],
+ :process 3,
+ :time 7717922112}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0] [:read :y 0]],
+ :process 0,
+ :time 7723299165}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0] [:read :y 0]],
+ :process 2,
+ :time 7736090694}
+{:type :ok,
+ :f :txn,
+ :value [[:write :y 2]],
+ :process 4,
+ :time 7745089410}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 0]],
+ :process 1,
+ :time 7754347986}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:read :y nil]],
+ :process 3,
+ :time 8719199586}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :y 2]],
+ :process 0,
+ :time 8723918276}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0] [:read :y 2]],
+ :process 3,
+ :time 8728852722}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil]],
+ :process 2,
+ :time 8736857953}
+{:type :ok,
+ :f :txn,
+ :value [[:write :y 2]],
+ :process 0,
+ :time 8737801249}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:read :y nil]],
+ :process 4,
+ :time 8745737583}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0]],
+ :process 2,
+ :time 8748043411}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 2]],
+ :process 1,
+ :time 8754987504}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0] [:read :y 2]],
+ :process 4,
+ :time 8758471069}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 2]],
+ :process 1,
+ :time 8766199625}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 0]],
+ :process 3,
+ :time 9729707709}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 1]],
+ :process 0,
+ :time 9738354411}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 0]],
+ :process 3,
+ :time 9741844033}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :y 1]],
+ :process 2,
+ :time 9748664820}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 1]],
+ :process 0,
+ :time 9749604417}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 1] [:write :y 1]],
+ :process 4,
+ :time 9759084907}
+{:type :ok,
+ :f :txn,
+ :value [[:write :y 1]],
+ :process 2,
+ :time 9760138026}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:read :y nil]],
+ :process 1,
+ :time 9766764695}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 1] [:write :y 1]],
+ :process 4,
+ :time 9769725743}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 1] [:read :y 1]],
+ :process 1,
+ :time 9780620850}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 1] [:read :y nil]],
+ :process 3,
+ :time 10742699850}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :y nil]],
+ :process 0,
+ :time 10750210549}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 2] [:read :y nil]],
+ :process 2,
+ :time 10760713571}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 1] [:read :y 1]],
+ :process 3,
+ :time 10763635759}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 0]],
+ :process 4,
+ :time 10770285068}
+{:type :ok,
+ :f :txn,
+ :value [[:read :y 1]],
+ :process 0,
+ :time 10771399173}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 2] [:read :y 1]],
+ :process 2,
+ :time 10780855587}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:write :y 1]],
+ :process 1,
+ :time 10781450138}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 0]],
+ :process 4,
+ :time 10795935610}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0] [:write :y 1]],
+ :process 1,
+ :time 10804273679}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 0] [:write :y 2]],
+ :process 3,
+ :time 11764335199}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil]],
+ :process 0,
+ :time 11771896710}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 0] [:write :y 2]],
+ :process 3,
+ :time 11776702010}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:write :y 2]],
+ :process 2,
+ :time 11781364730}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0]],
+ :process 0,
+ :time 11788070734}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :y 0]],
+ :process 4,
+ :time 11796553200}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0] [:write :y 2]],
+ :process 2,
+ :time 11798792290}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil]],
+ :process 1,
+ :time 11804868208}
+{:type :ok,
+ :f :txn,
+ :value [[:write :y 0]],
+ :process 4,
+ :time 11805378369}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0]],
+ :process 1,
+ :time 11815749308}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil]],
+ :process 3,
+ :time 12777542368}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :y 2]],
+ :process 0,
+ :time 12788562680}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0]],
+ :process 3,
+ :time 12794298888}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 1] [:write :y 1]],
+ :process 2,
+ :time 12799469938}
+{:type :ok,
+ :f :txn,
+ :value [[:write :y 2]],
+ :process 0,
+ :time 12801086598}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:read :y nil]],
+ :process 4,
+ :time 12805827492}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 1] [:write :y 1]],
+ :process 2,
+ :time 12808731537}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:write :y 0]],
+ :process 1,
+ :time 12816296882}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 1] [:read :y 1]],
+ :process 4,
+ :time 12816901646}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 1] [:write :y 0]],
+ :process 1,
+ :time 12824897738}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:write :y 2]],
+ :process 3,
+ :time 13795087991}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:write :y 1]],
+ :process 0,
+ :time 13801639746}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :y 2]],
+ :process 2,
+ :time 13809380275}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 1] [:write :y 2]],
+ :process 3,
+ :time 13809703588}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 0] [:write :y 1]],
+ :process 4,
+ :time 13817453210}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 1] [:write :y 1]],
+ :process 0,
+ :time 13822134252}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:write :y 2]],
+ :process 1,
+ :time 13825438867}
+{:type :ok,
+ :f :txn,
+ :value [[:write :y 2]],
+ :process 2,
+ :time 13831895858}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 0] [:write :y 1]],
+ :process 4,
+ :time 13840288309}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0] [:write :y 2]],
+ :process 1,
+ :time 13850442628}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :y nil]],
+ :process 3,
+ :time 14810461808}
+{:type :ok,
+ :f :txn,
+ :value [[:read :y 2]],
+ :process 3,
+ :time 14819783946}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :y 1]],
+ :process 0,
+ :time 14822626684}
+{:type :ok,
+ :f :txn,
+ :value [[:write :y 1]],
+ :process 0,
+ :time 14831004907}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :y nil]],
+ :process 2,
+ :time 14832417757}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 2] [:read :y nil]],
+ :process 4,
+ :time 14840783767}
+{:type :ok,
+ :f :txn,
+ :value [[:read :y 1]],
+ :process 2,
+ :time 14843308787}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:write :y 2]],
+ :process 1,
+ :time 14850867716}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 2] [:read :y 1]],
+ :process 4,
+ :time 14854422873}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 2] [:write :y 2]],
+ :process 1,
+ :time 14861653927}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 2]],
+ :process 3,
+ :time 15820476224}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 2] [:write :y 0]],
+ :process 0,
+ :time 15831602868}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 2]],
+ :process 3,
+ :time 15835919311}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 1] [:write :y 0]],
+ :process 2,
+ :time 15843760542}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 2] [:write :y 0]],
+ :process 0,
+ :time 15844564561}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 1] [:write :y 0]],
+ :process 2,
+ :time 15852931494}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 0]],
+ :process 4,
+ :time 15854832721}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil]],
+ :process 1,
+ :time 15862061311}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 0]],
+ :process 4,
+ :time 15864977267}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0]],
+ :process 1,
+ :time 15873651777}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :y nil]],
+ :process 3,
+ :time 16836753507}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:read :y nil]],
+ :process 0,
+ :time 16845131336}
+{:type :ok,
+ :f :txn,
+ :value [[:read :y 0]],
+ :process 3,
+ :time 16848808120}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 0] [:write :y 1]],
+ :process 2,
+ :time 16853527161}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0] [:read :y 0]],
+ :process 0,
+ :time 16855991260}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 0] [:write :y 1]],
+ :process 2,
+ :time 16864843148}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:write :y 0]],
+ :process 4,
+ :time 16865456162}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :y nil]],
+ :process 1,
+ :time 16874039470}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0] [:write :y 0]],
+ :process 4,
+ :time 16874074157}
+{:type :ok,
+ :f :txn,
+ :value [[:read :y 0]],
+ :process 1,
+ :time 16887295126}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 1]],
+ :process 3,
+ :time 17849377445}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil]],
+ :process 0,
+ :time 17856462252}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 1]],
+ :process 3,
+ :time 17860106600}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:write :y 2]],
+ :process 2,
+ :time 17865317371}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 1]],
+ :process 0,
+ :time 17869453863}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :y nil]],
+ :process 4,
+ :time 17874553640}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 1] [:write :y 2]],
+ :process 2,
+ :time 17878847755}
+{:type :ok,
+ :f :txn,
+ :value [[:read :y 2]],
+ :process 4,
+ :time 17885272171}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 0]],
+ :process 1,
+ :time 17887745557}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 0]],
+ :process 1,
+ :time 17897796960}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil]],
+ :process 3,
+ :time 18860815215}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:write :y 0]],
+ :process 0,
+ :time 18869902917}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0]],
+ :process 3,
+ :time 18870766723}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 2]],
+ :process 2,
+ :time 18879415372}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0] [:write :y 0]],
+ :process 0,
+ :time 18879432128}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 0] [:read :y nil]],
+ :process 4,
+ :time 18885823795}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 2]],
+ :process 2,
+ :time 18890757246}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:read :y nil]],
+ :process 1,
+ :time 18898449889}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 0] [:read :y 0]],
+ :process 4,
+ :time 18899155006}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0] [:read :y 0]],
+ :process 1,
+ :time 18906473084}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:write :y 1]],
+ :process 3,
+ :time 19871374915}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:read :y nil]],
+ :process 0,
+ :time 19879954391}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0] [:write :y 1]],
+ :process 3,
+ :time 19886052197}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:read :y nil]],
+ :process 2,
+ :time 19891191748}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0] [:read :y 1]],
+ :process 0,
+ :time 19894364370}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:read :y nil]],
+ :process 4,
+ :time 19899664743}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0] [:read :y 1]],
+ :process 2,
+ :time 19901407892}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:write :y 1]],
+ :process 1,
+ :time 19906880527}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0] [:read :y 1]],
+ :process 4,
+ :time 19907658133}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0] [:write :y 1]],
+ :process 1,
+ :time 19914813951}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :y nil]],
+ :process 3,
+ :time 20886662480}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:write :y 2]],
+ :process 0,
+ :time 20894766367}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 2] [:write :y 2]],
+ :process 2,
+ :time 20901801881}
+{:type :ok,
+ :f :txn,
+ :value [[:read :y 1]],
+ :process 3,
+ :time 20903371917}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 1] [:read :y nil]],
+ :process 4,
+ :time 20908048097}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0] [:write :y 2]],
+ :process 0,
+ :time 20914414677}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 2]],
+ :process 1,
+ :time 20915220349}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 2] [:write :y 2]],
+ :process 2,
+ :time 20925497598}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 1] [:read :y 2]],
+ :process 4,
+ :time 20934804076}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 2]],
+ :process 1,
+ :time 20944342235}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:write :y 2]],
+ :process 3,
+ :time 21904058339}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :y nil]],
+ :process 0,
+ :time 21914841025}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 2] [:write :y 2]],
+ :process 3,
+ :time 21916740257}
+{:type :ok,
+ :f :txn,
+ :value [[:read :y 2]],
+ :process 0,
+ :time 21924500532}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :y 2]],
+ :process 2,
+ :time 21925981647}
+{:type :ok,
+ :f :txn,
+ :value [[:write :y 2]],
+ :process 2,
+ :time 21933032448}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :y nil]],
+ :process 4,
+ :time 21935219775}
+{:type :ok,
+ :f :txn,
+ :value [[:read :y 2]],
+ :process 4,
+ :time 21944596245}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 1] [:read :y nil]],
+ :process 1,
+ :time 21944732400}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 1] [:read :y 2]],
+ :process 1,
+ :time 21956471036}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:write :y 1]],
+ :process 3,
+ :time 22917452749}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:write :y 2]],
+ :process 0,
+ :time 22925087979}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:write :y 1]],
+ :process 2,
+ :time 22933569523}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 1] [:write :y 1]],
+ :process 3,
+ :time 22934872399}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 1] [:read :y nil]],
+ :process 4,
+ :time 22945098092}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 1] [:write :y 2]],
+ :process 0,
+ :time 22946083523}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 1] [:write :y 1]],
+ :process 2,
+ :time 22953434680}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:write :y 1]],
+ :process 1,
+ :time 22957013906}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 1] [:read :y 1]],
+ :process 4,
+ :time 22961982379}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 1] [:write :y 1]],
+ :process 1,
+ :time 22973745487}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :y 0]],
+ :process 3,
+ :time 23935461929}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:write :y 2]],
+ :process 0,
+ :time 23946532491}
+{:type :ok,
+ :f :txn,
+ :value [[:write :y 0]],
+ :process 3,
+ :time 23950099343}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :y nil]],
+ :process 2,
+ :time 23953884895}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 1] [:write :y 2]],
+ :process 0,
+ :time 23961993115}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 0] [:read :y nil]],
+ :process 4,
+ :time 23962414048}
+{:type :ok,
+ :f :txn,
+ :value [[:read :y 2]],
+ :process 2,
+ :time 23969214069}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :y nil]],
+ :process 1,
+ :time 23974167696}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 0] [:read :y 2]],
+ :process 4,
+ :time 23978797444}
+{:type :ok,
+ :f :txn,
+ :value [[:read :y 2]],
+ :process 1,
+ :time 23986903390}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 1] [:write :y 0]],
+ :process 3,
+ :time 24951153968}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:read :y nil]],
+ :process 0,
+ :time 24962465999}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 1] [:write :y 0]],
+ :process 3,
+ :time 24962508019}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:read :y nil]],
+ :process 2,
+ :time 24969613723}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 1] [:read :y 0]],
+ :process 0,
+ :time 24972040040}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 0] [:write :y 1]],
+ :process 4,
+ :time 24979171728}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 1] [:read :y 0]],
+ :process 2,
+ :time 24980336183}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 0]],
+ :process 1,
+ :time 24987354664}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 0] [:write :y 1]],
+ :process 4,
+ :time 24988352372}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 0]],
+ :process 1,
+ :time 24995695879}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 1] [:write :y 2]],
+ :process 3,
+ :time 25963143408}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:read :y nil]],
+ :process 0,
+ :time 25972514523}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 1] [:write :y 2]],
+ :process 3,
+ :time 25977162724}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 0] [:write :y 2]],
+ :process 2,
+ :time 25980738248}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 1] [:read :y 2]],
+ :process 0,
+ :time 25983550942}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :y nil]],
+ :process 4,
+ :time 25988726809}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 0] [:write :y 2]],
+ :process 2,
+ :time 25989660691}
+{:type :ok,
+ :f :txn,
+ :value [[:read :y 2]],
+ :process 4,
+ :time 25995510991}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 0] [:write :y 1]],
+ :process 1,
+ :time 25996045980}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 0] [:write :y 1]],
+ :process 1,
+ :time 26006919550}
+{:type :info, :f :start, :process :nemesis, :time 26780143814}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 2] [:write :y 2]],
+ :process 3,
+ :time 26977675829}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil]],
+ :process 0,
+ :time 26983986904}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 2] [:write :y 2]],
+ :process 3,
+ :time 26988995988}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil]],
+ :process 2,
+ :time 26990194308}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :y 0]],
+ :process 4,
+ :time 26995909211}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 2]],
+ :process 0,
+ :time 26998990979}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil]],
+ :process 1,
+ :time 27007263861}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 2]],
+ :process 2,
+ :time 27008793164}
+{:type :ok,
+ :f :txn,
+ :value [[:write :y 0]],
+ :process 4,
+ :time 27015329216}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 2]],
+ :process 1,
+ :time 27020879267}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:read :y nil]],
+ :process 3,
+ :time 27989514052}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 2] [:read :y 0]],
+ :process 3,
+ :time 27997507188}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 0] [:read :y nil]],
+ :process 0,
+ :time 27999348192}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 0] [:read :y 0]],
+ :process 0,
+ :time 28007809066}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 1] [:read :y nil]],
+ :process 2,
+ :time 28009138609}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:read :y nil]],
+ :process 4,
+ :time 28015654660}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 1] [:read :y 0]],
+ :process 2,
+ :time 28020798510}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 2]],
+ :process 1,
+ :time 28021198039}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 1] [:read :y 0]],
+ :process 4,
+ :time 28029059928}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 2]],
+ :process 1,
+ :time 28038790499}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 2]],
+ :process 3,
+ :time 28997984472}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 0] [:read :y nil]],
+ :process 0,
+ :time 29008234991}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 2]],
+ :process 3,
+ :time 29009022191}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 0] [:read :y 0]],
+ :process 0,
+ :time 29020602548}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 1]],
+ :process 2,
+ :time 29021172700}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 1]],
+ :process 2,
+ :time 29027827584}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :y nil]],
+ :process 4,
+ :time 29029469652}
+{:type :ok,
+ :f :txn,
+ :value [[:read :y 0]],
+ :process 4,
+ :time 29037306791}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 0] [:read :y nil]],
+ :process 1,
+ :time 29039141029}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 0] [:read :y 0]],
+ :process 1,
+ :time 29049188438}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil]],
+ :process 3,
+ :time 30009454958}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :y nil]],
+ :process 0,
+ :time 30020999712}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil]],
+ :process 2,
+ :time 30028357408}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :y 0]],
+ :process 4,
+ :time 30037626488}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil]],
+ :process 1,
+ :time 30049514625}
+{:type :info,
+ :f :start,
+ :process :nemesis,
+ :time 30666242275,
+ :value
+ "Cut off {:n2 #{:n3 :n4 :n1}, :n5 #{:n3 :n4 :n1}, :n3 #{:n2 :n5}, :n4 #{:n2 :n5}, :n1 #{:n2 :n5}}"}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0]],
+ :process 3,
+ :time 35454203184}
+{:type :ok,
+ :f :txn,
+ :value [[:read :y 0]],
+ :process 0,
+ :time 35460200382}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0]],
+ :process 2,
+ :time 35467572123}
+{:type :info,
+ :f :txn,
+ :value [[:write :y 0]],
+ :process 4,
+ :time 36305036015,
+ :error :conn-lost}
+{:type :info,
+ :f :txn,
+ :value [[:read :x nil]],
+ :process 1,
+ :time 36312682961,
+ :error :conn-lost}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil] [:read :y nil]],
+ :process 3,
+ :time 36454886483}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 0] [:write :y 1]],
+ :process 0,
+ :time 36460584577}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 0] [:read :y 0]],
+ :process 3,
+ :time 36465579605}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 0]],
+ :process 2,
+ :time 36467900965}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 0] [:write :y 1]],
+ :process 0,
+ :time 36471121835}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 0]],
+ :process 2,
+ :time 36477817091}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :y 0]],
+ :process 9,
+ :time 37306177134}
+{:type :fail,
+ :f :txn,
+ :value [[:write :y 0]],
+ :process 9,
+ :time 37307379417,
+ :error :no-conns}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 2]],
+ :process 6,
+ :time 37313096537}
+{:type :fail,
+ :f :txn,
+ :value [[:write :x 2]],
+ :process 6,
+ :time 37313407105,
+ :error :no-conns}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :x 2] [:read :y nil]],
+ :process 3,
+ :time 37466112472}
+{:type :invoke,
+ :f :txn,
+ :value [[:write :y 2]],
+ :process 0,
+ :time 37471510274}
+{:type :ok,
+ :f :txn,
+ :value [[:write :x 2] [:read :y 1]],
+ :process 3,
+ :time 37476842513}
+{:type :invoke,
+ :f :txn,
+ :value [[:read :x nil]],
+ :process 2,
+ :time 37478184832}
+{:type :ok,
+ :f :txn,
+ :value [[:write :y 2]],
+ :process 0,
+ :time 37484132234}
+{:type :ok,
+ :f :txn,
+ :value [[:read :x 2]],
+ :process 2,
+ :time 37491250088}
+{:type :info, :f :stop, :process :nemesis, :time 55666920869}
+{:type :info,
+ :f :stop,
+ :process :nemesis,
+ :time 57542441018,
+ :value "fully connected"}

@@ -28,6 +28,7 @@
   using the Wrapper in place of the original Model, then call (model wrapper)
   to obtain the corresponding original Model for that state."
   (:require [clojure.core.reducers :as r]
+            [clojure.pprint :refer [pprint]]
             [clojure.set :as s]
             [knossos.op :as op]
             [knossos.model :as model])

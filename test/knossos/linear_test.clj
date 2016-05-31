@@ -2,7 +2,8 @@
   (:require [clojure.test :refer :all]
             [knossos.linear :refer :all]
             [knossos.op :refer :all]
-            [knossos.model :refer [cas-register register inconsistent]]
+            [knossos.model :refer [cas-register register multi-register
+                                   inconsistent]]
             [knossos.core-test :as ct]
             [clojure.pprint :refer [pprint]]))
 
@@ -81,3 +82,11 @@
         (println "history length" (count history))
         (prn)
         (pprint (assoc a :configs (take 2 (:configs a))))))))
+
+(deftest multi-register-test
+  (let [a (analysis (multi-register {:x 0 :y 0})
+                    (ct/read-history "data/multi-register.edn"))]
+    (is (:valid? a))
+    (is (= #{(multi-register {:x 2 :y 2})
+             (multi-register {:x 2 :y 0})}
+           (set (map :model (:configs a)))))))
