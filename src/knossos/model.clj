@@ -104,3 +104,28 @@
   "A single mutex responding to :acquire and :release messages"
   []
   (Mutex. false))
+
+(defrecord MultiRegister []
+  Model
+  (step [this op]
+    (assert (= (:f op) :txn))
+    (reduce (fn [state [f k v]]
+              ; Apply this particular op
+              (case f
+                :read  (if (or (nil? v)
+                               (= v (get state k)))
+                         state
+                         (reduced
+                           (inconsistent
+                             (str (pr-str (get state k)) "≠" (pr-str v)))))
+                :write (assoc state k v)))
+            this
+            (:value op))))
+
+(defn multi-register
+  "A register supporting read and write transactions over registers identified
+  by keys. Takes a map of initial keys to values. Supports a single :f for ops,
+  :txn, whose value is a transaction: a sequence of [f k v] tuples, where :f is
+  :read or :write, k is a key, and v is a value. Nil reads are always legal."
+  [values]
+  (map->MultiRegister values))
