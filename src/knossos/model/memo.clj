@@ -95,21 +95,6 @@
   [transitions model]
   (fixed-point (partial expand-model transitions) #{model}))
 
-(defn index
-  "Takes an ordered collection and produces a function that takes an element
-  from that collection and returns the index of its identical element in the
-  collection, or -1 if not found."
-  [coll]
-  (assert (sequential? coll))
-  (let [a (object-array coll)
-        n (alength a)]
-    (fn ^long lookup [target]
-      (loop [i 0]
-        (cond
-          (<= n i) -1                                         ; Not found
-          (identical? target (aget a i)) i                    ; Found
-          true                           (recur (inc i))))))) ; Keep going
-
 ; model:                the underlying model.
 ; transition-index:     an integer array mapping operation indices to
 ;                       transition indices.

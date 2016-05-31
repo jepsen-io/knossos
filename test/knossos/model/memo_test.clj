@@ -80,10 +80,3 @@
                  (step (history 3))
                  (step (history 3)))))
       )))
-
-(deftest index-test
-  (let [idx (index [:a :b :c])]
-    (is (= 0 (idx :a)))
-    (is (= 1 (idx :b)))
-    (is (= 2 (idx :c)))
-    (is (= -1 (idx :d)))))
