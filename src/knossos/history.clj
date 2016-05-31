@@ -113,7 +113,7 @@
     (let [i           (get index (:process op))
           _           (assert i)
           invocation  (nth history i)
-          value       (or (:value invocation) (:value op))
+          value       (:value op)
           invocation' (assoc invocation :value value)]
       [(-> history
            (assoc! i invocation')
@@ -125,11 +125,16 @@
     (let [i           (get index (:process op))
           _           (assert i)
           invocation  (nth history i)
-          value       (or (:value invocation) (:value op))
-          invocation' (assoc invocation :value value, :fails? true)]
+          _           (assert (= (:value op) (:value invocation))
+                              (str "invocation value "
+                                   (pr-str (:value invocation))
+                                   " and failure value "
+                                   (pr-str (:value op))
+                                   " don't match"))
+          invocation' (assoc invocation :value (:value op), :fails? true)]
       [(-> history
            (assoc! i invocation')
-           (conj!    (assoc op :value value)))
+           (conj!    op))
        (dissoc! index (:process op))])
 
     ; No change for info messages

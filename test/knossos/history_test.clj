@@ -20,11 +20,9 @@
 
   (testing "a failed invocation"
     (is (= (complete [(op/invoke :a :read nil)
-                      (op/fail   :a :read 2)])
-           (complete [(op/invoke :a :read 2)
                       (op/fail   :a :read nil)])
-           [(assoc (op/invoke :a :read 2) :fails? true)
-            (op/fail   :a :read 2)])))
+           [(assoc (op/invoke :a :read nil) :fails? true)
+            (op/fail   :a :read nil)])))
 
   (testing "an unbalanced set of invocations"
     (is (thrown? RuntimeException
