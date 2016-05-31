@@ -11,16 +11,19 @@
   (:import (java.io PushbackReader)))
 
 (defn read-history
-    "Reads a history file of [process type f value] tuples."
+    "Reads a history file of [process type f value] tuples, or maps."
     [f]
     (with-open [r (PushbackReader. (io/reader f))]
       (->> (repeatedly #(edn/read {:eof nil} r))
            (take-while identity)
-           (map (fn [[process type f value]]
-                  {:process process
-                   :type    type
-                   :f       f
-                   :value   value}))
+           (map (fn [op]
+                  (if (map? op)
+                    op
+                    (let [[process type f value] op]
+                      {:process process
+                       :type    type
+                       :f       f
+                       :value   value}))))
            vec)))
 
 (comment
