@@ -164,7 +164,7 @@
            (AWrapper. model
                       (rand-int Integer/MAX_VALUE)
                       transition-index
-                      (object-array (count models))))
+                      (object-array (count transitions))))
          (zipmap models))))
 
 (defn link-wrappers!
