@@ -13,6 +13,7 @@
                      [memory :as memory]
                      [model :as model]
                      [util :refer :all]
+                     [weak-cache-set :as weak-cache-set]
                      [op :as op]])
   (:import [java.util ArrayList
                       Set]
@@ -60,7 +61,7 @@
   So, we construct a concurrent hashset here and use it to prune duplicate
   searches."
   []
-  (NonBlockingHashSet.))
+  (weak-cache-set/array 1e5))
 
 (defn jit-linearizations
   "Takes an initial configuration, a collection of pending invocations, and a
@@ -74,7 +75,7 @@
      (throw (InterruptedException.)))
 
    ; Record this point
-   (if-not (.add cache config)
+   (if-not (weak-cache-set/add! cache config)
      ; We can skip this execution; it'll appear in some other config's
      ; jit-linearizations
      (do ;(info :dup config)
@@ -217,7 +218,7 @@
 (defn step
   "Advance one step through the history. Takes a configset, returns a new
   configset--or a reduced failure."
-  [history state configs op]
+  [history state cache configs op]
   (swap! state assoc :configs configs, :op op)
   (cond
     ; If we're invoking an operation, just add it to each config's pending
@@ -230,7 +231,7 @@
     ; If we're handling a completion, run each configuration through a
     ; just-in-time linearization, accumulating a new set of configs.
     (op/ok? op)
-    (let [cache    (jit-linearizations-cache)
+    (let [cache    (weak-cache-set/clear! cache)
           configs' (if (< (count configs) parallel-threshold)
                      ; Singlethreaded search
                      (let [configs' (config/set-config-set)]
@@ -323,9 +324,10 @@
                              :running? false
                              :cause    :out-of-memory)
                       (.interrupt thread)))
-        reporter (reporter! state)]
+        cache     (weak-cache-set/nbhs)
+        reporter  (reporter! state)]
     ; Perform search
-    (try (let [res (reduce (partial step history state) configs history)]
+    (try (let [res (reduce (partial step history state cache) configs history)]
            (if (and (map? res) (= false (:valid? res)))
              ; Reduced error
              res

@@ -275,6 +275,9 @@
            (neg? (aget a (inc i))))))
 
   Object
+  (toString [this]
+    (str (seq a)))
+
   (hashCode [ps]
     (Arrays/hashCode a))
 
