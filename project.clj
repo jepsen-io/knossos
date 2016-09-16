@@ -6,6 +6,7 @@
   :repositories {"sonatype-oss-public"
                  "https://oss.sonatype.org/content/groups/public/"}
   :dependencies [[org.clojure/math.combinatorics "0.1.1"]
+                 [com.taoensso/tufte "1.0.2"]
                  [potemkin "0.4.3"]
                  [interval-metrics "1.0.0"]
                  [com.boundary/high-scale-lib "1.0.6"]
