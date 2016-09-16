@@ -316,15 +316,16 @@
   (profile
    {}
    (p ::analysis
-    (let [history (-> history
-                      history/complete
-                      history/index)
+    (let [history (p ::index-history (-> history
+                                         history/complete
+                                         history/index))
           memo (memo model history)
           history (:history memo)
-          configs (-> (:model memo)
-                      (config/config history)
-                      list
-                      config/set-config-set)
+          configs (p ::configs
+                   (-> (:model memo)
+                       (config/config history)
+                       list
+                       config/set-config-set))
           state (atom {:running?  true
                        :configs   configs
                        :op        nil})
