@@ -342,7 +342,9 @@
           cache     (weak-cache-set/nbhs)
           reporter  (reporter! state)]
       ; Perform search
+      (info "Starting search...")
       (try (let [res (p ::step-reduce (reduce (partial step history state cache) configs history))]
+             (info "Search complete.")
              (if (and (map? res) (= false (:valid? res)))
                ; Reduced error
                res
