@@ -11,9 +11,7 @@ Named after the ruins where the Linear B script was discovered. You know,
 because we're testing if the history "be linear". YES IT'S A HISTORY PUN WORK
 WITH ME HERE OKAY?
 
-See `knossos.core` for the linearizability checker, and `knossos.redis` for an
-model that can generate histories verifiable with Knossos. `knossos.redis-test`
-synthesizes the two, testing the redis model for linearizability failures.
+See `knossos.linear` for the linearizability checker, and `knossos.core` for an alternate approach.
 
 Read the [blog
 post](http://aphyr.com/posts/309-knossos-redis-and-linearizability) for a full apology for releasing this monstrosity.
