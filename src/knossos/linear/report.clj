@@ -507,7 +507,7 @@ function dbar(id) {
                         (svg/style :fill (transition-color bar)
                                    :font-size (vscale (* process-height 0.5))
                                    :font-family font
-                                   :alignment-baseline :bottom
+                                   :alignment-baseline :baseline
                                    :text-anchor :middle)
                         outline-text))
                   (xml/add-attrs :id (str "bar-" id)
@@ -567,15 +567,15 @@ function dbar(id) {
                        (reduce max 0) nonlinear-hscale)
                   hscale-)]
     (svg/group
-      (legend-text "Process" -0.1 y :alignment-baseline :top :text-anchor :end)
+      (legend-text "Process" -0.1 y :alignment-baseline :baseline :text-anchor :end)
       (legend-text "Time ─────▶"
                    0 y
-                   :alignment-baseline :top
+                   :alignment-baseline :baseline
                    :text-anchor :start)
 
       (legend-text "Legal"
                    (- xmax 2.2) y
-                   :alignment-baseline :top
+                   :alignment-baseline :baseline
                    :text-anchor :end)
       (svg/line (hscale (- xmax 2.15))
                 (vscale (+ y (* legend-height -0.3)))
@@ -586,7 +586,7 @@ function dbar(id) {
 
       (legend-text "Illegal"
                    (- xmax 1.65) y
-                   :alignment-baseline :top
+                   :alignment-baseline :baseline
                    :text-anchor :end)
       (svg/line (hscale (- xmax 1.6))
                 (vscale (+ y (* legend-height -0.3)))
@@ -597,7 +597,7 @@ function dbar(id) {
 
       (legend-text "Crashed Op"
                    (- xmax 0.85) y
-                   :alignment-baseline :top
+                   :alignment-baseline :baseline
                    :text-anchor :end)
       (svg/rect (hscale (- xmax 0.8))
                 (vscale (- y legend-height -0.03))
@@ -609,7 +609,7 @@ function dbar(id) {
 
       (legend-text "OK Op"
                    (- xmax 0.21) y
-                   :alignment-baseline :top
+                   :alignment-baseline :baseline
                    :text-anchor :end)
       (svg/rect (hscale (- xmax 0.16))
                 (vscale (- y legend-height -0.03))
