@@ -111,7 +111,9 @@
     ; A completion; fill in the completed value.
     :ok
     (let [i           (get index (:process op))
-          _           (assert i)
+          _           (assert i (str "Process completed an operation without a "
+                                     "prior invocation: "
+                                     (pr-str op)))
           invocation  (nth history i)
           value       (:value op)
           invocation' (assoc invocation :value value)]
@@ -123,7 +125,9 @@
     ; A failure; fill in either value.
     :fail
     (let [i           (get index (:process op))
-          _           (assert i)
+          _           (assert i (str "Process failed an operation without a "
+                                     "prior invocation: "
+                                     (pr-str op)))
           invocation  (nth history i)
           _           (assert (= (:value op) (:value invocation))
                               (str "invocation value "
