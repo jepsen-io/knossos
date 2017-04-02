@@ -31,7 +31,8 @@
             [clojure.pprint :refer [pprint]]
             [clojure.set :as s]
             [knossos.op :as op]
-            [knossos.model :as model])
+            [knossos.model :as model]
+            [taoensso.tufte :as tufte :refer (p)])
   (:import [knossos.model Model]))
 
 (defprotocol Wrapper
@@ -191,6 +192,7 @@
   that (model wrapper) will return the equivalent model at any point in the
   search."
   [model history]
-  (let [history (canonical-history history)]
-    {:history history
-     :model (wrapper model history)}))
+  (p ::memo
+   (let [history (canonical-history history)]
+     {:history history
+      :model (wrapper model history)})))
