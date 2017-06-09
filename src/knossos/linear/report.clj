@@ -47,9 +47,9 @@
   (vscale 0.05))
 
 (def type->color
-  {:ok   "#B3F3B5"
-   nil   "#F2F3B3"
-   :fail "#F3B3B3"})
+  {:ok   "#6DB6FE"
+   nil   "#FFAA26"
+   :fail "#FEB5DA"})
 
 (defn op-color
   "What color should an op be?"
@@ -63,7 +63,7 @@
   "What color should a transition be?"
   [transition]
   (if (model/inconsistent? (:model transition))
-    "#C51919"
+    "#FF1E90"
     "#000000"))
 
 (def faded "opacity" "0.15")
