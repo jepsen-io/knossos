@@ -1,11 +1,11 @@
-(ns knossos.linear.stress-test
+(ns knossos.wgl.stress-test
   (:require [clojure.test :refer :all]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.pprint :refer [pprint]]
             [clojure.tools.logging :refer :all]
             [knossos.model :as model]
-            [knossos.linear :as linear]
+            [knossos.wgl :as wgl]
             [knossos.memory :as memory])
   (:import (java.io PushbackReader)))
 
@@ -30,4 +30,4 @@
 
 (deftest stress-test
   (doseq [[k history] (histories)]
-    (info k (:valid? (linear/analysis (model/cas-register 0) history)))))
+    (info k (:valid? (wgl/analysis (model/cas-register 0) history)))))

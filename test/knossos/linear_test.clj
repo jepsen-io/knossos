@@ -72,7 +72,7 @@
            (:final-paths a)))))
 
 (deftest volatile-linearizable-test
-  (dotimes [i 1]
+  (dotimes [i 10]
     (let [history (ct/volatile-history 100 50 1/1000)
           _       (prn (count history))
           a       (analysis (register 0) history)]

@@ -227,7 +227,9 @@
                          (let [value (get-mutable x)]
                            (when (< (rand) crash-factor) (assert false))
                            (swap! history conj (op/ok process :read value)))))))
-                 (catch AssertionError _ :crashed)))
+                 (catch AssertionError _
+                   (swap! history conj (op/info process :crash nil))
+                   :crashed)))
     @history))
 
 ; Do a bunch of reads and writes on a volatile mutable variable and test if the

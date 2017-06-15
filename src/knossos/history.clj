@@ -58,6 +58,8 @@
   (->> history
        pairs
        (reduce (fn [index [invoke complete]]
+                 ; We need these to be unique! Otherwise the index we build
+                 ; won't be bijective
                  (assert (:index invoke))
                  (assoc! (if complete
                            (assoc! index complete invoke)
@@ -176,4 +178,28 @@
   [history]
   (->> history
        (mapv (fn [i op] (assoc op :index i)) (range))
+       vec))
+
+(defn indexed?
+  "Is the given history indexed?"
+  [history]
+  (or (empty? history)
+      (integer? (:index (first history)))))
+
+(defn without-failures
+  "Takes a completed history, and returns a copy of the given history without
+  any failed operations--either invocations or completions."
+  [history]
+  (->> history
+       (remove (fn [op]
+                 (or (op/fail? op)
+                     (:fails? op))))
+       vec))
+
+(defn without-infos
+  "Takes a completed history, and returns a copy of that history without any
+  :info operations."
+  [history]
+  (->> history
+       (remove op/info?)
        vec))
