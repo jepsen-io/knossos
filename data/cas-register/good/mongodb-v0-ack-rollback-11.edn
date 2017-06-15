@@ -1,0 +1,6 @@
+[{:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :write, :value 1}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :write, :value 1}]

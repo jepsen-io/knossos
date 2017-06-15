@@ -85,8 +85,11 @@
 
 (deftest multi-register-test
   (let [a (analysis (multi-register {:x 0 :y 0})
-                    (ct/read-history "data/multi-register.edn"))]
+                    (ct/read-history "data/multi-register/good/multi-register.edn"))]
     (is (:valid? a))
     (is (= #{(multi-register {:x 2 :y 2})
              (multi-register {:x 2 :y 0})}
            (set (map :model (:configs a)))))))
+
+(deftest example-test
+  (ct/test-examples analysis))

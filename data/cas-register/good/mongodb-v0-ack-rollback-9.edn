@@ -1,0 +1,14 @@
+[{:process 155, :type :invoke, :f :write, :value 0}
+ {:process 3, :type :invoke, :f :read, :value nil}
+ {:process 3, :type :fail, :f :read, :value nil}
+ {:process 4, :type :invoke, :f :read, :value nil}
+ {:process 4, :type :fail, :f :read, :value nil}
+ {:process 0, :type :invoke, :f :read, :value nil}
+ {:process 0, :type :fail, :f :read, :value nil}
+ {:process 2, :type :invoke, :f :read, :value nil}
+ {:process 2, :type :fail, :f :read, :value nil}
+ {:process 8, :type :invoke, :f :cas, :value [4 4]}
+ {:process 155, :type :fail, :f :write, :value 0}
+ {:process 421, :type :invoke, :f :read, :value nil}
+ {:process 421, :type :fail, :f :read, :value nil}
+ {:process 8, :type :fail, :f :cas, :value [4 4]}]

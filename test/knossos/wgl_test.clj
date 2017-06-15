@@ -26,13 +26,11 @@
                      (op/ok     0 :read 0)])]
     (is (:valid? a))))
 
-(deftest cas-failure-test
-  (let [a (analysis (model/cas-register 0)
-                    (ct/read-history "data/cas-failure.edn"))]
-    (is (not (:valid? a)))))
-
 (deftest volatile-linearizable-test
   (dotimes [i 10]
     (let [history (ct/volatile-history 100 50 1/1000)
           a       (analysis (model/register 0) history)]
       (is (:valid? a)))))
+
+(deftest examples-test
+  (ct/test-examples analysis))

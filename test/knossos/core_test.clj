@@ -26,6 +26,19 @@
                        :value   value}))))
            vec)))
 
+(defn read-history-2
+  "Reads an EDN history file containing a single collection of operation maps."
+  [f]
+  (with-open [r (PushbackReader. (io/reader f))]
+    (edn/read r)))
+
+(defn write-history!
+  "Write a history to a file"
+  [file history]
+  (with-open [w (io/writer file)]
+    (binding [*out* w]
+      (pprint history))))
+
 (comment
   (deftest keep-singular-test
     (testing "Empty"
@@ -253,27 +266,6 @@
     (is (= (take-while identity (repeatedly #(prioqueue/poll! q 1)))
            [w1 w1 w2 w2]))))
 
-(deftest history-a
-  ; A CAS register history that exposed a particular knossos bug
-  (let [h [{:process 4, :type :invoke, :f :write, :value 2}
-           {:process 4, :type :ok, :f :write, :value 2}
-           {:process 6, :type :invoke, :f :read, :value nil}
-           {:process 1, :type :invoke, :f :write, :value 4}
-           {:process 1, :type :ok, :f :write, :value 4}
-           {:process 14, :type :invoke, :f :read, :value 4}
-           {:process 14, :type :ok, :f :read, :value 4}
-           {:process 9, :type :invoke, :f :write, :value 0}
-           {:process 9, :type :ok, :f :write, :value 0}
-           {:process 19, :type :invoke, :f :read, :value 0}
-           {:process 19, :type :ok, :f :read, :value 0}]
-        a (analysis (register 0) h)]
-    (is (:valid? a))
-    (when-not (:valid? a)
-      (pprint h)
-      (println "history length" (count h))
-      (prn)
-      (pprint (update-in a [:worlds] (partial take 10))))))
-
 (deftest volatile-linearizable-test
   (dotimes [i 1]
     (let [history (volatile-history 100 1000 1/1000)
@@ -302,3 +294,29 @@
     (is (= (set (:inconsistent-transitions a))
            #{[(register 0) "0≠2"]
              [(register 1) "1≠2"]}))))
+
+(defn analyze-file
+  "Given a model m and a function that takes a model and a history and returns
+  an analysis, runs that against a file. Confirms that the valid? field is
+  equal to expected."
+  [analyzer model expected file]
+  (when (re-find #"\.edn$" (.getName file))
+    (testing (.getName file)
+      (let [h (read-history-2 file)
+            a (analyzer model h)]
+        (is (= expected (:valid? a)))
+        a))))
+
+(defn test-examples
+  "Given a function that takes a model and a history and returns an analysis,
+  runs that against known histories from data/bad and data/good, ensuring they
+  produce correct analyses."
+  [analyzer]
+  (doseq [[model-name model]
+          {:cas-register   (model/cas-register 0)
+           :multi-register (model/multi-register {:x 0 :y 0})}]
+    (doseq [valid? [true false]]
+      (doseq [f (file-seq (io/file (str "data/" (name model-name)
+                                       "/" (if valid? "good" "bad"))))]
+        (println (.getCanonicalPath f))
+        (analyze-file analyzer model valid? f)))))

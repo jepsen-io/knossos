@@ -1,0 +1,12 @@
+; This used to expose a bug in Knossos
+[{:process 4, :type :invoke, :f :write, :value 2}
+ {:process 4, :type :ok, :f :write, :value 2}
+ {:process 6, :type :invoke, :f :read, :value nil}
+ {:process 1, :type :invoke, :f :write, :value 4}
+ {:process 1, :type :ok, :f :write, :value 4}
+ {:process 14, :type :invoke, :f :read, :value 4}
+ {:process 14, :type :ok, :f :read, :value 4}
+ {:process 9, :type :invoke, :f :write, :value 0}
+ {:process 9, :type :ok, :f :write, :value 0}
+ {:process 19, :type :invoke, :f :read, :value 0}
+ {:process 19, :type :ok, :f :read, :value 0}]

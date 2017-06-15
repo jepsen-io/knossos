@@ -16,8 +16,8 @@
 
 (defn histories
   "A map of object ids to histories on that object"
-  []
-  (with-open [r (PushbackReader. (io/reader "data/memstress3.edn"))]
+  [file]
+  (with-open [r (PushbackReader. (io/reader file))]
     (->> (repeatedly #(edn/read {:eof nil} r))
          (take-while identity)
          (reduce (fn [m [process type f [k value]]]
@@ -28,6 +28,16 @@
                                             :value   value}))))
                  (sorted-map)))))
 
+(defn write-history!
+  "Write a history to a file"
+  [file history]
+  (with-open [w (io/writer file)]
+    (binding [*out* w]
+      (pprint history))))
+
 (deftest stress-test
-  (doseq [[k history] (histories)]
-    (info k (:valid? (linear/analysis (model/cas-register 0) history)))))
+  (doseq [[k history] (histories "data/memstress4.edn")]
+    (if (:valid? (linear/analysis (model/cas-register 0) history))
+      (write-history! (str "data/good/memstress4-" k ".edn") history)
+      (write-history! (str "data/bad/memstress4-" k ".edn") history))))
+

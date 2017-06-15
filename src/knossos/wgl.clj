@@ -46,7 +46,7 @@
                         history/index
                         history/without-failures
                         with-entry-ids)
-        n           (max-entry-id history)
+        n           (or (max-entry-id history) 0)
         head-entry  (dllh/dll-history history)
         linearized  (BitSet. n)
         cache       #{}

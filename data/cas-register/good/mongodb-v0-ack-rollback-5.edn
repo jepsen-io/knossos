@@ -1,0 +1,1422 @@
+[{:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :cas, :value [3 4]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 75, :type :invoke, :f :cas, :value [1 0]}
+ {:process 76, :type :invoke, :f :cas, :value [3 1]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :cas, :value [1 2]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :cas, :value [3 4]}
+ {:process 101, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :write, :value 2}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 75, :type :fail, :f :cas, :value [1 0]}
+ {:process 76, :type :fail, :f :cas, :value [3 1]}
+ {:process 19, :type :fail, :f :cas, :value [1 2]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 75, :type :invoke, :f :cas, :value [0 0]}
+ {:process 101, :type :info, :f :read, :value nil}
+ {:process 17, :type :fail, :f :write, :value 2}
+ {:process 18, :type :invoke, :f :write, :value 1}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :write, :value 3}
+ {:process 131, :type :invoke, :f :read, :value nil}
+ {:process 75, :type :fail, :f :cas, :value [0 0]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 75, :type :invoke, :f :cas, :value [2 3]}
+ {:process 17, :type :invoke, :f :write, :value 1}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :write, :value 1}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :write, :value 3}
+ {:process 76, :type :invoke, :f :cas, :value [0 1]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 131, :type :info, :f :read, :value nil}
+ {:process 75, :type :fail, :f :cas, :value [2 3]}
+ {:process 17, :type :fail, :f :write, :value 1}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 75, :type :invoke, :f :cas, :value [2 3]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :cas, :value [1 1]}
+ {:process 76, :type :fail, :f :cas, :value [0 1]}
+ {:process 19, :type :invoke, :f :write, :value 2}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 161, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 75, :type :fail, :f :cas, :value [2 3]}
+ {:process 18, :type :fail, :f :cas, :value [1 1]}
+ {:process 19, :type :fail, :f :write, :value 2}
+ {:process 17, :type :invoke, :f :cas, :value [4 0]}
+ {:process 76, :type :invoke, :f :cas, :value [2 1]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :write, :value 1}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 75, :type :invoke, :f :cas, :value [0 4]}
+ {:process 161, :type :info, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 17, :type :fail, :f :cas, :value [4 0]}
+ {:process 76, :type :fail, :f :cas, :value [2 1]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :cas, :value [3 0]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :write, :value 1}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 75, :type :fail, :f :cas, :value [0 4]}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :cas, :value [3 0]}
+ {:process 75, :type :invoke, :f :write, :value 4}
+ {:process 18, :type :invoke, :f :cas, :value [0 0]}
+ {:process 17, :type :invoke, :f :cas, :value [3 1]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 76, :type :invoke, :f :write, :value 0}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 75, :type :fail, :f :write, :value 4}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :cas, :value [0 0]}
+ {:process 19, :type :invoke, :f :write, :value 2}
+ {:process 17, :type :fail, :f :cas, :value [3 1]}
+ {:process 17, :type :invoke, :f :cas, :value [2 1]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 76, :type :fail, :f :write, :value 0}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 75, :type :invoke, :f :cas, :value [2 0]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :write, :value 2}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 17, :type :fail, :f :cas, :value [2 1]}
+ {:process 17, :type :invoke, :f :write, :value 2}
+ {:process 18, :type :invoke, :f :cas, :value [1 1]}
+ {:process 19, :type :invoke, :f :cas, :value [0 1]}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 75, :type :fail, :f :cas, :value [2 0]}
+ {:process 76, :type :invoke, :f :write, :value 1}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 17, :type :fail, :f :write, :value 2}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 75, :type :invoke, :f :write, :value 2}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :cas, :value [1 1]}
+ {:process 19, :type :fail, :f :cas, :value [0 1]}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 76, :type :fail, :f :write, :value 1}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :write, :value 2}
+ {:process 19, :type :invoke, :f :write, :value 2}
+ {:process 75, :type :fail, :f :write, :value 2}
+ {:process 75, :type :invoke, :f :write, :value 1}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :cas, :value [1 3]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :write, :value 2}
+ {:process 19, :type :fail, :f :write, :value 2}
+ {:process 75, :type :fail, :f :write, :value 1}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 76, :type :invoke, :f :cas, :value [1 4]}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 17, :type :fail, :f :cas, :value [1 3]}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :cas, :value [4 2]}
+ {:process 17, :type :invoke, :f :write, :value 3}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 76, :type :fail, :f :cas, :value [1 4]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :cas, :value [2 2]}
+ {:process 18, :type :fail, :f :cas, :value [4 2]}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 17, :type :fail, :f :write, :value 3}
+ {:process 75, :type :invoke, :f :write, :value 1}
+ {:process 18, :type :invoke, :f :cas, :value [2 3]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :cas, :value [2 2]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :cas, :value [1 4]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 75, :type :fail, :f :write, :value 1}
+ {:process 76, :type :invoke, :f :cas, :value [0 3]}
+ {:process 18, :type :fail, :f :cas, :value [2 3]}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :cas, :value [0 0]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 75, :type :invoke, :f :write, :value 1}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :cas, :value [1 4]}
+ {:process 76, :type :fail, :f :cas, :value [0 3]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 17, :type :fail, :f :cas, :value [0 0]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :cas, :value [1 1]}
+ {:process 19, :type :invoke, :f :cas, :value [2 0]}
+ {:process 75, :type :fail, :f :write, :value 1}
+ {:process 17, :type :invoke, :f :write, :value 4}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :cas, :value [1 1]}
+ {:process 19, :type :fail, :f :cas, :value [2 0]}
+ {:process 75, :type :invoke, :f :write, :value 4}
+ {:process 17, :type :fail, :f :write, :value 4}
+ {:process 76, :type :invoke, :f :cas, :value [4 0]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :cas, :value [4 0]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 75, :type :fail, :f :write, :value 4}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :cas, :value [3 0]}
+ {:process 76, :type :fail, :f :cas, :value [4 0]}
+ {:process 17, :type :fail, :f :cas, :value [4 0]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :write, :value 2}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 76, :type :invoke, :f :cas, :value [1 3]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :cas, :value [3 0]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :write, :value 2}
+ {:process 75, :type :invoke, :f :cas, :value [0 3]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 76, :type :fail, :f :cas, :value [1 3]}
+ {:process 17, :type :invoke, :f :write, :value 3}
+ {:process 76, :type :invoke, :f :write, :value 4}
+ {:process 18, :type :invoke, :f :write, :value 3}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :cas, :value [0 0]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 75, :type :fail, :f :cas, :value [0 3]}
+ {:process 75, :type :invoke, :f :cas, :value [0 3]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 17, :type :fail, :f :write, :value 3}
+ {:process 76, :type :fail, :f :write, :value 4}
+ {:process 18, :type :fail, :f :write, :value 3}
+ {:process 17, :type :invoke, :f :cas, :value [2 4]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :cas, :value [0 0]}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 76, :type :invoke, :f :cas, :value [2 0]}
+ {:process 75, :type :fail, :f :cas, :value [0 3]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 17, :type :fail, :f :cas, :value [2 4]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :cas, :value [0 4]}
+ {:process 75, :type :invoke, :f :write, :value 1}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 76, :type :fail, :f :cas, :value [2 0]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :cas, :value [4 4]}
+ {:process 19, :type :invoke, :f :cas, :value [4 4]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :cas, :value [0 4]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 17, :type :fail, :f :cas, :value [4 4]}
+ {:process 19, :type :fail, :f :cas, :value [4 4]}
+ {:process 18, :type :invoke, :f :write, :value 4}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 76, :type :invoke, :f :cas, :value [3 4]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :cas, :value [3 1]}
+ {:process 18, :type :fail, :f :write, :value 4}
+ {:process 10, :type :ok, :f :read, :value 1}
+ {:process 75, :type :ok, :f :write, :value 1}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 76, :type :fail, :f :cas, :value [3 4]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 17, :type :fail, :f :cas, :value [3 1]}
+ {:process 19, :type :invoke, :f :cas, :value [1 3]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :write, :value 3}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 75, :type :invoke, :f :write, :value 1}
+ {:process 75, :type :ok, :f :write, :value 1}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :ok, :f :read, :value 1}
+ {:process 17, :type :invoke, :f :cas, :value [4 4]}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :cas, :value [1 3]}
+ {:process 76, :type :invoke, :f :cas, :value [3 0]}
+ {:process 18, :type :fail, :f :write, :value 3}
+ {:process 17, :type :fail, :f :cas, :value [4 4]}
+ {:process 19, :type :invoke, :f :cas, :value [1 2]}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :cas, :value [1 1]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 76, :type :fail, :f :cas, :value [3 0]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 75, :type :invoke, :f :cas, :value [0 0]}
+ {:process 75, :type :fail, :f :cas, :value [0 0]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :ok, :f :read, :value 1}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :ok, :f :read, :value 1}
+ {:process 19, :type :fail, :f :cas, :value [1 2]}
+ {:process 76, :type :invoke, :f :write, :value 4}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :cas, :value [1 1]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :cas, :value [0 0]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :write, :value 3}
+ {:process 76, :type :fail, :f :write, :value 4}
+ {:process 76, :type :invoke, :f :write, :value 3}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 75, :type :invoke, :f :cas, :value [3 0]}
+ {:process 75, :type :fail, :f :cas, :value [3 0]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 17, :type :fail, :f :cas, :value [0 0]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :ok, :f :read, :value 1}
+ {:process 18, :type :invoke, :f :write, :value 4}
+ {:process 19, :type :fail, :f :write, :value 3}
+ {:process 76, :type :fail, :f :write, :value 3}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 75, :type :invoke, :f :cas, :value [4 4]}
+ {:process 75, :type :fail, :f :cas, :value [4 4]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :write, :value 3}
+ {:process 18, :type :fail, :f :write, :value 4}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 76, :type :invoke, :f :cas, :value [2 1]}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :ok, :f :read, :value 1}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :write, :value 0}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 17, :type :fail, :f :write, :value 3}
+ {:process 76, :type :fail, :f :cas, :value [2 1]}
+ {:process 75, :type :invoke, :f :write, :value 3}
+ {:process 75, :type :ok, :f :write, :value 3}
+ {:process 18, :type :invoke, :f :cas, :value [4 4]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :write, :value 0}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :ok, :f :read, :value 3}
+ {:process 75, :type :invoke, :f :cas, :value [2 1]}
+ {:process 75, :type :fail, :f :cas, :value [2 1]}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :cas, :value [3 2]}
+ {:process 76, :type :invoke, :f :cas, :value [4 2]}
+ {:process 18, :type :fail, :f :cas, :value [4 4]}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :write, :value 4}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 75, :type :invoke, :f :write, :value 0}
+ {:process 75, :type :ok, :f :write, :value 0}
+ {:process 19, :type :fail, :f :cas, :value [3 2]}
+ {:process 76, :type :fail, :f :cas, :value [4 2]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 75, :type :invoke, :f :cas, :value [4 0]}
+ {:process 17, :type :fail, :f :write, :value 4}
+ {:process 18, :type :invoke, :f :write, :value 1}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 76, :type :invoke, :f :cas, :value [4 4]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :cas, :value [4 2]}
+ {:process 18, :type :fail, :f :write, :value 1}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :write, :value 1}
+ {:process 18, :type :invoke, :f :cas, :value [3 4]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 76, :type :fail, :f :cas, :value [4 4]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :cas, :value [4 2]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 17, :type :fail, :f :write, :value 1}
+ {:process 18, :type :fail, :f :cas, :value [3 4]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 76, :type :invoke, :f :cas, :value [3 2]}
+ {:process 17, :type :invoke, :f :cas, :value [2 0]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :cas, :value [0 4]}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :write, :value 4}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 76, :type :fail, :f :cas, :value [3 2]}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 17, :type :fail, :f :cas, :value [2 0]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :cas, :value [0 4]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :write, :value 4}
+ {:process 76, :type :invoke, :f :cas, :value [2 3]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :cas, :value [3 1]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :cas, :value [4 2]}
+ {:process 76, :type :fail, :f :cas, :value [2 3]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :write, :value 3}
+ {:process 17, :type :fail, :f :cas, :value [3 1]}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :cas, :value [4 2]}
+ {:process 76, :type :invoke, :f :cas, :value [2 4]}
+ {:process 18, :type :invoke, :f :cas, :value [3 0]}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :write, :value 3}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 76, :type :fail, :f :cas, :value [2 4]}
+ {:process 18, :type :fail, :f :cas, :value [3 0]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :cas, :value [0 4]}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :write, :value 2}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 76, :type :invoke, :f :cas, :value [2 3]}
+ {:process 17, :type :fail, :f :cas, :value [0 4]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :write, :value 2}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :cas, :value [2 3]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :cas, :value [3 0]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 76, :type :fail, :f :cas, :value [2 3]}
+ {:process 17, :type :invoke, :f :cas, :value [3 0]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 75, :type :info, :f :cas, :value [4 0]}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :cas, :value [2 3]}
+ {:process 19, :type :fail, :f :cas, :value [3 0]}
+ {:process 105, :type :invoke, :f :cas, :value [2 4]}
+ {:process 19, :type :invoke, :f :cas, :value [4 1]}
+ {:process 17, :type :fail, :f :cas, :value [3 0]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :cas, :value [2 4]}
+ {:process 76, :type :invoke, :f :cas, :value [3 0]}
+ {:process 105, :type :fail, :f :cas, :value [2 4]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :cas, :value [4 1]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :write, :value 4}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 17, :type :fail, :f :cas, :value [2 4]}
+ {:process 105, :type :invoke, :f :write, :value 1}
+ {:process 76, :type :fail, :f :cas, :value [3 0]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :cas, :value [2 3]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :cas, :value [0 1]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :write, :value 4}
+ {:process 76, :type :invoke, :f :cas, :value [0 1]}
+ {:process 105, :type :fail, :f :write, :value 1}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :cas, :value [2 3]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 17, :type :fail, :f :cas, :value [0 1]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :write, :value 2}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 76, :type :fail, :f :cas, :value [0 1]}
+ {:process 19, :type :invoke, :f :cas, :value [4 0]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :write, :value 2}
+ {:process 76, :type :invoke, :f :cas, :value [4 4]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :cas, :value [1 3]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 105, :type :invoke, :f :cas, :value [1 2]}
+ {:process 19, :type :fail, :f :cas, :value [4 0]}
+ {:process 17, :type :invoke, :f :write, :value 4}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 76, :type :fail, :f :cas, :value [4 4]}
+ {:process 18, :type :fail, :f :cas, :value [1 3]}
+ {:process 105, :type :fail, :f :cas, :value [1 2]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 17, :type :fail, :f :write, :value 4}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :cas, :value [1 4]}
+ {:process 105, :type :invoke, :f :cas, :value [3 0]}
+ {:process 76, :type :invoke, :f :write, :value 1}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :cas, :value [2 2]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :cas, :value [1 4]}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 105, :type :fail, :f :cas, :value [3 0]}
+ {:process 76, :type :fail, :f :write, :value 1}
+ {:process 17, :type :invoke, :f :write, :value 1}
+ {:process 19, :type :invoke, :f :cas, :value [4 3]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :cas, :value [2 2]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :cas, :value [4 4]}
+ {:process 17, :type :fail, :f :write, :value 1}
+ {:process 19, :type :fail, :f :cas, :value [4 3]}
+ {:process 19, :type :invoke, :f :write, :value 4}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 76, :type :invoke, :f :cas, :value [1 4]}
+ {:process 105, :type :invoke, :f :write, :value 3}
+ {:process 18, :type :fail, :f :cas, :value [4 4]}
+ {:process 19, :type :fail, :f :write, :value 4}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :write, :value 1}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 105, :type :fail, :f :write, :value 3}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :cas, :value [4 1]}
+ {:process 17, :type :fail, :f :write, :value 1}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :cas, :value [1 2]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :cas, :value [4 1]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :cas, :value [3 4]}
+ {:process 105, :type :invoke, :f :cas, :value [4 4]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :cas, :value [0 1]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :cas, :value [1 2]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :write, :value 3}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 17, :type :fail, :f :cas, :value [3 4]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 105, :type :fail, :f :cas, :value [4 4]}
+ {:process 105, :type :invoke, :f :write, :value 3}
+ {:process 18, :type :fail, :f :cas, :value [0 1]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :write, :value 3}
+ {:process 18, :type :invoke, :f :write, :value 2}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 105, :type :fail, :f :write, :value 3}
+ {:process 17, :type :invoke, :f :cas, :value [2 3]}
+ {:process 18, :type :fail, :f :write, :value 2}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :cas, :value [1 1]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 17, :type :fail, :f :cas, :value [2 3]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 105, :type :invoke, :f :cas, :value [2 4]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :cas, :value [4 3]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :cas, :value [2 1]}
+ {:process 19, :type :fail, :f :cas, :value [1 1]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 105, :type :fail, :f :cas, :value [2 4]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :cas, :value [3 1]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 17, :type :fail, :f :cas, :value [4 3]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :cas, :value [2 1]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :cas, :value [3 1]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 105, :type :invoke, :f :cas, :value [2 4]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :cas, :value [4 0]}
+ {:process 18, :type :invoke, :f :write, :value 4}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :cas, :value [0 4]}
+ {:process 105, :type :fail, :f :cas, :value [2 4]}
+ {:process 17, :type :fail, :f :cas, :value [4 0]}
+ {:process 18, :type :fail, :f :write, :value 4}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :cas, :value [0 4]}
+ {:process 76, :type :info, :f :cas, :value [1 4]}
+ {:process 191, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :cas, :value [0 4]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 191, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 17, :type :fail, :f :cas, :value [0 4]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 106, :type :invoke, :f :cas, :value [2 2]}
+ {:process 105, :type :invoke, :f :cas, :value [1 3]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 191, :type :info, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :cas, :value [0 3]}
+ {:process 19, :type :invoke, :f :cas, :value [3 1]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 106, :type :fail, :f :cas, :value [2 2]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 105, :type :fail, :f :cas, :value [1 3]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :cas, :value [0 3]}
+ {:process 19, :type :fail, :f :cas, :value [3 1]}
+ {:process 17, :type :invoke, :f :write, :value 1}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 105, :type :invoke, :f :write, :value 1}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :cas, :value [4 2]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 221, :type :invoke, :f :read, :value nil}
+ {:process 17, :type :fail, :f :write, :value 1}
+ {:process 105, :type :fail, :f :write, :value 1}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 106, :type :invoke, :f :cas, :value [0 3]}
+ {:process 19, :type :fail, :f :cas, :value [4 2]}
+ {:process 221, :type :info, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :write, :value 1}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 105, :type :invoke, :f :cas, :value [0 4]}
+ {:process 251, :type :invoke, :f :read, :value nil}
+ {:process 106, :type :fail, :f :cas, :value [0 3]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :cas, :value [0 1]}
+ {:process 18, :type :fail, :f :write, :value 1}
+ {:process 17, :type :invoke, :f :cas, :value [1 0]}
+ {:process 106, :type :invoke, :f :write, :value 2}
+ {:process 105, :type :fail, :f :cas, :value [0 4]}
+ {:process 251, :type :info, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :cas, :value [0 1]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 281, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 17, :type :fail, :f :cas, :value [1 0]}
+ {:process 106, :type :fail, :f :write, :value 2}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 281, :type :info, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :cas, :value [4 3]}
+ {:process 105, :type :invoke, :f :cas, :value [1 1]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :cas, :value [3 3]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 106, :type :invoke, :f :cas, :value [4 0]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :cas, :value [1 1]}
+ {:process 18, :type :fail, :f :cas, :value [4 3]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 105, :type :fail, :f :cas, :value [1 1]}
+ {:process 311, :type :invoke, :f :read, :value nil}
+ {:process 311, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 105, :type :invoke, :f :cas, :value [0 4]}
+ {:process 17, :type :fail, :f :cas, :value [3 3]}
+ {:process 311, :type :invoke, :f :read, :value nil}
+ {:process 311, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 106, :type :fail, :f :cas, :value [4 0]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :write, :value 0}
+ {:process 19, :type :fail, :f :cas, :value [1 1]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 106, :type :invoke, :f :write, :value 2}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :cas, :value [2 1]}
+ {:process 105, :type :fail, :f :cas, :value [0 4]}
+ {:process 105, :type :invoke, :f :write, :value 3}
+ {:process 18, :type :fail, :f :write, :value 0}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 106, :type :fail, :f :write, :value 2}
+ {:process 311, :type :invoke, :f :read, :value nil}
+ {:process 311, :type :fail, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :cas, :value [0 1]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :cas, :value [2 1]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 105, :type :fail, :f :write, :value 3}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 106, :type :invoke, :f :cas, :value [4 0]}
+ {:process 17, :type :fail, :f :cas, :value [0 1]}
+ {:process 18, :type :invoke, :f :write, :value 1}
+ {:process 105, :type :invoke, :f :cas, :value [2 2]}
+ {:process 311, :type :invoke, :f :read, :value nil}
+ {:process 311, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 106, :type :fail, :f :cas, :value [4 0]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :cas, :value [4 2]}
+ {:process 18, :type :fail, :f :write, :value 1}
+ {:process 105, :type :fail, :f :cas, :value [2 2]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :write, :value 4}
+ {:process 19, :type :fail, :f :cas, :value [4 2]}
+ {:process 311, :type :invoke, :f :read, :value nil}
+ {:process 311, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :cas, :value [1 2]}
+ {:process 106, :type :invoke, :f :cas, :value [3 1]}
+ {:process 17, :type :fail, :f :write, :value 4}
+ {:process 19, :type :invoke, :f :write, :value 4}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 105, :type :invoke, :f :cas, :value [0 1]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :cas, :value [1 2]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 106, :type :fail, :f :cas, :value [3 1]}
+ {:process 19, :type :fail, :f :write, :value 4}
+ {:process 311, :type :invoke, :f :read, :value nil}
+ {:process 311, :type :fail, :f :read, :value nil}
+ {:process 105, :type :fail, :f :cas, :value [0 1]}
+ {:process 18, :type :invoke, :f :write, :value 0}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :cas, :value [2 4]}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 106, :type :invoke, :f :cas, :value [1 0]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :write, :value 1}
+ {:process 18, :type :fail, :f :write, :value 0}
+ {:process 105, :type :invoke, :f :cas, :value [0 1]}
+ {:process 17, :type :fail, :f :cas, :value [2 4]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 106, :type :fail, :f :cas, :value [1 0]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 311, :type :invoke, :f :read, :value nil}
+ {:process 311, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :write, :value 3}
+ {:process 311, :type :invoke, :f :read, :value nil}
+ {:process 311, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :write, :value 1}
+ {:process 17, :type :invoke, :f :cas, :value [3 1]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 105, :type :fail, :f :cas, :value [0 1]}
+ {:process 19, :type :invoke, :f :write, :value 2}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :write, :value 3}
+ {:process 18, :type :invoke, :f :cas, :value [3 1]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 17, :type :fail, :f :cas, :value [3 1]}
+ {:process 105, :type :invoke, :f :cas, :value [0 0]}
+ {:process 19, :type :fail, :f :write, :value 2}
+ {:process 106, :type :invoke, :f :cas, :value [1 3]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :write, :value 2}
+ {:process 311, :type :invoke, :f :read, :value nil}
+ {:process 311, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :cas, :value [3 1]}
+ {:process 19, :type :invoke, :f :write, :value 4}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 105, :type :fail, :f :cas, :value [0 0]}
+ {:process 106, :type :fail, :f :cas, :value [1 3]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :cas, :value [4 4]}
+ {:process 17, :type :fail, :f :write, :value 2}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :write, :value 4}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 311, :type :invoke, :f :read, :value nil}
+ {:process 311, :type :fail, :f :read, :value nil}
+ {:process 311, :type :invoke, :f :read, :value nil}
+ {:process 311, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :cas, :value [4 4]}
+ {:process 105, :type :invoke, :f :cas, :value [4 4]}
+ {:process 106, :type :invoke, :f :cas, :value [1 4]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :write, :value 1}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :cas, :value [4 4]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :cas, :value [4 1]}
+ {:process 106, :type :fail, :f :cas, :value [1 4]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 17, :type :fail, :f :write, :value 1}
+ {:process 311, :type :invoke, :f :read, :value nil}
+ {:process 311, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :cas, :value [4 4]}
+ {:process 17, :type :invoke, :f :cas, :value [2 0]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :cas, :value [4 1]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :cas, :value [4 1]}
+ {:process 106, :type :invoke, :f :cas, :value [0 3]}
+ {:process 19, :type :invoke, :f :cas, :value [3 0]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 17, :type :fail, :f :cas, :value [2 0]}
+ {:process 311, :type :invoke, :f :read, :value nil}
+ {:process 311, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 10, :type :ok, :f :read, :value 0}
+ {:process 105, :type :fail, :f :cas, :value [4 4]}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :cas, :value [4 1]}
+ {:process 106, :type :fail, :f :cas, :value [0 3]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :cas, :value [3 0]}
+ {:process 311, :type :invoke, :f :read, :value nil}
+ {:process 311, :type :fail, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :cas, :value [2 0]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :ok, :f :read, :value 0}
+ {:process 311, :type :invoke, :f :read, :value nil}
+ {:process 311, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 105, :type :invoke, :f :cas, :value [2 4]}
+ {:process 105, :type :fail, :f :cas, :value [2 4]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :ok, :f :read, :value 0}
+ {:process 18, :type :invoke, :f :cas, :value [2 3]}
+ {:process 17, :type :fail, :f :cas, :value [2 0]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 106, :type :invoke, :f :cas, :value [2 0]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :ok, :f :read, :value 0}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 19, :type :invoke, :f :write, :value 4}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :cas, :value [2 3]}
+ {:process 311, :type :invoke, :f :read, :value nil}
+ {:process 311, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 106, :type :fail, :f :cas, :value [2 0]}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :ok, :f :read, :value 0}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 311, :type :invoke, :f :read, :value nil}
+ {:process 311, :type :fail, :f :read, :value nil}
+ {:process 18, :type :invoke, :f :cas, :value [1 1]}
+ {:process 19, :type :fail, :f :write, :value 4}
+ {:process 105, :type :invoke, :f :write, :value 0}
+ {:process 105, :type :ok, :f :write, :value 0}
+ {:process 311, :type :invoke, :f :read, :value nil}
+ {:process 311, :type :fail, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :cas, :value [0 2]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 105, :type :invoke, :f :write, :value 3}
+ {:process 105, :type :ok, :f :write, :value 3}
+ {:process 18, :type :fail, :f :cas, :value [1 1]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 106, :type :invoke, :f :write, :value 4}
+ {:process 17, :type :fail, :f :cas, :value [0 2]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :ok, :f :read, :value 3}
+ {:process 18, :type :invoke, :f :cas, :value [2 4]}
+ {:process 19, :type :invoke, :f :write, :value 2}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :ok, :f :read, :value 3}
+ {:process 105, :type :invoke, :f :write, :value 4}
+ {:process 105, :type :ok, :f :write, :value 4}
+ {:process 106, :type :fail, :f :write, :value 4}
+ {:process 311, :type :invoke, :f :read, :value nil}
+ {:process 311, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 17, :type :invoke, :f :write, :value 2}
+ {:process 106, :type :invoke, :f :cas, :value [2 3]}
+ {:process 18, :type :fail, :f :cas, :value [2 4]}
+ {:process 19, :type :fail, :f :write, :value 2}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 311, :type :invoke, :f :read, :value nil}
+ {:process 311, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 105, :type :invoke, :f :cas, :value [1 4]}
+ {:process 105, :type :fail, :f :cas, :value [1 4]}
+ {:process 18, :type :invoke, :f :write, :value 3}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 10, :type :invoke, :f :read, :value nil}
+ {:process 10, :type :ok, :f :read, :value 4}
+ {:process 17, :type :fail, :f :write, :value 2}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 106, :type :fail, :f :cas, :value [2 3]}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :write, :value 3}
+ {:process 18, :type :invoke, :f :cas, :value [1 0]}
+ {:process 311, :type :invoke, :f :read, :value nil}
+ {:process 311, :type :fail, :f :read, :value nil}
+ {:process 311, :type :invoke, :f :read, :value nil}
+ {:process 311, :type :fail, :f :read, :value nil}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 105, :type :invoke, :f :cas, :value [4 2]}
+ {:process 105, :type :ok, :f :cas, :value [4 2]}
+ {:process 19, :type :invoke, :f :write, :value 3}
+ {:process 12, :type :invoke, :f :read, :value nil}
+ {:process 12, :type :fail, :f :read, :value nil}
+ {:process 311, :type :invoke, :f :read, :value nil}
+ {:process 311, :type :fail, :f :read, :value nil}
+ {:process 18, :type :fail, :f :cas, :value [1 0]}
+ {:process 14, :type :invoke, :f :read, :value nil}
+ {:process 14, :type :fail, :f :read, :value nil}
+ {:process 13, :type :invoke, :f :read, :value nil}
+ {:process 13, :type :fail, :f :read, :value nil}
+ {:process 19, :type :fail, :f :write, :value 3}]

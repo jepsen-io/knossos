@@ -1,4 +1,5 @@
-{:type :invoke,
+; A multi-register with x=0 and y=0
+[{:type :invoke,
  :f :txn,
  :value [[:read :x nil]],
  :process 3,
@@ -1244,4 +1245,4 @@
  :f :stop,
  :process :nemesis,
  :time 57542441018,
- :value "fully connected"}
+ :value "fully connected"}]
