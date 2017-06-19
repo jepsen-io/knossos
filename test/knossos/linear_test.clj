@@ -36,7 +36,7 @@
            (analysis (register 0) history)))))
 
 (deftest bad-analysis-test-2
-  (let [a (analysis (cas-register 0) (ct/read-history "data/cas-failure.edn"))]
+  (let [a (analysis (cas-register 0) (ct/read-history-2 "data/cas-register/bad/cas-failure.edn"))]
     ; In this particular history, we know the value is 0, then we have
     ; concurrent reads of 0 and a write of 2 by process 76, followed by another
     ; read of 0 by process 70. The only legal linearization to that final read
@@ -85,7 +85,7 @@
 
 (deftest multi-register-test
   (let [a (analysis (multi-register {:x 0 :y 0})
-                    (ct/read-history "data/multi-register/good/multi-register.edn"))]
+                    (ct/read-history-2 "data/multi-register/good/multi-register.edn"))]
     (is (:valid? a))
     (is (= #{(multi-register {:x 2 :y 2})
              (multi-register {:x 2 :y 0})}

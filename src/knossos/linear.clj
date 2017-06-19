@@ -8,7 +8,8 @@
             [clojure.pprint :refer [cl-format]]
             [knossos.linear.config :as config]
             [knossos.model.memo :as memo :refer [memo]]
-            [knossos [core :as core]
+            [knossos [analysis :as analysis]
+                     [core :as core]
                      [history :as history]
                      [memory :as memory]
                      [model :as model]
@@ -128,55 +129,6 @@
 
     config-set))
 
-(defn previous-ok
-  "Given a history and an operation, looks backwards in the history to find
-  the previous ok. Returns nil if there was none."
-  [history op]
-  (assert (op/ok? op))
-  (loop [i (dec (:index op))]
-    (when-not (neg? i)
-      (when-let [op (nth history i)]
-        (if (op/ok? op)
-          op
-          (recur (dec i)))))))
-
-(defn extend-path
-  "Given a path and some operations, applies those operations to extend the
-  path until hitting an inconsistent point."
-  [prefix ops]
-  (reduce (fn [path op]
-            (let [model (:model (peek path))
-                  model' (model/step model op)
-                  path'  (conj path {:op op :model model'})]
-              (if (model/inconsistent? model')
-                (reduced path')
-                path')))
-          prefix
-          ops))
-
-(defn final-paths-for-config
-  "Returns a set of final paths for a specific configuration."
-  [prefix final config]
-  (let [; First, identify the set of pending operations *other* than our
-        ; final linearization.
-        final-process (:process final)]
-    ; Take all pending calls for this configuration
-    (->> config
-         :processes
-         config/calls
-         ; Except the final call
-         (r/filter (fn excluder [op] (not (= final-process (:process op)))))
-         ; Now compute all permutations of those pending ops
-         (into [])
-         combo/subsets
-         (r/mapcat combo/permutations)
-         ; followed by the final op
-         (r/map #(concat % (list final)))
-         ; And extend the prefix along those paths
-         (r/map (partial extend-path prefix))
-         ; Computing a set
-         (foldset))))
-
 (defn final-paths
   "When a search crashes, we have an operation which would not linearize even
   given all pending operations. We also have a series of configurations, each
@@ -196,10 +148,10 @@
   [history op configs]
   (->> configs
        (map (fn [config]
-              (final-paths-for-config [{:op    (:last-op config)
-                                        :model (:model config)}]
-                                      op
-                                      config)))
+              (analysis/final-paths-for-config [{:op    (:last-op config)
+                                                 :model (:model config)}]
+                                               op
+                                               (-> config :processes config/calls))))
        (reduce set/union)
        ; And now unwrap memoization
        (map (fn [path]
@@ -253,7 +205,7 @@
         (reduced {:valid?       false
                   :configs      (map config/config->map configs)
                   :final-paths  (final-paths history op configs)
-                  :previous-ok  (previous-ok history op)
+                  :previous-ok  (analysis/previous-ok history op)
                   :last-op  (reduce (fn [op config]
                                       (if (or (nil? op)
                                               (< (:index op)
@@ -338,7 +290,7 @@
              {:valid?       :unknown
               :cause        cause
               :configs      (map config/config->map configs)
-              :previous-ok  (previous-ok history op)
+              :previous-ok  (analysis/previous-ok history op)
               :last-op      (reduce (fn [op config]
                                       (if (or (nil? op)
                                               (< (:index op)

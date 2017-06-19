@@ -1,6 +1,7 @@
 (ns knossos.history
   "Operations on histories"
   (:require [clojure.core.reducers :as r]
+            [clojure.pprint :refer [pprint]]
             [knossos.op :as op])
   (:import [clojure.core.protocols CollReduce]
            [clojure.lang IMapEntry
@@ -50,23 +51,52 @@
                                 (pairs (dissoc invocations (:process op))
                                        ops))))))))
 
+(defn pairs+
+  "Pairs up ops from each process in a history. Yields a lazy sequence of [info]
+  or [invoke, ok|fail|info] pairs. The difference from `pairs` is that this
+  variant maps invocations to infos."
+  ([history]
+   (pairs+ {} history))
+  ([invocations [op & ops]]
+   (lazy-seq
+     (when op
+       (let [p (:process op)]
+         (case (:type op)
+           :invoke      (do (assert (not (contains? invocations p)))
+                            (pairs+ (assoc invocations p op) ops))
+           :info        (if (contains? invocations p)
+                          (cons [(get invocations p) op]
+                                (pairs+ (dissoc invocations p) ops))
+                          (cons [op] (pairs+ invocations ops)))
+           (:ok :fail)  (do (assert (contains? invocations p))
+                            (cons [(get invocations p) op]
+                                  (pairs+ (dissoc invocations p)
+                                          ops)))))))))
+
 (defn pair-index
   "Given a history, constructs a map from operations to their
   counterparts--invocations to their completions or completions to their
   invocations. Infos map to nil."
+  ([history]
+   (pair-index pairs history))
+  ([pair-fn history]
+   (->> history
+        pair-fn
+        (reduce (fn [index [invoke complete]]
+                  ; We need these to be unique! Otherwise the index we build
+                  ; won't be bijective
+                  (assert (:index invoke))
+                  (assoc! (if complete
+                            (assoc! index complete invoke)
+                            index)
+                          invoke complete))
+                (transient {}))
+        persistent!)))
+
+(defn pair-index+
+  "Like pair-index, but matches invokes to infos as well."
   [history]
-  (->> history
-       pairs
-       (reduce (fn [index [invoke complete]]
-                 ; We need these to be unique! Otherwise the index we build
-                 ; won't be bijective
-                 (assert (:index invoke))
-                 (assoc! (if complete
-                           (assoc! index complete invoke)
-                           index)
-                         invoke complete))
-               (transient {}))
-       persistent!))
+  (pair-index pairs+ history))
 
 (defn invocation
   "Returns the invocation for an op, using a pair index. If the op is itself a

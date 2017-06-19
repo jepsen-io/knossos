@@ -5,7 +5,7 @@
   (:require [clojure.core :as c]
             [knossos.history :as history]
             [knossos.op :as op]
-            [clojure.tools.logging :refer [info warn]]
+            [clojure.tools.logging :refer [info debug warn]]
             [potemkin :refer [definterface+ deftype+]]))
 
 (definterface+ INode
@@ -44,6 +44,15 @@
          ; OK regular node
          (cons op (when-let [n next]
                     (lazy-seq (seq n))))))
+
+  clojure.lang.Reversible
+  (rseq [this]
+        (if (nil? prev)
+          ; We're a head node, done.
+          nil
+
+          (cons op (when-let [p prev]
+                     (lazy-seq (rseq p))))))
 
   java.lang.Object
   (toString [this]
@@ -113,7 +122,7 @@
             ; OK we're done, but just to make sure
             (let [calls (persistent! calls)]
               (when-not (empty? calls)
-                (info "Expected all invocations to have a matching :ok or :info, but invocations by processes "
+                (debug "Expected all invocations to have a matching :ok or :info, but invocations by processes "
                       (pr-str (keys calls))
                       " went unmatched. This might indicate a malformed history, but we're going to go ahead and check it anyway by inserting :info events for these uncompleted invocations.")
                 (recur (transient calls)
