@@ -175,10 +175,14 @@ function dbar(id) {
   "Takes a pair index, time bounds, and a set of ops. Returns a map of op
   indices to logical [start-time end-time] coordinates."
   [pair-index [tmin tmax] ops]
+;  (prn :time-coords [tmin tmax])
+;  (pprint pair-index)
   (->> ops
        (map (fn [op]
+              (prn :op op)
               (let [i   (:index op)
                     _   (assert i)
+;                    _   (prn :invoke (history/invocation pair-index op)) 
                     t1  (max tmin (:index (history/invocation pair-index op)))
                     t2  (or (:index (history/completion pair-index op))
                             tmax)]
@@ -371,6 +375,7 @@ function dbar(id) {
   "Construct a sorted map of coordinate regions to the maximum number of bars
   in a process in that region."
   [bars]
+;  (prn :bars bars)
   (->> bars
        keys
        (map (fn [{:keys [x y]}] [(Math/floor x) y]))

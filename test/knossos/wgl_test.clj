@@ -35,6 +35,15 @@
 
            a))))
 
+(deftest bad-analysis-test
+  (let [a (analysis
+            (cas-register 0)
+            (ct/read-history-2 "data/cas-register/bad/bad-analysis.edn"))]
+    (is (= false (:valid? a)))
+    (is (= {:process 21, :type :ok, :f :read, :value 2, :index 14} (:op a)))
+    (is (= {:process 19, :type :ok, :f :read, :value 0, :index 11}
+           (:previous-ok a)))))
+
 (deftest bad-analysis-test-2
   (let [a (analysis (cas-register 0)
                    (ct/read-history-2 "data/cas-register/bad/cas-failure.edn"))]

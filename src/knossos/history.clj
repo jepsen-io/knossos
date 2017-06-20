@@ -14,6 +14,36 @@
                          ITransientVector
                          ITransientCollection]))
 
+(defn unmatched-invokes
+  "Which invoke ops in a history have no corresponding :ok, :fail, or :info?"
+  [history]
+  (loop [history (seq history)
+         calls   (transient {})]
+    (if-not history
+      (vals (persistent! calls))
+      (let [op      (first history)
+            process (:process op)]
+        (recur (next history)
+               (cond (op/invoke? op) (assoc! calls process op)
+                     (op/ok? op)     (dissoc! calls process)
+                     (op/fail? op)   (dissoc! calls process)
+                     (op/info? op)   (dissoc! calls process)))))))
+
+(defn crashed-invokes
+  "Which invoke ops in a history have no corresponding :ok or :fail?"
+  [history]
+  (loop [history (seq history)
+         calls   (transient {})]
+    (if-not history
+      (vals (persistent! calls))
+      (let [op      (first history)
+            process (:process op)]
+        (recur (next history)
+               (cond (op/invoke? op) (assoc! calls process op)
+                     (op/ok? op)     (dissoc! calls process)
+                     (op/fail? op)   (dissoc! calls process)
+                     (op/info? op)   calls))))))
+
 (defn processes
   "What processes are in a history?"
   [history]
@@ -202,6 +232,7 @@
        first
        persistent!))
 
+
 (defn index
   "Attaches an :index key to each element of the history, identifying its
   position in the history vector."
@@ -215,6 +246,16 @@
   [history]
   (or (empty? history)
       (integer? (:index (first history)))))
+
+
+(defn with-synthetic-infos
+  "Histories may arrive with :invoke operations that never complete. We append
+  synthetic :info ops to the end of the history for any in-process calls."
+  [history]
+  (assert (vector? history))
+  (->> (unmatched-invokes history)
+       (map (fn [invoke] (assoc invoke :type :info)))
+       (into history)))
 
 (defn without-failures
   "Takes a completed history, and returns a copy of the given history without

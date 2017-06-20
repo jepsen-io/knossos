@@ -20,29 +20,77 @@
                       ArrayDeque
                       Set)))
 
-(defn with-entry-ids
-  "Assigns a sequential :entry-id to every invocation operation."
-  [history]
-  (loop [h  (seq history)
-         h' (transient [])
-         i 0]
-    (if-not h
-      ; Done
-      (persistent! h')
 
-      (let [op (first h)]
-        (if (op/invoke? op)
-          (recur (next h)
-                 (conj! h' (assoc op :entry-id i))
-                 (inc i))
-          (recur (next h) (conj! h' op) i))))))
+(defn with-entry-ids
+  "Assigns a sequential :entry-id to every invocation and completion. We're
+  going to pick these ids in a sort of subtle way, because when it comes time
+  to identify the point where we got stuck in the search, we want to be able to
+  look at a linearized bitset and quickly identify the highest OK operation we
+  linearized. To that end, we assign crashed invocations the range 0..c, and ok
+  operations c+1..n, such that the highest bit set in a linearized set is also
+  the highest ok op reached during that exploration."
+  [history]
+  (loop [h'     (transient []) ; New history
+         calls  (transient {}) ; A map of processes to the indices of invokes.
+         i      0              ; Index into the history
+         e-ok   (count (history/crashed-invokes history)) ; Next entry ID
+         e-info 0]
+    (if (<= (count history) i)
+      ; OK, done!
+      (do (assert (= 0 (count calls)))
+          (persistent! h'))
+
+      ; Normal op processing
+      (let [op (nth history i)
+            p  (:process op)]
+        (cond (op/invoke? op)
+              (do (assert (not (get calls p)))
+                  (recur (assoc! h' i op)
+                         (assoc! calls p i)
+                         (inc i)
+                         e-ok
+                         e-info))
+
+              (op/ok? op)
+              (let [invoke-i (get calls p)
+                    invoke (nth h' invoke-i)]
+                (recur (-> h'
+                           (assoc! invoke-i (assoc invoke :entry-id e-ok))
+                           (assoc! i        (assoc op     :entry-id e-ok)))
+                       (dissoc! calls p)
+                       (inc i)
+                       (inc e-ok)
+                       e-info))
+
+              (op/fail? op)
+              (assert false (str "Err, shouldn't have a failure here: "
+                                 (pr-str op)))
+
+              (op/info? op)
+              (if-let [invoke-i (get calls p)]
+                ; This info corresponds to an ealier invoke
+                (let [invoke (nth h' invoke-i)]
+                  (recur (-> h'
+                             (assoc! invoke-i (assoc invoke :entry-id e-info))
+                             (assoc! i        (assoc op     :entry-id e-info)))
+                         (dissoc! calls p)
+                         (inc i)
+                         e-ok
+                         (inc e-info)))
+
+                ; Just a random info
+                (recur (assoc! h' i op)
+                       calls
+                       (inc i)
+                       e-ok
+                       e-info)))))))
 
 (defrecord CacheConfig [linearized model op])
 
 (defn max-entry-id
   "What's the highest entry ID in this history?"
   [history]
-  (first (keep :entry-id (rseq history))))
+  (reduce max -1 (keep :entry-id history)))
 
 (defn bitset-highest-linearized
   "What's the highest entry-id linearized by this BitSet?"
@@ -157,14 +205,17 @@
          (map (fn [config]
                 (let [linearized ^BitSet (:linearized config)
                       model (:model config)
+                      _ (prn :calls calls)
                       calls (->> calls
                                  (remove (fn [call]
                                            (.get linearized (:entry-id call))))
-                                 (mapv pair-index))]
+                                 (map pair-index)
+                                 (mapv (fn [op] (dissoc op :entry-id))))]
+                  (prn :calls' calls)
                   (analysis/final-paths-for-config
-                    [{:op    (pair-index (:op config))
+                    [{:op    (dissoc (pair-index (:op config)) :entry-id)
                       :model model}]
-                    final-op
+                    (dissoc final-op :entry-id)
                     calls))))
          (reduce set/union))))
 
@@ -179,11 +230,14 @@
         ; From that we can find the invocation and ok ops themselves
         [final-invoke
          final-ok]  (invoke-and-ok-for-entry-id history final-entry-id)
+        _ (prn :final-ok final-ok)
 
         ; Now let's look back to the previous ok we *could* linearize
         previous-ok (analysis/previous-ok history final-ok)
         previous-invoke (history/invocation (history/pair-index history)
                                             previous-ok)
+
+        _ (prn :prev-ok previous-ok)
 
         ; In general, we needed to linearize *every* previous OK to get here.
         previous-entry-ids  (->> final-ok
@@ -199,8 +253,8 @@
         ; nonlinearizable one
         final-paths (final-paths history pair-index final-ok configs)]
     {:valid?      false
-     :op          final-ok
-     :previous-ok previous-ok
+     :op          (dissoc final-ok :entry-id)
+     :previous-ok (dissoc previous-ok :entry-id)
      :final-paths final-paths}))
 
 (defn check
@@ -208,9 +262,10 @@
   (let [history     (-> history
                         history/complete
                         history/without-failures
+                        history/with-synthetic-infos
                         history/index
                         with-entry-ids)
-        n           (or (max-entry-id history) 0)
+        n           (max (max-entry-id history) 0)
         head-entry  (dllh/dll-history history)
         linearized  (BitSet. n)
         cache       #{(CacheConfig. (BitSet.) model nil)}
