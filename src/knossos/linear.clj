@@ -15,6 +15,7 @@
                      [model :as model]
                      [util :refer :all]
                      [weak-cache-set :as weak-cache-set]
+                     [search :as search]
                      [op :as op]])
   (:import [java.util ArrayList
                       Set]
@@ -222,37 +223,40 @@
     true
     configs))
 
-(def reporting-interval
-  "How long (in ms) to sleep between status updates"
-  5000)
+(defn check
+  [model history configs state]
+  (let [cache   (weak-cache-set/nbhs)
+        res     (reduce (partial step history state cache)
+                        configs
+                        history)]
+    (if (and (map? res) (= false (:valid? res)))
+      ; Reduced error
+      res
+      {:valid?  true
+       :configs (map config/config->map res)})))
 
-(defn reporter!
-  "Spawns a reporting thread that periodically logs the state of the analysis.
-  State is an atom with :running?, :configs, and :op."
-  [state]
-  (future
-    (with-thread-name "reporter"
-      (loop [last-state nil]
-        (when (:running? @state)
-          (Thread/sleep reporting-interval)
-          (let [state @state]
-            (when (:running? state)
-              (if (not= state last-state)
-                (do (info :space (count (:configs state))
-                          :cost (->> state
-                                     :configs
-                                     (map config/estimated-cost)
-                                     (reduce +)
-                                     (cl-format nil "~,2e"))
-                          :op    (:op state))
-                    (recur state))
-                (recur last-state)))))))))
+(defn results-for-interrupted-state
+  "Computes a result map for an interrupted search."
+  [history configs state]
+  (let [{:keys [cause configs op]} @state]
+    {:valid?       :unknown
+     :cause        cause
+     :configs      (map config/config->map configs)
+     :previous-ok  (analysis/previous-ok history op)
+     :last-op      (reduce (fn [op config]
+                             (if (or (nil? op)
+                                     (< (:index op)
+                                        (:index (:last-op
+                                                  config))))
+                               (:last-op config))
+                             op)
+                           nil
+                           configs)
+     :op           op}))
 
-(defn analysis
-  "Given an initial model state and a history, checks to see if the history is
-  linearizable. Returns a map with a :valid? bool and a :config configset from
-  its final state, plus an offending :op if an operation forced the analyzer to
-  discover there are no linearizable paths."
+
+(defn start-analysis
+  "Spawns a Search to check a history."
   [model history]
   (let [history (-> history
                     history/complete
@@ -266,42 +270,43 @@
         state (atom {:running?  true
                      :configs   configs
                      :op        nil})
-        thread (Thread/currentThread)
-        mem-watch (memory/on-low-mem!
-                    (fn abort []
-                      (let [s @state]
-                        (warn "Out of memory; aborting search at op"
-                              (:index (:op s)) "/" (count history)))
-                      (swap! state assoc
-                             :running? false
-                             :cause    :out-of-memory)
-                      (.interrupt thread)))
-        cache     (weak-cache-set/nbhs)
-        reporter  (reporter! state)]
-    ; Perform search
-    (try (let [res (reduce (partial step history state cache) configs history)]
-           (if (and (map? res) (= false (:valid? res)))
-             ; Reduced error
-             res
-             {:valid?  true
-              :configs (map config/config->map res)}))
-         (catch InterruptedException e
-           (let [{:keys [cause configs op]} @state]
-             {:valid?       :unknown
-              :cause        cause
-              :configs      (map config/config->map configs)
-              :previous-ok  (analysis/previous-ok history op)
-              :last-op      (reduce (fn [op config]
-                                      (if (or (nil? op)
-                                              (< (:index op)
-                                                 (:index (:last-op
-                                                           config))))
-                                        (:last-op config))
-                                      op)
-                                    nil
-                                    configs)
-              :op           op}))
-         (finally
-           ; Reset memory watchdog and status reporter
-           (mem-watch)
-           (reset! state {:running? false})))))
+        results   (promise)
+        worker    (Thread.
+                    (fn []
+                      ; Perform search
+                      (try
+                        (deliver
+                          results
+                          (try (check model history configs state)
+                               (catch InterruptedException e
+                                 (results-for-interrupted-state
+                                   history configs state)))))))]
+
+    (.start worker)
+
+    (reify search/Search
+      (abort! [_ cause]
+        (swap! state assoc
+               :running? false
+               :cause cause)
+        (.interrupt worker))
+
+      (report [_]
+        (let [state @state]
+          {:space (count (:configs state))
+           :cost (->> state
+                      :configs
+                      (map config/estimated-cost)
+                      (reduce +)
+                      (cl-format nil "~,2e"))
+         :op    (:op state)}))
+
+      (results [_] @results)
+      (results [_ timeout timeout-val] (deref results timeout timeout-val)))))
+
+(defn analysis
+  "Given an initial model state and a history, checks to see if the history is
+  linearizable. Returns a map with a :valid? bool and additional debugging
+  information."
+  [model history]
+  (search/run (start-analysis model history)))

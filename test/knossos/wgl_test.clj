@@ -26,6 +26,7 @@
         a       (analysis model history)]
     (is (= {:valid?       false
             :op           {:index 1 :process 0 :type :ok :f :read :value 1}
+            :previous-ok  nil
             :final-paths
             #{[{:model model
                 :op nil}

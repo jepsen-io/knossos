@@ -8,8 +8,10 @@
   (:require [knossos [analysis :as analysis]
                      [history :as history]
                      [op :as op]
+                     [search :as search]
                      [model :as model]]
             [knossos.wgl.dll-history :as dllh]
+            [clojure.tools.logging :refer [info warn]]
             [clojure.pprint :refer [pprint]]
             [clojure.set :as set])
   (:import (knossos.wgl.dll_history Node
@@ -202,7 +204,7 @@
      :final-paths final-paths}))
 
 (defn check
-  [model history]
+  [model history state]
   (let [history     (-> history
                         history/complete
                         history/without-failures
@@ -216,74 +218,113 @@
     (loop [s              model
            cache          cache
            ^Node entry    (.next head-entry)]
-      (if-not (.next head-entry)
-        ; We've linearized every operation in the history
-        {:valid? true
-         :model  s}
+        (cond
+          ; Manual abort!
+          (not (:running? @state))
+          {:valid? :unknown
+           :cause  (:cause @state)}
 
-        (let [op (.op entry)]
-          (cond
-            ; We reordered all the infos to the end in dll-history, which means
-            ; that at this point, there won't be any more invoke or ok
-            ; operations. That means there are no more chances to fail in the
-            ; search, and we can conclude here. The sequence of :invoke nodes
-            ; in our dll-history is exactly those operations we chose not to
-            ; linearize, and each corresponds to an info here at the end of the
-            ; history.
-            (op/info? op)
-            {:valid? true
-             :model  s}
+          ; We've linearized every operation in the history
+          (not (.next head-entry))
+          {:valid? true
+           :model  s}
 
-            ; This is an invocation. Can we apply it now?
-            (op/invoke? op)
-            (let [op (.op entry)
-                  s' (model/step s op)]
-              (if (model/inconsistent? s')
-                ; We can't apply this right now; try the next entry
-                (recur s cache (.next entry))
+          true
+          (let [op (.op entry)]
+            (cond
+              ; We reordered all the infos to the end in dll-history, which
+              ; means that at this point, there won't be any more invoke or ok
+              ; operations. That means there are no more chances to fail in the
+              ; search, and we can conclude here. The sequence of :invoke nodes
+              ; in our dll-history is exactly those operations we chose not to
+              ; linearize, and each corresponds to an info here at the end of
+              ; the history.
+              (op/info? op)
+              {:valid? true
+               :model  s}
 
-                ; OK, we can apply this to the current state
-                (let [; Cache that we've explored this configuration
-                      linearized' ^BitSet (.clone linearized)
-                      _           (.set linearized' (:entry-id op))
-                      cache'      (conj cache (CacheConfig. linearized' s' op))]
-                  (if (identical? cache cache')
-                    ; We've already been here, try skipping this invocation
-                    (let [entry (.next entry)]
-                      (recur s cache entry))
+              ; This is an invocation. Can we apply it now?
+              (op/invoke? op)
+              (let [op (.op entry)
+                    s' (model/step s op)]
+                (if (model/inconsistent? s')
+                  ; We can't apply this right now; try the next entry
+                  (recur s cache (.next entry))
 
-                    ; We haven't seen this state yet
-                    (let [; Record this call so we can backtrack
-                          _           (.addFirst calls [entry s])
-                          ; Clean up
-                          s           s'
-                          _           (.set linearized (:entry-id op))
-                          ; Remove this call and its return from the
-                          ; history
-                          _           (dllh/lift! entry)
-                          ; Start over from the start of the shortened
-                          ; history
-                          entry       (.next head-entry)]
-                      (recur s cache' entry))))))
+                  ; OK, we can apply this to the current state
+                  (let [; Cache that we've explored this configuration
+                        linearized' ^BitSet (.clone linearized)
+                        _           (.set linearized' (:entry-id op))
+                        cache'      (conj cache
+                                          (CacheConfig. linearized' s' op))]
+                    (if (identical? cache cache')
+                      ; We've already been here, try skipping this invocation
+                      (let [entry (.next entry)]
+                        (recur s cache entry))
 
-            ; This is an :ok operation. If we *had* linearized the invocation
-            ; already, this OK would have been removed from the chain by
-            ; `lift!`, so we know that we haven't linearized it yet, and this
-            ; is a dead end.
-            (op/ok? op)
-            (if (.isEmpty calls)
-              ; We have nowhere left to backtrack to.
-              (invalid-analysis history cache)
+                      ; We haven't seen this state yet
+                      (let [; Record this call so we can backtrack
+                            _           (.addFirst calls [entry s])
+                            ; Clean up
+                            s           s'
+                            _           (.set linearized (:entry-id op))
+                            ; Remove this call and its return from the
+                            ; history
+                            _           (dllh/lift! entry)
+                            ; Start over from the start of the shortened
+                            ; history
+                            entry       (.next head-entry)]
+                        (recur s cache' entry))))))
 
-              ; Backtrack, reverting to an earlier state.
-              (let [[^INode entry s]  (.removeFirst calls)
-                    op                (.op entry)
-                    _                 (.set linearized ^long (:entry-id op) false)
-                    _                 (dllh/unlift! entry)
-                    entry             (.next entry)]
-                (recur s cache entry)))))))))
+              ; This is an :ok operation. If we *had* linearized the invocation
+              ; already, this OK would have been removed from the chain by
+              ; `lift!`, so we know that we haven't linearized it yet, and this
+              ; is a dead end.
+              (op/ok? op)
+              (if (.isEmpty calls)
+                ; We have nowhere left to backtrack to.
+                (invalid-analysis history cache)
+
+                ; Backtrack, reverting to an earlier state.
+                (let [[^INode entry s]  (.removeFirst calls)
+                      op                (.op entry)
+                      _                 (.set linearized ^long (:entry-id op)
+                                              false)
+                      _                 (dllh/unlift! entry)
+                      entry             (.next entry)]
+                  (recur s cache entry)))))))))
+
+(defn start-analysis
+  "Spawn a thread to check a history. Returns a Search."
+  [model history]
+  (let [state   (atom {:running? true})
+        results (promise)
+        worker  (Thread.
+                  (fn []
+                    (try
+                      (deliver results
+                               (check model history state))
+                      (catch InterruptedException e
+                        (let [{:keys [cause]} @state]
+                          (deliver results
+                                   {:valid? :unknown
+                                    :cause  cause}))))))]
+    (.start worker)
+    (reify search/Search
+      (abort! [_ cause]
+        (swap! state assoc
+               :running? false
+               :cause cause))
+
+      (report [_]
+        [:WGL])
+
+      (results [_] @results)
+      (results [_ timeout timeout-val] (deref results timeout timeout-val)))))
 
 (defn analysis
+  "Given an initial model state and a history, checks to see if the history is
+  linearizable. Returns a map with a :valid? bool and additional debugging
+  information."
   [model history]
-  (let [res (check model history)]
-    res))
+  (search/run (start-analysis model history)))

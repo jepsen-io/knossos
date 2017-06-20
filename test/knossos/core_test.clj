@@ -318,5 +318,5 @@
     (doseq [valid? [true false]]
       (doseq [f (file-seq (io/file (str "data/" (name model-name)
                                        "/" (if valid? "good" "bad"))))]
-        ;(println (.getCanonicalPath f))
+        (println (.getCanonicalPath f))
         (analyze-file analyzer model valid? f)))))

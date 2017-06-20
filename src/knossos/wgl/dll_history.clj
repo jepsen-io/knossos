@@ -127,7 +127,7 @@
                       " went unmatched. This might indicate a malformed history, but we're going to go ahead and check it anyway by inserting :info events for these uncompleted invocations.")
                 (recur (transient calls)
                        (map (fn [[process invoke-node]]
-                              (let [op (.op invoke-node)]
+                              (let [op (.op ^Node invoke-node)]
                                 (op/info process (:f op) (:value op))))
                             calls)
                        prev)))))))
