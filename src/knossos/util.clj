@@ -5,6 +5,19 @@
   (:import [clojure.lang Reduced]
            [clojure.core.protocols CollReduce]))
 
+(defn deref-throw
+  "Like deref, but throws Throwables."
+  ([x]
+   (let [res (deref x)]
+     (if (instance? Throwable res)
+       (throw res)
+       res)))
+  ([x timeout timeout-val]
+   (let [res (deref x timeout timeout-val)]
+     (if (instance? Throwable res)
+       (throw res)
+       res))))
+
 (defn rempty?
   "Like empty, but for reducibles."
   [coll]

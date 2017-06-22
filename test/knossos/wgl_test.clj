@@ -55,23 +55,50 @@
     (is (= false (:valid? a)))
 
     ; We fail because we can't linearize the final read of 0
-    (is (= {:process 70, :type :ok, :f :read, :value 0, :index 365}
+    (is (= {:process 70, :type :ok, :f :read, :value 0, :index 491}
            (:op a)))
 
      ; The last linearized ok was the completion of process 74's read of 0, but
      ; that's not the last linearized *op*: that'd be the write of 2.
-     (is (= {:process 74, :type :ok, :f :read, :value 0, :index 362}
+     (is (= {:process 74, :type :ok, :f :read, :value 0, :index 478}
             (:previous-ok a)))
 
      (is (= #{[{:model (cas-register 2)
-                :op {:f :write :index 359 :process 76 :type :ok :value 2}}
+                :op {:f :write :index 472 :process 76 :type :ok :value 2}}
                {:model (inconsistent "can't CAS 2 from 1 to 1")
-                :op {:f :cas :index 363 :process 77 :type :info :value [1 1]}}]
+                :op {:f :cas :index 482 :process 77 :type :info :value [1 1]}}]
               [{:model (cas-register 2)
-                :op {:f :write :index 359 :process 76 :type :ok :value 2}}
+                :op {:f :write :index 472 :process 76 :type :ok :value 2}}
                {:model (inconsistent "can't read 0 from register 2")
-                :op {:f :read :index 365 :process 70 :type :ok :value 0}}]}
+                :op {:f :read :index 491 :process 70 :type :ok :value 0}}]}
            (:final-paths a)))))
+
+(deftest rethink-fail-minimal-test
+  (let [a (analysis (cas-register nil)
+                    (ct/read-history-2 "data/cas-register/bad/rethink-fail-minimal.edn"))]
+    (is (= false (:valid? a)))
+
+    ; We shouldn't be able to linearize the read of 3 by process 12, which
+    ; appears out of nowhere.
+    (is (= {:process 1, :type :ok, :f :read, :value 3}
+           (dissoc (:op a) :index)))))
+
+(deftest rethink-fail-smaller-test
+  (let [a (analysis (cas-register nil)
+                    (ct/read-history-2 "data/cas-register/bad/rethink-fail-smaller.edn"))]
+    (is (= false (:valid? a)))
+
+    ; We shouldn't be able to linearize the read of 3 by process 12, which
+    ; appears out of nowhere.
+    (is (= {:process 12, :type :ok, :f :read, :value 3, :time 106334571856}
+           (dissoc (:op a) :index)))))
+
+(deftest cas-failure-test
+  (let [a (analysis (cas-register 0)
+                    (ct/read-history-2 "data/cas-register/bad/cas-failure.edn"))]
+    (is (= false (:valid? a)))
+    (is (= {:f :read :index 491 :process 70 :type :ok :value 0}
+           (:op a)))))
 
 (deftest volatile-linearizable-test
   (dotimes [i 10]

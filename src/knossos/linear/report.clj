@@ -49,6 +49,7 @@
 (def type->color
   {:ok   "#6DB6FE"
    nil   "#FFAA26"
+   :info "#FFAA26"
    :fail "#FEB5DA"})
 
 (defn op-color
@@ -144,15 +145,17 @@ function dbar(id) {
   "Given a pair index and an analysis, computes the [lower, upper] bounds on
   times for rendering a plot."
   [pair-index analysis]
+  ; TODO: :previous-ok? This is a typo
   [(dec (or (:index (history/invocation pair-index (:previous-op analysis)))
             1))
    (->> analysis
         :final-paths
         (mapcat (partial keep (fn [transition]
-                                (->> transition
-                                     :op
-                                     (history/completion pair-index)
-                                     :index))))
+                                (let [c (history/completion pair-index
+                                                            (:op transition))]
+                                  ; We don't bother computing bounds for info
+                                  (when-not (op/info? c)
+                                    (:index c))))))
         (reduce max 0)
         inc)])
 
@@ -175,17 +178,15 @@ function dbar(id) {
   "Takes a pair index, time bounds, and a set of ops. Returns a map of op
   indices to logical [start-time end-time] coordinates."
   [pair-index [tmin tmax] ops]
-;  (prn :time-coords [tmin tmax])
-;  (pprint pair-index)
   (->> ops
        (map (fn [op]
-              (prn :op op)
               (let [i   (:index op)
                     _   (assert i)
-;                    _   (prn :invoke (history/invocation pair-index op)) 
                     t1  (max tmin (:index (history/invocation pair-index op)))
-                    t2  (or (:index (history/completion pair-index op))
-                            tmax)]
+                    t2  (let [completion (history/completion pair-index op)]
+                          (if (op/info? completion)
+                            tmax ; Pin to max time
+                            (:index completion)))]
                 [i [(- t1 tmin)
                     (- t2 tmin)]])))
        (into {})
@@ -375,7 +376,6 @@ function dbar(id) {
   "Construct a sorted map of coordinate regions to the maximum number of bars
   in a process in that region."
   [bars]
-;  (prn :bars bars)
   (->> bars
        keys
        (map (fn [{:keys [x y]}] [(Math/floor x) y]))
@@ -422,15 +422,18 @@ function dbar(id) {
   Basically we're taking an analysis and figuring out all the stuff we're gonna
   need to render it."
   [history analysis]
-  (let [history         (history/index (history/complete history))
-        pair-index      (history/pair-index history)
+  (let [history         (->> history
+                             history/complete
+                             history/with-synthetic-infos
+                             history/index)
+        pair-index      (history/pair-index+ history)
         ops             (ops analysis)
         models          (models analysis)
         model-numbers   (model-numbers models)
         process-coords  (process-coords ops)
         time-bounds     (time-bounds pair-index analysis)
         time-coords     (time-coords pair-index time-bounds ops)
-        paths           (paths analysis time-coords process-coords )
+        paths           (paths analysis time-coords process-coords)
         [paths lines bars] (paths->lines paths)
         reachable       (reachable paths)
         hscale          (comp hscale (warp-time-coordinates time-coords bars))]

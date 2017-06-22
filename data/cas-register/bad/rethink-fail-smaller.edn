@@ -182,6 +182,10 @@
  {:type :invoke, :f :read, :value nil, :process 15, :time 104652723688}
  {:type :ok, :f :read, :value 0, :process 10, :time 104653946663}
  {:type :ok, :f :read, :value 0, :process 15, :time 104653963007}
+ ; Value is 0 here, pending
+ ; - 62 cas 3->4
+ ; - 67 write 1
+ ; fails
  {:type :invoke, :f :write, :value 3, :process 5, :time 105331410653}
  {:type :fail,
   :f :read,
@@ -311,11 +315,20 @@
   :process 11,
   :time 105717258196,
   :error nil}
+ ; Fails
  {:type :invoke, :f :cas, :value [2 4], :process 82, :time 106332979922}
+ ; Fails
  {:type :invoke, :f :write, :value 3, :process 5, :time 106333075610}
+ ; Both read 3
  {:type :invoke, :f :read, :value nil, :process 17, :time 106332978122}
  {:type :invoke, :f :read, :value nil, :process 12, :time 106332978078}
  {:type :invoke, :f :write, :value 4, :process 87, :time 106333657143}
+ ; Nonlinearizable! Pending writes here could be
+ ; - 62 cas 3->4
+ ; - 67 write 1
+ ; - 69 write 4
+ ; - 87 write 4
+ ; - 106 write 2
  {:type :ok, :f :read, :value 3, :process 12, :time 106334571856}
  {:type :ok, :f :read, :value 3, :process 17, :time 106334576334}
  {:type :fail, :f :write, :value 3, :process 5, :time 106334901745, :error nil}
@@ -370,10 +383,12 @@
   :process 15,
   :time 106658842511,
   :error nil}
+ ; Successful concurrent write 4, read 4, read 4, cas 4->0
  {:type :invoke, :f :write, :value 4, :process 89, :time 106684789798}
  {:type :invoke, :f :read, :value nil, :process 14, :time 106684820402}
  {:type :invoke, :f :cas, :value [4 0], :process 84, :time 106684874647}
  {:type :invoke, :f :read, :value nil, :process 19, :time 106684920151}
+ ; WGL made it here before running out of options, what?
  {:type :ok, :f :read, :value 4, :process 14, :time 106685853866}
  {:type :ok, :f :read, :value 4, :process 19, :time 106685934055}
  {:type :ok, :f :write, :value 4, :process 89, :time 106694106154}

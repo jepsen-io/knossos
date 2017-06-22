@@ -7,9 +7,12 @@
  {:process 14, :type :ok, :f :read, :value 4}
  {:process 9, :type :invoke, :f :write, :value 0}
  {:process 9, :type :ok, :f :write, :value 0}
+ ; Value is 0, pending crashed read by process 6
  {:process 19, :type :invoke, :f :read, :value 0}
  {:process 20, :type :invoke, :f :write, :value 1}
  {:process 19, :type :ok, :f :read, :value 0}
+ ; Read of 0 linearized, 20 write 1 pending (and crashes)
+ ; Two spurious concurrent reads of 3 and 2
  {:process 22  :type :invoke, :f :read, :value 3}
  {:process 21, :type :invoke, :f :read, :value 2}
  {:process 21, :type :ok, :f :read, :value 2}

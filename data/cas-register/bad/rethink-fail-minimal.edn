@@ -1,0 +1,14 @@
+({:type :invoke, :f :write, :value 0, :process 0}
+ {:type :ok, :f :write, :value 0, :process 0}
+ ; Value is 0, then we concurrently write 4, read 3.
+ {:type :invoke, :f :read, :value nil, :process 1}
+ {:type :invoke, :f :write, :value 4, :process 2}
+ ; Nonlinearizable! Could have been 0 or 4 but not 3
+ {:type :ok, :f :read, :value 3, :process 1}
+ {:type :ok, :f :write, :value 4, :process 2}
+ ; If we have another operation here, just *after* the nonlinearizable
+ ; concurrent ops, wgl used to incorrectly infer that this subsequent op is the
+ ; problem.
+ {:type :invoke, :f :read, :value nil, :process 3}
+ {:type :ok, :f :read, :value 4, :process 3}
+)

@@ -9,6 +9,7 @@
                      [history :as history]
                      [op :as op]
                      [search :as search]
+                     [util :refer [deref-throw]]
                      [model :as model]]
             [knossos.wgl.dll-history :as dllh]
             [clojure.tools.logging :refer [info warn]]
@@ -26,15 +27,17 @@
   going to pick these ids in a sort of subtle way, because when it comes time
   to identify the point where we got stuck in the search, we want to be able to
   look at a linearized bitset and quickly identify the highest OK operation we
-  linearized. To that end, we assign crashed invocations the range 0..c, and ok
-  operations c+1..n, such that the highest bit set in a linearized set is also
-  the highest ok op reached during that exploration."
+  linearized. To that end, we assign ok invocations the range 0..c, and crashed
+  operations c+1..n, such that contiguous ranges of linearized ops represent
+  progress through every required OK operation in the history."
   [history]
   (loop [h'     (transient []) ; New history
          calls  (transient {}) ; A map of processes to the indices of invokes.
          i      0              ; Index into the history
-         e-ok   (count (history/crashed-invokes history)) ; Next entry ID
-         e-info 0]
+         e-ok   0              ; Next entry ID
+         ; entry-ids for infos
+         e-info (- (count history)
+                   (count (history/crashed-invokes history)))]
     (if (<= (count history) i)
       ; OK, done!
       (do (assert (= 0 (count calls)))
@@ -92,33 +95,30 @@
   [history]
   (reduce max -1 (keep :entry-id history)))
 
-(defn bitset-highest-linearized
-  "What's the highest entry-id linearized by this BitSet?"
+(defn bitset-highest-contiguous-linearized
+  "What's the highest entry-id this BitSet has linearized, such that every
+  lower entry ID is also linearized? -1 if nothing linearized."
   [^BitSet b]
-  (dec (.length b)))
+  (dec (.nextClearBit b 0)))
 
-(defn configurations-which-linearized
-  "Filters a collection of configurations to only those which linearized the
-  given entry-ids. More efficient if called with ascending-order entry IDs."
-  [configs entry-ids]
-  (let [entry-ids (int-array (reverse entry-ids))]
-    (filter (fn [config]
-              (loop [i 0]
-                (if (<= (alength entry-ids) i)
-                  true
+(defn configurations-which-linearized-up-to
+  "Filters a collection of configurations to only those which linearized every
+  operation up to and including the given entry id."
+  [entry-id configs]
+  (filter (fn [config]
+            (<= entry-id
+                (bitset-highest-contiguous-linearized (:linearized config))))
+          configs))
 
-                  (if (.get ^BitSet (:linearized config) (aget entry-ids i))
-                    (recur (inc i))
-                    false))))
-            configs)))
-
-(defn highest-linearized-entry-id
+(defn highest-contiguous-linearized-entry-id
   "Finds the highest linearized entry id given a set of CacheConfigs. -1 if no
-  entries linearized."
+  entries linearized. Because our search is speculative, we may actually try
+  linearizing random high entry IDs even though we can't linearize smaller
+  ones. For that reason, we use the highest *contiguous* entry ID."
   [configs]
   (->> configs
        (map :linearized)
-       (map bitset-highest-linearized)
+       (map bitset-highest-contiguous-linearized)
        (reduce max -1)))
 
 (defn invoke-and-ok-for-entry-id
@@ -205,13 +205,11 @@
          (map (fn [config]
                 (let [linearized ^BitSet (:linearized config)
                       model (:model config)
-                      _ (prn :calls calls)
                       calls (->> calls
                                  (remove (fn [call]
                                            (.get linearized (:entry-id call))))
                                  (map pair-index)
                                  (mapv (fn [op] (dissoc op :entry-id))))]
-                  (prn :calls' calls)
                   (analysis/final-paths-for-config
                     [{:op    (dissoc (pair-index (:op config)) :entry-id)
                       :model model}]
@@ -225,29 +223,23 @@
   (let [pair-index     (history/pair-index+ history)
         ; We failed because we ran into an OK entry. That means its invocation
         ; couldn't be linearized. What was the entry ID for that invocation?
-        final-entry-id (inc (highest-linearized-entry-id configs))
+        final-entry-id (inc (highest-contiguous-linearized-entry-id configs))
+        ;_ (prn :final-entry-id final-entry-id)
 
         ; From that we can find the invocation and ok ops themselves
         [final-invoke
          final-ok]  (invoke-and-ok-for-entry-id history final-entry-id)
-        _ (prn :final-ok final-ok)
+        ;_ (prn :final-invoke final-invoke)
+        ;_ (prn :final-ok     final-ok)
 
         ; Now let's look back to the previous ok we *could* linearize
         previous-ok (analysis/previous-ok history final-ok)
-        previous-invoke (history/invocation (history/pair-index history)
-                                            previous-ok)
 
-        _ (prn :prev-ok previous-ok)
-
-        ; In general, we needed to linearize *every* previous OK to get here.
-        previous-entry-ids  (->> final-ok
-                                 (analysis/previous-oks history)
-                                 (map pair-index)
-                                 (map :entry-id))
-
-        ; So what configurations linearized those entry IDs?
-        configs     (configurations-which-linearized
-                      configs previous-entry-ids)
+        configs (->> configs
+                     (configurations-which-linearized-up-to
+                       (dec final-entry-id)))
+        ;_     (prn :configs)
+        ;_     (pprint configs)
 
         ; Now compute the final paths from the previous ok operation to the
         ; nonlinearizable one
@@ -261,10 +253,11 @@
   [model history state]
   (let [history     (-> history
                         history/complete
-                        history/without-failures
                         history/with-synthetic-infos
                         history/index
+                        history/without-failures
                         with-entry-ids)
+        ; _ (pprint history)
         n           (max (max-entry-id history) 0)
         head-entry  (dllh/dll-history history)
         linearized  (BitSet. n)
@@ -310,6 +303,7 @@
                   (let [; Cache that we've explored this configuration
                         linearized' ^BitSet (.clone linearized)
                         _           (.set linearized' (:entry-id op))
+                        ;_           (prn :linearized op)
                         cache'      (conj cache
                                           (CacheConfig. linearized' s' op))]
                     (if (identical? cache cache')
@@ -343,6 +337,7 @@
                 ; Backtrack, reverting to an earlier state.
                 (let [[^INode entry s]  (.removeFirst calls)
                       op                (.op entry)
+                      ; _                 (prn :revert op :to s)
                       _                 (.set linearized ^long (:entry-id op)
                                               false)
                       _                 (dllh/unlift! entry)
@@ -363,7 +358,10 @@
                         (let [{:keys [cause]} @state]
                           (deliver results
                                    {:valid? :unknown
-                                    :cause  cause}))))))]
+                                    :cause  cause})))
+                      (catch Throwable t
+                        (deliver results t)))))]
+
     (.start worker)
     (reify search/Search
       (abort! [_ cause]
@@ -374,8 +372,10 @@
       (report [_]
         [:WGL])
 
-      (results [_] @results)
-      (results [_ timeout timeout-val] (deref results timeout timeout-val)))))
+      (results [_]
+        (deref-throw results))
+      (results [_ timeout timeout-val]
+        (deref-throw results timeout timeout-val)))))
 
 (defn analysis
   "Given an initial model state and a history, checks to see if the history is

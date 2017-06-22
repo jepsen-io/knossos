@@ -131,20 +131,20 @@
 (defn invocation
   "Returns the invocation for an op, using a pair index. If the op is itself a
   completion, returns the op. If the op is an invocation, looks up its
-  completion in the pair index. Infos map to nil."
+  completion in the pair index."
   [pair-index op]
-  (cond (op/info? op)   nil
-        (op/invoke? op) op
-        true            (pair-index op)))
+  (if (op/invoke? op)
+    op
+    (pair-index op)))
 
 (defn completion
   "Returns the completion for an op, using a pair index. If the op is itself a
   completion, returns the op. If the op is an invocation, looks up its
-  completion in the pair index. Infos map to nil."
+  completion in the pair index."
   [pair-index op]
-  (cond (op/info? op)   nil
-        (op/invoke? op) (pair-index op)
-        true            op))
+  (if (op/invoke? op)
+    (pair-index op)
+    op))
 
 (defn complete-fold-op
   "Folds an operation into a completed history, keeping track of outstanding
