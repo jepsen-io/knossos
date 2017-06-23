@@ -5,9 +5,11 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :repositories {"sonatype-oss-public"
                  "https://oss.sonatype.org/content/groups/public/"}
+  :main knossos.cli
   :dependencies [[org.clojure/math.combinatorics "0.1.1"]
                  [potemkin "0.4.3"]
                  [interval-metrics "1.0.0"]
+                 [org.clojure/tools.cli "0.3.5"]
                  [com.boundary/high-scale-lib "1.0.6"]
                  [org.clojars.pallix/analemma "1.0.0"
                   :exclusions [org.clojure/clojure]]
@@ -25,5 +27,8 @@
              "-XX:MaxRecursiveInlineLevel=2"
              "-XX:+UnlockCommercialFeatures"
 ;             "-XX:-OmitStackTraceInFastThrow"
-             "-server"]
+             "-server"
+             "-XX:+UnlockCommercialFeatures"
+             "-XX:+FlightRecorder"
+             "-XX:StartFlightRecording=delay=20s,duration=60s,filename=knossos.jfr"]
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.8.0"]]}})
