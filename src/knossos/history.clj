@@ -27,7 +27,9 @@
                (cond (op/invoke? op) (assoc! calls process op)
                      (op/ok? op)     (dissoc! calls process)
                      (op/fail? op)   (dissoc! calls process)
-                     (op/info? op)   (dissoc! calls process)))))))
+                     (op/info? op)   (dissoc! calls process)
+                     true            (throw (IllegalArgumentException.
+                                              (str "Unknown op type " (:type op) " from " (pr-str op))))))))))
 
 (defn crashed-invokes
   "Which invoke ops in a history have no corresponding :ok or :fail?"

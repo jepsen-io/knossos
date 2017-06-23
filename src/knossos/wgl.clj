@@ -15,13 +15,185 @@
             [knossos.model.memo :as memo :refer [memo]]
             [clojure.tools.logging :refer [info warn]]
             [clojure.pprint :refer [pprint]]
+            [clojure.string :as str]
             [clojure.set :as set]
             [potemkin :refer [definterface+ deftype+]])
   (:import (knossos.wgl.dll_history Node INode)
            (knossos.model.memo Wrapper)
+           (clojure.lang MapEntry)
            (java.util BitSet
                       ArrayDeque
                       Set)))
+
+; We spend a lot of time in arraymap scans; we'll replace those with our own
+; dedicated Op type.
+(deftype+ Op [process type f value ^:int index ^:int entry-id m]
+  ; We can't use defrecord because it computes hashcodes via
+  ; APersistentMap/mapHashEq which is really expensive, and we can't override
+  ; hashcode without breaking defrecord.
+  clojure.lang.IKeywordLookup
+  (getLookupThunk [this k]
+                  (let [gclass (class this)]
+                    (condp identical? k
+                      :process (reify clojure.lang.ILookupThunk
+                                 (get [thunk gtarget]
+                                   (if (identical? (class gtarget) gclass)
+                                     (.-process ^Op gtarget)
+                                     thunk)))
+                      :type (reify clojure.lang.ILookupThunk
+                              (get [thunk gtarget]
+                                (if (identical? (class gtarget) gclass)
+                                  (.-type ^Op gtarget)
+                                  thunk)))
+                      :f (reify clojure.lang.ILookupThunk
+                           (get [thunk gtarget]
+                             (if (identical? (class gtarget) gclass)
+                               (.-f ^Op gtarget)
+                               thunk)))
+                      :value (reify clojure.lang.ILookupThunk
+                               (get [thunk gtarget]
+                                 (if (identical? (class gtarget) gclass)
+                                   (.-value ^Op gtarget)
+                                   thunk)))
+                      :index (reify clojure.lang.ILookupThunk
+                               (get [thunk gtarget]
+                                 (if (identical? (class gtarget) gclass)
+                                   (.-index ^Op gtarget)
+                                   thunk)))
+                      :entry-id (reify clojure.lang.ILookupThunk
+                                  (get [thunk gtarget]
+                                    (if (identical? (class gtarget) gclass)
+                                      (.-entry-id ^Op gtarget)
+                                      thunk))))))
+
+  ; sigh
+  clojure.lang.Associative
+  (entryAt [this k]
+           (condp identical? k
+             :process  (MapEntry/create k process)
+             :type     (MapEntry/create k type)
+             :f        (MapEntry/create k f)
+             :value    (MapEntry/create k value)
+             :index    (MapEntry/create k index)
+             :entry-id (MapEntry/create k entry-id)
+                       (.entryAt ^clojure.lang.Associative m k)))
+
+  ; le sigh
+  clojure.lang.ILookup
+  (valAt [this k]
+         (condp identical? k
+           :process  process
+           :type     type
+           :f        f
+           :value    value
+           :index    index
+           :entry-id entry-id
+                     (.valAt ^clojure.lang.ILookup m k)))
+
+  clojure.lang.IPersistentMap
+  (assoc [this k v]
+         (condp identical? k
+           :process   (Op. v       type f value index entry-id m)
+           :type      (Op. process v    f value index entry-id m)
+           :f         (Op. process type v value index entry-id m)
+           :value     (Op. process type f v     index entry-id m)
+           :index     (Op. process type f value v     entry-id m)
+           :entry-id  (Op. process type f value index v        m)
+                      (Op. process type f value index entry-id
+                           (assoc m k v))))
+
+  (without [this k]
+    (condp identical? k
+           :process   (Op. nil     type f   value index entry-id m)
+           :type      (Op. process nil  f   value index entry-id m)
+           :f         (Op. process type nil value index entry-id m)
+           :value     (Op. process type f   nil   index entry-id m)
+           :index     (Op. process type f   value nil   entry-id m)
+           :entry-id  (Op. process type f   value index nil      m)
+                      (Op. process type f   value index entry-id
+                           (dissoc m k))))
+
+  clojure.lang.IHashEq
+  (hasheq [this]
+          (-> (hash process)                        (unchecked-multiply-int 37)
+              (unchecked-add-int (hash type))       (unchecked-multiply-int 37)
+              (unchecked-add-int (hash f))          (unchecked-multiply-int 37)
+              (unchecked-add-int (hash value))      (unchecked-multiply-int 37)
+              (unchecked-add-int (or index -1))     (unchecked-multiply-int 37)
+              (unchecked-add-int (or entry-id -1))  (unchecked-multiply-int 37)
+              (unchecked-add-int (hash m))))
+
+  clojure.lang.IPersistentCollection
+  (equiv [this other]
+         (boolean
+           (or (identical? this other)
+               (and (identical? (class this) (class other))
+                    (= index    (.-index    ^Op other))
+                    (= entry-id (.-entry-id ^Op other))
+                    (= process  (.-process  ^Op other))
+                    (= type     (.-type     ^Op other))
+                    (= f        (.-f        ^Op other))
+                    (= value    (.-value    ^Op other))
+                    (= m        (.-m        ^Op other))))))
+
+  clojure.lang.ISeq
+  (seq [this]
+       (->> (seq m)
+            (cons (MapEntry/create :entry-id entry-id))
+            (cons (MapEntry/create :index    index))
+            (cons (MapEntry/create :value    value))
+            (cons (MapEntry/create :f        f))
+            (cons (MapEntry/create :type     type))
+            (cons (MapEntry/create :process  process))))
+
+  Object
+  (hashCode [this]
+          (-> (.hashCode process)                   (unchecked-multiply-int 37)
+              (unchecked-add-int (.hashCode type))  (unchecked-multiply-int 37)
+              (unchecked-add-int (.hashCode f))     (unchecked-multiply-int 37)
+              (unchecked-add-int (.hashCode value)) (unchecked-multiply-int 37)
+              (unchecked-add-int index)             (unchecked-multiply-int 37)
+              (unchecked-add-int entry-id)          (unchecked-multiply-int 37)
+              (unchecked-add-int (.hashCode m))))
+
+  (equals [this other]
+         (boolean
+           (or (identical? this other)
+               (and (identical? (class this) (class other))
+                    (.equals index    (.-index    ^Op other))
+                    (.equals entry-id (.-entry-id ^Op other))
+                    (.equals process  (.-process  ^Op other))
+                    (.equals type     (.-type     ^Op other))
+                    (.equals f        (.-f        ^Op other))
+                    (.equals value    (.-value    ^Op other))
+                    (.equals m        (.-m        ^Op other))))))
+
+  (toString [this]
+            (str "Op{:process " process
+                 ", :type " type
+                 ", :f " f
+                 ", :value " value
+                 ", :index " index
+                 ", :entry-id " entry-id
+                 (->> m
+                      (map (fn [pair]
+                             (str (key pair) " " (val pair))))
+                      (str/join ", ")))))
+
+(prefer-method clojure.pprint/simple-dispatch
+               clojure.lang.IPersistentMap
+               clojure.lang.ISeq)
+
+(defn map->Op
+  "Construct an Op from a map."
+  [m]
+  (Op. (:process  m)
+       (:type     m)
+       (:f        m)
+       (:value    m)
+       (:index    m)
+       (:entry-id m)
+       (dissoc m :process :type :f :value :index :entry-id)))
 
 ; This is the datatype we use to prune our exploration of the search space. We
 ; assume the linearized BitSet is immutable, memoizing its hashing to optimize
@@ -289,12 +461,13 @@
 
 (defn check
   [model history state]
-  (let [history     (-> history
-                        history/complete
-                        history/with-synthetic-infos
-                        history/without-failures
-                        history/index
-                        with-entry-ids)
+  (let [history     (->> history
+                         history/complete
+                         history/with-synthetic-infos
+                         history/without-failures
+                         history/index
+                         with-entry-ids
+                         (mapv map->Op))
         {:keys [model history]} (memo model history)
         ; _ (pprint history)
         n           (max (max-entry-id history) 0)
@@ -317,21 +490,11 @@
            :model  s}
 
           true
-          (let [op (.op entry)]
-            (cond
-              ; We reordered all the infos to the end in dll-history, which
-              ; means that at this point, there won't be any more invoke or ok
-              ; operations. That means there are no more chances to fail in the
-              ; search, and we can conclude here. The sequence of :invoke nodes
-              ; in our dll-history is exactly those operations we chose not to
-              ; linearize, and each corresponds to an info here at the end of
-              ; the history.
-              (op/info? op)
-              {:valid? true
-               :model  s}
-
+          (let [op ^Op (.op entry)
+                type (.type op)]
+            (condp identical? type
               ; This is an invocation. Can we apply it now?
-              (op/invoke? op)
+              :invoke
               (let [s' (model/step s op)]
                 (if (model/inconsistent? s')
                   ; We can't apply this right now; try the next entry
@@ -339,7 +502,7 @@
 
                   ; OK, we can apply this to the current state
                   (let [; Cache that we've explored this configuration
-                        entry-id    (:entry-id op)
+                        entry-id    (.entry-id op)
                         linearized' ^BitSet (.clone linearized)
                         _           (.set linearized' entry-id)
                         ;_           (prn :linearized op)
@@ -370,20 +533,31 @@
               ; already, this OK would have been removed from the chain by
               ; `lift!`, so we know that we haven't linearized it yet, and this
               ; is a dead end.
-              (op/ok? op)
+              :ok
               (if (.isEmpty calls)
                 ; We have nowhere left to backtrack to.
                 (invalid-analysis history cache)
 
                 ; Backtrack, reverting to an earlier state.
                 (let [[^INode entry s]  (.removeFirst calls)
-                      op                (.op entry)
+                      op                ^Op (.op entry)
                       ; _                 (prn :revert op :to s)
-                      _                 (.set linearized ^long (:entry-id op)
+                      _                 (.set linearized ^long (.entry-id op)
                                               false)
                       _                 (dllh/unlift! entry)
                       entry             (.next entry)]
-                  (recur s cache entry)))))))))
+                  (recur s cache entry)))
+
+              ; We reordered all the infos to the end in dll-history, which
+              ; means that at this point, there won't be any more invoke or ok
+              ; operations. That means there are no more chances to fail in the
+              ; search, and we can conclude here. The sequence of :invoke nodes
+              ; in our dll-history is exactly those operations we chose not to
+              ; linearize, and each corresponds to an info here at the end of
+              ; the history.
+              :info
+              {:valid? true
+               :model  s}))))))
 
 (defn start-analysis
   "Spawn a thread to check a history. Returns a Search."

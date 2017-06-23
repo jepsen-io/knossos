@@ -30,6 +30,6 @@
              "-server"
 ;             "-XX:+UnlockCommercialFeatures"
 ;             "-XX:+FlightRecorder"
-;             "-XX:StartFlightRecording=delay=20s,duration=60s,filename=knossos.jfr"
+;             "-XX:StartFlightRecording=delay=10s,duration=50s,filename=knossos.jfr"
 ]
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.8.0"]]}})

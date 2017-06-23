@@ -36,22 +36,22 @@
 (defn ok?
   "Is this op OK?"
   [op]
-  (= :ok (:type op)))
+  (identical? :ok (:type op)))
 
 (defn invoke?
   "Is this op an invocation?"
   [op]
-  (= :invoke (:type op)))
+  (identical? :invoke (:type op)))
 
 (defn fail?
   "Is this op a failure?"
   [op]
-  (= :fail (:type op)))
+  (identical? :fail (:type op)))
 
 (defn info?
   "Is this op an informational message?"
   [op]
-  (= :info (:type op)))
+  (identical? :info (:type op)))
 
 (defn same-process?
   "Do A and B come from the same process?"
