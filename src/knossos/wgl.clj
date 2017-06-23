@@ -15,12 +15,42 @@
             [knossos.model.memo :as memo :refer [memo]]
             [clojure.tools.logging :refer [info warn]]
             [clojure.pprint :refer [pprint]]
-            [clojure.set :as set])
+            [clojure.set :as set]
+            [potemkin :refer [definterface+ deftype+]])
   (:import (knossos.wgl.dll_history Node INode)
            (knossos.model.memo Wrapper)
            (java.util BitSet
                       ArrayDeque
                       Set)))
+
+; This is the datatype we use to prune our exploration of the search space. We
+; assume the linearized BitSet is immutable, memoizing its hashing to optimize
+; both hash and equality checks. Op is only present for failure reconstruction
+; and does not participate in equality/hashing checks.
+(deftype+ CacheConfig [^BitSet linearized
+                       model
+                       op
+                       ^:volatile-mutable ^int hasheq]
+  clojure.lang.IHashEq
+  (hasheq [ps]
+          (when (= -1 hasheq)
+            (set! hasheq (int (bit-xor (hash linearized)
+                                       (hash model)))))
+          hasheq)
+
+  Object
+  (equals [this other]
+          (or (identical? this other)
+              (and (instance? CacheConfig other)
+                   (= hasheq      (.hasheq      ^CacheConfig other))
+                   (= model       (.model       ^CacheConfig other))
+                   (= linearized  (.linearized  ^CacheConfig other))))))
+
+(defn linearized [^CacheConfig c]
+  (.linearized c))
+
+(defn cache-config [linearized model op]
+  (CacheConfig. linearized model op -1))
 
 
 (defn with-entry-ids
@@ -89,8 +119,6 @@
                        e-ok
                        e-info)))))))
 
-(defrecord CacheConfig [linearized model op])
-
 (defn max-entry-id
   "What's the highest entry ID in this history?"
   [history]
@@ -106,9 +134,9 @@
   "Filters a collection of configurations to only those which linearized every
   operation up to and including the given entry id."
   [entry-id configs]
-  (filter (fn [config]
+  (filter (fn [^CacheConfig config]
             (<= entry-id
-                (bitset-highest-contiguous-linearized (:linearized config))))
+                (bitset-highest-contiguous-linearized (.linearized config))))
           configs))
 
 (defn highest-contiguous-linearized-entry-id
@@ -118,7 +146,7 @@
   ones. For that reason, we use the highest *contiguous* entry ID."
   [configs]
   (->> configs
-       (map :linearized)
+       (map linearized)
        (map bitset-highest-contiguous-linearized)
        (reduce max -1)))
 
@@ -203,9 +231,9 @@
   [history pair-index final-op configs]
   (let [calls (concurrent-ops-at history final-op)]
     (->> configs
-         (map (fn [config]
-                (let [linearized ^BitSet (:linearized config)
-                      model (:model config)
+         (map (fn [^CacheConfig config]
+                (let [linearized ^BitSet (.linearized config)
+                      model (.model config)
                       calls (->> calls
                                  (remove (fn [call]
                                            (.get linearized (:entry-id call))))
@@ -272,7 +300,7 @@
         n           (max (max-entry-id history) 0)
         head-entry  (dllh/dll-history history)
         linearized  (BitSet. n)
-        cache       #{(CacheConfig. (BitSet.) model nil)}
+        cache       #{(cache-config (BitSet.) model nil)}
         calls       (ArrayDeque.)]
     (loop [s              model
            cache          cache
@@ -304,19 +332,21 @@
 
               ; This is an invocation. Can we apply it now?
               (op/invoke? op)
-              (let [op (.op entry)
-                    s' (model/step s op)]
+              (let [s' (model/step s op)]
                 (if (model/inconsistent? s')
                   ; We can't apply this right now; try the next entry
                   (recur s cache (.next entry))
 
                   ; OK, we can apply this to the current state
                   (let [; Cache that we've explored this configuration
+                        entry-id    (:entry-id op)
                         linearized' ^BitSet (.clone linearized)
-                        _           (.set linearized' (:entry-id op))
+                        _           (.set linearized' entry-id)
                         ;_           (prn :linearized op)
+                        ; Very important that we don't mutate linearized' once
+                        ; we've wrapped it in a CacheConfig!
                         cache'      (conj cache
-                                          (CacheConfig. linearized' s' op))]
+                                          (cache-config linearized' s' op))]
                     (if (identical? cache cache')
                       ; We've already been here, try skipping this invocation
                       (let [entry (.next entry)]
@@ -327,7 +357,7 @@
                             _           (.addFirst calls [entry s])
                             ; Clean up
                             s           s'
-                            _           (.set linearized (:entry-id op))
+                            _           (.set linearized entry-id)
                             ; Remove this call and its return from the
                             ; history
                             _           (dllh/lift! entry)
