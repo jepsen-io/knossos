@@ -25,7 +25,7 @@ $ lein run data/cas-register/bad/bad-analysis.edn
 data/cas-register/bad/bad-analysis.edn  false
 ```
 
-## OK but really, how do I use this thing
+## Concepts
 
 Every logical transition in Knossos is represented by a pair of operations: an
 invoke, when the op begins, and a completion: either ok if the operation took
@@ -62,6 +62,8 @@ defines a singlethreaded datatype and how it reacts to operations. Knossos
 defines some built-in models like a register, a register with compare-and-set,
 and a mutex, which you can choose at the CLI via `--model mutex` and so on.
 
+## At the command line
+
 If you have a history for a compare-and-set register in an `edn` file, either
 as a series of operation maps, or as a single vector or list containing those
 operations, you can ask knossos to check it for you at the command line like
@@ -77,6 +79,8 @@ Knossos prints out the names of all files you asked it to check, followed by a t
 - `false`     means the history was nonlinearizable
 - `:unknown`  means knossos was unable to complete the analysis; e.g. it ran
               out of memory.
+
+## As a library
 
 You'll probably want to invoke knossos as a library. Pull in `knossos.model`
 for a selection of models (or to write your own), and `knossos.competition` for
@@ -147,6 +151,8 @@ knew things were still OK. In between those operations we have a series of
 operations at that time, and how each of those orders resulted in an illegal
 state transition, e.g. reading the value `3` from a register whose value was
 actually `4`.
+
+## Visualization of faults
 
 To visualize these errors, we can use `knossos.linear.report` to generate an
 interactive SVG visualization of the crucial part of the history.
