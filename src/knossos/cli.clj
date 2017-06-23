@@ -61,16 +61,13 @@
 
       (let [model ((:model options))]
         (doseq [file arguments]
-          (println)
-          (println)
-          (println file)
+          (print file)
+          (flush)
           (let [history  (read-history file)
                 ; _ (pprint history)
                 analysis (analysis model history)]
-            (-> analysis
-                (update :final-paths (partial take 5))
-                (update :configs     (partial take 5))
-                pprint))))
+            (print "\t")
+            (prn (:valid? analysis)))))
       (System/exit 0))
 
     (catch Throwable t

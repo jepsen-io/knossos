@@ -21,7 +21,8 @@
   (:import (knossos.wgl.dll_history Node INode)
            (knossos.model.memo Wrapper)
            (clojure.lang MapEntry)
-           (java.util BitSet
+           (java.util HashSet
+                      BitSet
                       ArrayDeque
                       Set)))
 
@@ -211,9 +212,12 @@
           hasheq)
 
   Object
+  (hashCode [this]
+            (.hasheq this))
+
   (equals [this other]
           (or (identical? this other)
-              (and (instance? CacheConfig other)
+              (and (identical? (class this) (class other))
                    (= hasheq      (.hasheq      ^CacheConfig other))
                    (= model       (.model       ^CacheConfig other))
                    (= linearized  (.linearized  ^CacheConfig other))))))
@@ -473,10 +477,10 @@
         n           (max (max-entry-id history) 0)
         head-entry  (dllh/dll-history history)
         linearized  (BitSet. n)
-        cache       #{(cache-config (BitSet.) model nil)}
+        cache       (doto (HashSet.)
+                      (.add (cache-config (BitSet.) model nil)))
         calls       (ArrayDeque.)]
     (loop [s              model
-           cache          cache
            ^Node entry    (.next head-entry)]
         (cond
           ; Manual abort!
@@ -498,7 +502,7 @@
               (let [s' (model/step s op)]
                 (if (model/inconsistent? s')
                   ; We can't apply this right now; try the next entry
-                  (recur s cache (.next entry))
+                  (recur s (.next entry))
 
                   ; OK, we can apply this to the current state
                   (let [; Cache that we've explored this configuration
@@ -508,12 +512,12 @@
                         ;_           (prn :linearized op)
                         ; Very important that we don't mutate linearized' once
                         ; we've wrapped it in a CacheConfig!
-                        cache'      (conj cache
+                        new-config? (.add cache
                                           (cache-config linearized' s' op))]
-                    (if (identical? cache cache')
+                    (if (not new-config?)
                       ; We've already been here, try skipping this invocation
                       (let [entry (.next entry)]
-                        (recur s cache entry))
+                        (recur s entry))
 
                       ; We haven't seen this state yet
                       (let [; Record this call so we can backtrack
@@ -527,7 +531,7 @@
                             ; Start over from the start of the shortened
                             ; history
                             entry       (.next head-entry)]
-                        (recur s cache' entry))))))
+                        (recur s entry))))))
 
               ; This is an :ok operation. If we *had* linearized the invocation
               ; already, this OK would have been removed from the chain by
@@ -546,7 +550,7 @@
                                               false)
                       _                 (dllh/unlift! entry)
                       entry             (.next entry)]
-                  (recur s cache entry)))
+                  (recur s entry)))
 
               ; We reordered all the infos to the end in dll-history, which
               ; means that at this point, there won't be any more invoke or ok
