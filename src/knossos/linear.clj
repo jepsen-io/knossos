@@ -9,7 +9,6 @@
             [knossos.linear.config :as config]
             [knossos.model.memo :as memo :refer [memo]]
             [knossos [analysis :as analysis]
-                     [core :as core]
                      [history :as history]
                      [memory :as memory]
                      [model :as model]

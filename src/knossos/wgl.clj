@@ -196,6 +196,17 @@
        (:entry-id m)
        (dissoc m :process :type :f :value :index :entry-id)))
 
+(defn Op->map
+  "Turns an Op back into a plain old map, stripping its index and entry ids."
+  [^Op op]
+  (when op
+    (into
+      {:process (.process op)
+       :type    (.type op)
+       :f       (.f op)
+       :value   (.value op)}
+      (.m op))))
+
 ; This is the datatype we use to prune our exploration of the search space. We
 ; assume the linearized BitSet is immutable, memoizing its hashing to optimize
 ; both hash and equality checks. Op is only present for failure reconstruction
@@ -413,21 +424,22 @@
                       calls (->> calls
                                  (remove (fn [call]
                                            (.get linearized (:entry-id call))))
-                                 (map pair-index)
-                                 (mapv (fn [op] (dissoc op :entry-id))))]
+                                 (mapv pair-index))]
                   (analysis/final-paths-for-config
-                    [{:op    (dissoc (pair-index (:op config)) :entry-id)
+                    [{:op    (pair-index (.op config))
                       :model model}]
-                    (dissoc final-op :entry-id)
+                    final-op
                     calls))))
          (reduce set/union)
-         ; Unwrap memoization
+         ; Unwrap memoization/Op wrappers
          (map (fn [path]
                 (mapv (fn [transition]
-                        (let [m (:model transition)]
-                          (if (instance? Wrapper m)
-                            (assoc transition :model (memo/model m))
-                            transition)))
+                        (let [m (:model transition)
+                              m (if (instance? Wrapper m)
+                                  (memo/model m)
+                                  m)
+                              o (Op->map (:op transition))]
+                          {:op o :model m}))
                       path)))
          set)))
 
@@ -459,8 +471,8 @@
         ; nonlinearizable one
         final-paths (final-paths history pair-index final-ok configs)]
     {:valid?      false
-     :op          (dissoc final-ok :entry-id)
-     :previous-ok (dissoc previous-ok :entry-id)
+     :op          (Op->map final-ok)
+     :previous-ok (Op->map previous-ok)
      :final-paths final-paths}))
 
 (defn check

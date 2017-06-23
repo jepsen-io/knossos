@@ -3,8 +3,7 @@
   (:require [clojure.string :as str]
             [clojure.core.reducers :as r]
             [potemkin :refer [definterface+ deftype+ defrecord+]]
-            [knossos [core :as core]
-                     [util :refer :all]
+            [knossos [util :refer :all]
                      [op :as op]]
             [knossos.model.memo :as memo])
     (:import knossos.model.Model
