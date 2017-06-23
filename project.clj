@@ -28,7 +28,8 @@
              "-XX:+UnlockCommercialFeatures"
 ;             "-XX:-OmitStackTraceInFastThrow"
              "-server"
-             "-XX:+UnlockCommercialFeatures"
-             "-XX:+FlightRecorder"
-             "-XX:StartFlightRecording=delay=20s,duration=60s,filename=knossos.jfr"]
+;             "-XX:+UnlockCommercialFeatures"
+;             "-XX:+FlightRecorder"
+;             "-XX:StartFlightRecording=delay=20s,duration=60s,filename=knossos.jfr"
+]
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.8.0"]]}})

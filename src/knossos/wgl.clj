@@ -12,11 +12,12 @@
                      [util :refer [deref-throw]]
                      [model :as model]]
             [knossos.wgl.dll-history :as dllh]
+            [knossos.model.memo :as memo :refer [memo]]
             [clojure.tools.logging :refer [info warn]]
             [clojure.pprint :refer [pprint]]
             [clojure.set :as set])
-  (:import (knossos.wgl.dll_history Node
-                                    INode)
+  (:import (knossos.wgl.dll_history Node INode)
+           (knossos.model.memo Wrapper)
            (java.util BitSet
                       ArrayDeque
                       Set)))
@@ -215,7 +216,16 @@
                       :model model}]
                     (dissoc final-op :entry-id)
                     calls))))
-         (reduce set/union))))
+         (reduce set/union)
+         ; Unwrap memoization
+         (map (fn [path]
+                (mapv (fn [transition]
+                        (let [m (:model transition)]
+                          (if (instance? Wrapper m)
+                            (assoc transition :model (memo/model m))
+                            transition)))
+                      path)))
+         set)))
 
 (defn invalid-analysis
   "Constructs an analysis of an invalid terminal state."
@@ -254,9 +264,10 @@
   (let [history     (-> history
                         history/complete
                         history/with-synthetic-infos
-                        history/index
                         history/without-failures
+                        history/index
                         with-entry-ids)
+        {:keys [model history]} (memo model history)
         ; _ (pprint history)
         n           (max (max-entry-id history) 0)
         head-entry  (dllh/dll-history history)

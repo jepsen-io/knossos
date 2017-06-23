@@ -193,4 +193,4 @@
   [model history]
   (let [history (canonical-history history)]
     {:history history
-     :model (wrapper model history)}))
+     :model   (wrapper model history)}))
