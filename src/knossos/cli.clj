@@ -9,6 +9,7 @@
                      [linear :as linear]
                      [wgl :as wgl]
                      [model :as model]])
+  (:gen-class)
   (:import (java.io PushbackReader)))
 
 (defn read-history
