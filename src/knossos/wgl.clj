@@ -434,10 +434,7 @@
          ; Unwrap memoization/Op wrappers
          (map (fn [path]
                 (mapv (fn [transition]
-                        (let [m (:model transition)
-                              m (if (instance? Wrapper m)
-                                  (memo/model m)
-                                  m)
+                        (let [m (memo/unwrap (:model transition))
                               o (Op->map (:op transition))]
                           {:op o :model m}))
                       path)))
@@ -503,7 +500,7 @@
           ; We've linearized every operation in the history
           (not (.next head-entry))
           {:valid? true
-           :model  s}
+           :model  (memo/unwrap s)}
 
           true
           (let [op ^Op (.op entry)
@@ -573,7 +570,7 @@
               ; the history.
               :info
               {:valid? true
-               :model  s}))))))
+               :model  (memo/unwrap s)}))))))
 
 (defn start-analysis
   "Spawn a thread to check a history. Returns a Search."

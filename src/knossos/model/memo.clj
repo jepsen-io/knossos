@@ -31,11 +31,19 @@
             [clojure.pprint :refer [pprint]]
             [clojure.set :as s]
             [knossos.op :as op]
-            [knossos.model :as model])
+            [knossos.model :as model]
+            [potemkin :refer [definterface+]])
   (:import [knossos.model Model]))
 
-(defprotocol Wrapper
+(definterface+ Wrapper
   (model [this] "Returns the underlying Model."))
+
+(defn unwrap
+  "If x is a Wrapper, return its underlying model. Otherwise, returns x."
+  [x]
+  (if (instance? Wrapper x)
+    (model x)
+    x))
 
 (defn canonical-history
   "Returns a copy of history where all equal :fs and :values are replaced by

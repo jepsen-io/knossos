@@ -18,7 +18,6 @@
                      [op :as op]])
   (:import [java.util ArrayList
                       Set]
-           [knossos.model.memo Wrapper]
            [org.cliffc.high_scale_lib NonBlockingHashSet]))
 
 ;; Transitions between configurations
@@ -155,11 +154,7 @@
        (reduce set/union)
        ; And now unwrap memoization
        (map (fn [path]
-              (mapv (fn [transition]
-                      (let [m (:model transition)]
-                        (if (instance? Wrapper m)
-                          (assoc transition :model (memo/model m))
-                          transition)))
+              (mapv (fn [transition] (update transition :model memo/unwrap))
                     path)))
        set))
 
