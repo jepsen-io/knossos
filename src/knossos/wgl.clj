@@ -475,6 +475,7 @@
 (defn check
   [model history state]
   (let [history     (->> history
+                         history/parse-ops
                          history/complete
                          history/with-synthetic-infos
                          history/without-failures

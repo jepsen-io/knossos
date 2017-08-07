@@ -14,6 +14,14 @@
                          ITransientVector
                          ITransientCollection]))
 
+(defn parse-ops
+  "We're going to construct Op defrecords throughout our analysis, which means
+  that a map without a value, e.g. {:type :invoke, :f :lock, :process 2} is not
+  equal to the corresponding Op, which will have an explicit :value nil. We
+  convert all maps in the history to Ops before doing anything else."
+  [history]
+  (mapv op/map->Op history))
+
 (defn unmatched-invokes
   "Which invoke ops in a history have no corresponding :ok, :fail, or :info?"
   [history]

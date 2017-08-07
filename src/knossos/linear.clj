@@ -253,6 +253,7 @@
   "Spawns a Search to check a history."
   [model history]
   (let [history (-> history
+                    history/parse-ops
                     history/complete
                     history/index)
         memo (memo model history)

@@ -182,7 +182,9 @@ function dbar(id) {
        (map (fn [op]
               (let [i   (:index op)
                     _   (assert i)
-                    t1  (max tmin (:index (history/invocation pair-index op)))
+                    inv (history/invocation pair-index op)
+                    _   (assert inv (str "No invocation for op " (pr-str op)))
+                    t1  (max tmin (:index inv))
                     t2  (let [completion (history/completion pair-index op)]
                           (if (op/info? completion)
                             tmax ; Pin to max time
@@ -423,6 +425,7 @@ function dbar(id) {
   need to render it."
   [history analysis]
   (let [history         (->> history
+                             history/parse-ops
                              history/complete
                              history/with-synthetic-infos
                              history/index)

@@ -6,6 +6,7 @@
             [clojure.string :as str]
             [clojure.tools.cli :as cli]
             [knossos [competition :as competition]
+                     [history :as history]
                      [linear :as linear]
                      [wgl :as wgl]
                      [model :as model]])
@@ -21,11 +22,14 @@
   (let [h (with-open [r (PushbackReader. (io/reader file))]
             (->> (repeatedly #(edn/read {:eof nil} r))
                  (take-while identity)
-                 vec))]
-    (if (and (= 1 (count h))
-             (sequential? (first h)))
-      (vec (first h))
-      h)))
+                 vec))
+        ; Handle the presence or absence of an enclosing vector
+        h (if (and (= 1 (count h))
+                   (sequential? (first h)))
+            (vec (first h))
+            h)]
+    ; Normalize ops
+    (history/parse-ops h)))
 
 (def models
   {"register"     model/register
