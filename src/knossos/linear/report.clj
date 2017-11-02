@@ -181,7 +181,7 @@ function dbar(id) {
   (->> ops
        (map (fn [op]
               (let [i   (:index op)
-                    _   (assert i)
+                    _   (assert i (str "Expected index but got " (pr-str i) " for op " (pr-str op)))
                     inv (history/invocation pair-index op)
                     _   (assert inv (str "No invocation for op " (pr-str op)))
                     t1  (max tmin (:index inv))
