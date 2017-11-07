@@ -21,7 +21,7 @@
         info-op (info 0 :read 1)
         process-op1 (map->Op {:process 0 :type :invoke :f :read :value 1})
         process-op2 (map->Op {:process 0 :type :ok :f :read :value 2})
-        process-op3 (map->Op {:process :nemsis :type :info :f :start :value nil})]
+        process-op3 (map->Op {:process :nemesis :type :info :f :start :value nil})]
     (is (ok? ok-op))
     (is (invoke? invoke-op))
     (is (fail? fail-op))
