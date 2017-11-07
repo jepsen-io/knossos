@@ -91,16 +91,6 @@
                    :crashed)))
     @history))
 
-(deftest prioqueue-test
-  (let [q  (prioqueue/prioqueue)
-        w1 [1 2]
-        w2 [3 4 5]]
-    (->> [w1 w2 w1 w2]
-         (map #(prioqueue/put! q count %))
-         (dorun))
-    (is (= (take-while identity (repeatedly #(prioqueue/poll! q 1)))
-           [w1 w1 w2 w2]))))
-
 (defn analyze-file
   "Given a model m and a function that takes a model and a history and returns
   an analysis, runs that against a file. Confirms that the valid? field is

@@ -23,3 +23,13 @@
 (deftest simple-test
   (is (= (drain! (fill! [[1 :a] [0 :b] [2 :c] [-1 :d]]))
          [:d :b :a :c])))
+
+(deftest prioqueue-test
+  (let [q  (prioqueue)
+        w1 [1 2]
+        w2 [3 4 5]]
+    (->> [w1 w2 w1 w2]
+         (map #(put! q (count %) %))
+         (dorun))
+    (is (= (take-while identity (repeatedly #(poll! q 1)))
+           [w1 w1 w2 w2]))))
