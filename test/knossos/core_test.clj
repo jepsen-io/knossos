@@ -1,7 +1,6 @@
 (ns knossos.core-test
   (:require [clojure.test :refer :all]
             [knossos.core :refer :all]
-            [knossos.prioqueue :as prioqueue]
             [knossos.history :as history]
             [knossos.model :as model :refer [register]]
             [knossos.op :as op]
