@@ -242,7 +242,6 @@
        first
        persistent!))
 
-
 (defn index
   "Attaches an :index key to each element of the history, identifying its
   position in the history vector."
@@ -250,6 +249,24 @@
   (->> history
        (mapv (fn [i op] (assoc op :index i)) (range))
        vec))
+
+; TODO Bench this
+(defn kindex
+  "Overwrites the :index key on each op with a knossos-specific index, returning the new history
+  and a map of external indices to knossos indices. Throws IllegalArgumentException if external
+  indices are not all unique."
+  [history]
+  (let [eindices (map :index history)
+        ; FIXME
+        _ (when (and eindices (not (apply distinct? eindices)))
+            (throw (IllegalArgumentException. "History's indices are not all unique")))
+        history' (index history)
+        ; Map external indices to kindices
+        m (->> history'
+               (map :index)
+               (map vector eindices)
+               (into {}))]
+    [history' m]))
 
 (defn indexed?
   "Is the given history indexed?"

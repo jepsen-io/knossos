@@ -254,17 +254,18 @@
   [model history]
   (let [history (-> history
                     history/parse-ops
-                    history/complete
-                    history/index)
+                    history/complete)
+        [history index-kindex] (history/kindex history)
         memo (memo model history)
         history (:history memo)
         configs (-> (:model memo)
                     (config/config history)
                     list
                     config/set-config-set)
-        state (atom {:running?  true
-                     :configs   configs
-                     :op        nil})
+        state (atom {:running?     true
+                     :configs      configs
+                     :op           nil
+                     :index-kindex index-kindex})
         results   (promise)
         worker    (Thread.
                     (fn []
