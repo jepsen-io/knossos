@@ -252,23 +252,22 @@
 
 (defn kindex
   "Takes a history and returns a new history with internal knossos indices and a map of
-  knossos indices to external indices."
+  knossos indices to external indices. Throws IllegalArgumentException if given history
+  does not have unique indices"
   [history]
-  (let [eindices (map :index history)
-        history' (index history)
-        m (->> history'
-               (map :index)
-               (#(map vector % eindices))
-               (into {}))]
-    [history' m]))
-
-; TODO Validate external indices are unique in kindex, otherwise the mapping is not bijective
-#_(when (and (not (every? #(= -1 %) eindices))
-             (not (every? nil? eindices))
-             (not (apply distinct? eindices)))
-    (throw (IllegalArgumentException. (str "History starting with "
-                                           (first history)
-                                           " contains ops with non-unique indices"))))
+  (let [eindices (map :index history)]
+    (if (or (every? #(= -1 %) eindices)
+            (every? nil? eindices)
+            (apply distinct? eindices))
+      (let [history' (index history)
+            m (->> history'
+                   (map :index)
+                   (#(map vector % eindices))
+                   (into {}))]
+        [history' m])
+      (throw (IllegalArgumentException. (str "History starting with "
+                                             (pr-str (first history))
+                                             " contains ops with non-unique indices"))))))
 
 (defn indexed?
   "Is the given history indexed?"

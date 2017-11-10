@@ -33,6 +33,30 @@
     (is (thrown? AssertionError
                  (complete [(op/ok :a :read 2)])))))
 
+(deftest kindex-test
+  (testing "valid history"
+    (let [history [{:process 0 :type :invoke :f :write :value 1 :index 5}
+                   {:process 0 :type :ok     :f :write :value 1 :index 7}
+                   {:process 0 :type :invoke :f :read  :value 2 :index 99}
+                   {:process 0 :type :ok     :f :read  :value 2 :index 100}]
+          [history m] (kindex history)
+          op0  (first history)
+          op1  (last  history)
+          op0' (op-with-internal-index->op-with-external-index m op0)
+          op1' (op-with-internal-index->op-with-external-index m op1)]
+      (is (= 0   (:index op0)))
+      (is (= 3   (:index op1)))
+      (is (= 5   (:index op0')))
+      (is (= 100 (:index op1')))))
+  (testing "history's indices are not unique"
+    (let [history [{:process 0 :type :invoke :f :write :value 1 :index 5}
+                   {:process 0 :type :ok     :f :write :value 1 :index 7}
+                   {:process 0 :type :invoke :f :read  :value 2 :index 99}
+                   {:process 0 :type :ok     :f :read  :value 2 :index 100}
+                   {:process 0 :type :invoke :f :read  :value 3 :index 100}]]
+      (is (thrown? IllegalArgumentException
+                   (kindex history))))))
+
 (deftest pair-index+-test
   (testing "ok, crash, fail"
     (let [i1 (op/invoke 1 :write 1)

@@ -208,6 +208,7 @@
                   :previous-ok (history/render-op indices (analysis/previous-ok history op))
                   :last-op     (reduce (fn [op config]
                                      (if (or (nil? op)
+                                             (nil? (:index op))
                                              (< (:index op)
                                                 (:index (:last-op config))))
                                        (history/render-op indices (:last-op config))
