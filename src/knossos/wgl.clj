@@ -197,15 +197,26 @@
        (dissoc m :process :type :f :value :index :entry-id)))
 
 (defn Op->map
-  "Turns an Op back into a plain old map, stripping its index and entry ids."
+  "Turns an Op back into a plain old map, stripping its entry ids."
   [^Op op]
   (when op
     (into
       {:process (.process op)
        :type    (.type op)
        :f       (.f op)
-       :value   (.value op)}
+       :value   (.value op)
+       :index   (.index op)}
       (.m op))))
+
+(defn render-op
+  "Prepares an op to be returned by converting it to a plain old map and reassigning its
+  external index"
+  [indices op]
+  (let [o (Op->map op)
+        m (history/op-with-internal-index->op-with-external-index indices o)]
+    (if (:index m)
+      m
+      (dissoc m :index))))
 
 ; This is the datatype we use to prune our exploration of the search space. We
 ; assume the linearized BitSet is immutable, memoizing its hashing to optimize
@@ -415,7 +426,7 @@
   of operations. We take that state and apply all concurrent operations to it,
   in every possible order, ending with the final op which broke
   linearizability."
-  [history pair-index final-op configs]
+  [history pair-index final-op configs indices]
   (let [calls (concurrent-ops-at history final-op)]
     (->> configs
          (map (fn [^CacheConfig config]
@@ -435,14 +446,14 @@
          (map (fn [path]
                 (mapv (fn [transition]
                         (let [m (memo/unwrap (:model transition))
-                              o (Op->map (:op transition))]
+                              o (render-op indices (:op transition))]
                           {:op o :model m}))
                       path)))
          set)))
 
 (defn invalid-analysis
   "Constructs an analysis of an invalid terminal state."
-  [history configs]
+  [history configs state]
   (let [pair-index     (history/pair-index+ history)
         ; We failed because we ran into an OK entry. That means its invocation
         ; couldn't be linearized. What was the entry ID for that invocation?
@@ -461,15 +472,17 @@
         configs (->> configs
                      (configurations-which-linearized-up-to
                        (dec final-entry-id)))
+
+        indices (:indices @state)
         ;_     (prn :configs)
         ;_     (pprint configs)
 
         ; Now compute the final paths from the previous ok operation to the
         ; nonlinearizable one
-        final-paths (final-paths history pair-index final-ok configs)]
+        final-paths (final-paths history pair-index final-ok configs indices)]
     {:valid?      false
-     :op          (Op->map final-ok)
-     :previous-ok (Op->map previous-ok)
+     :op          (render-op indices final-ok)
+     :previous-ok (render-op indices previous-ok)
      :final-paths final-paths}))
 
 (defn check
@@ -478,10 +491,12 @@
                          history/parse-ops
                          history/complete
                          history/with-synthetic-infos
-                         history/without-failures
-                         history/index
-                         with-entry-ids
-                         (mapv map->Op))
+                         history/without-failures)
+        [history kindex-eindex] (history/kindex history)
+        _ (swap! state assoc :indices kindex-eindex)
+        history (->> history
+                     with-entry-ids
+                     (mapv map->Op))
         {:keys [model history]} (memo model history)
         ; _ (pprint history)
         n           (max (max-entry-id history) 0)
@@ -550,7 +565,7 @@
               :ok
               (if (.isEmpty calls)
                 ; We have nowhere left to backtrack to.
-                (invalid-analysis history cache)
+                (invalid-analysis history cache state)
 
                 ; Backtrack, reverting to an earlier state.
                 (let [[^INode entry s]  (.removeFirst calls)
