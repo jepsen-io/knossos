@@ -4,14 +4,15 @@
             [clojure.core.reducers :as r]
             [potemkin :refer [definterface+ deftype+ defrecord+]]
             [knossos [util :refer :all]
-                     [op :as op]]
-            [knossos.model.memo :as memo])
-    (:import knossos.model.Model
-             knossos.model.memo.Wrapper
-             java.util.Arrays
-             java.util.Set
-             java.util.HashSet
-             java.lang.reflect.Array))
+             [op :as op]]
+            [knossos.model.memo :as memo]
+            [knossos.history :as history])
+  (:import knossos.model.Model
+           knossos.model.memo.Wrapper
+           java.util.Arrays
+           java.util.Set
+           java.util.HashSet
+           java.lang.reflect.Array))
 
 ;; An immutable map of process ids to whether they are calling or returning an
 ;; op, augmented with a mutable union-find memoized equality test.
@@ -362,13 +363,17 @@
 
 (defn config->map
   "Turns a config into a nice map showing the state of the world at that point."
-  [^Config config]
+  [indices ^Config config]
   {:model   (let [m (:model config)]
               (if (instance? Wrapper m)
                 (memo/model m)
                 m))
-   :last-op (:last-op config)
-   :pending (into [] (calls (:processes config)))})
+   :last-op (history/render-op indices (:last-op config))
+   :pending (->> config
+                 :processes
+                 calls
+                 (into [])
+                 (mapv #(history/render-op indices %)))})
 
 (defn gammaish
   "Nemes approximation to the gamma function"

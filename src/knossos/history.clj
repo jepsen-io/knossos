@@ -250,23 +250,25 @@
        (mapv (fn [i op] (assoc op :index i)) (range))
        vec))
 
-; TODO Bench this
 (defn kindex
-  "Overwrites the :index key on each op with a knossos-specific index, returning the new history
-  and a map of external indices to knossos indices. Throws IllegalArgumentException if external
-  indices are not all unique."
+  "Takes a history and returns a new history with internal knossos indices and a map of
+  knossos indices to external indices."
   [history]
   (let [eindices (map :index history)
-        ; FIXME
-        _ (when (and eindices (not (apply distinct? eindices)))
-            (throw (IllegalArgumentException. "History's indices are not all unique")))
         history' (index history)
-        ; Map external indices to kindices
         m (->> history'
                (map :index)
-               (map vector eindices)
+               (#(map vector % eindices))
                (into {}))]
     [history' m]))
+
+; TODO Validate external indices are unique in kindex, otherwise the mapping is not bijective
+#_(when (and (not (every? #(= -1 %) eindices))
+             (not (every? nil? eindices))
+             (not (apply distinct? eindices)))
+    (throw (IllegalArgumentException. (str "History starting with "
+                                           (first history)
+                                           " contains ops with non-unique indices"))))
 
 (defn indexed?
   "Is the given history indexed?"
@@ -274,6 +276,21 @@
   (or (empty? history)
       (integer? (:index (first history)))))
 
+(defn op-with-internal-index->op-with-external-index
+  "Uses the internal index to reattach the index that an op had when it was passed in"
+  [mapping op]
+  (when-let [internal (:index op)]
+    (assoc op :index (get mapping internal))))
+
+(defn render-op
+  "Prepares an op to be returned by converting it to a plain old map and reassigning its
+  external index"
+  [indices op]
+  (let [m (op-with-internal-index->op-with-external-index indices
+                                                          (op/Op->map op))]
+    (if (:index m)
+      m
+      (dissoc m :index))))
 
 (defn with-synthetic-infos
   "Histories may arrive with :invoke operations that never complete. We append

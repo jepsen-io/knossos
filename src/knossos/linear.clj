@@ -144,7 +144,7 @@
 
       {:op    some-op
        :model model-resulting-from-applying-op}"
-  [history op configs]
+  [history op configs indices]
   (->> configs
        (map (fn [config]
               (analysis/final-paths-for-config [{:op    (:last-op config)
@@ -154,7 +154,11 @@
        (reduce set/union)
        ; And now unwrap memoization
        (map (fn [path]
-              (mapv (fn [transition] (update transition :model memo/unwrap))
+              (mapv (fn [transition]
+                      (let [m (memo/unwrap (:model transition))
+                            o (history/render-op indices (:op transition))]
+                        {:op    o
+                         :model m}))
                     path)))
        set))
 
@@ -178,7 +182,8 @@
     ; If we're handling a completion, run each configuration through a
     ; just-in-time linearization, accumulating a new set of configs.
     (op/ok? op)
-    (let [cache    (weak-cache-set/clear! cache)
+    (let [indices  (:indices @state)
+          cache    (weak-cache-set/clear! cache)
           configs' (if (< (count configs) parallel-threshold)
                      ; Singlethreaded search
                      (let [configs' (config/set-config-set)]
@@ -197,19 +202,19 @@
 
       (if (empty? configs')
         ; Out of options! Return a reduced debugging state.
-        (reduced {:valid?       false
-                  :configs      (map config/config->map configs)
-                  :final-paths  (final-paths history op configs)
-                  :previous-ok  (analysis/previous-ok history op)
-                  :last-op  (reduce (fn [op config]
-                                      (if (or (nil? op)
-                                              (< (:index op)
-                                                 (:index (:last-op config))))
-                                        (:last-op config)
-                                        op))
-                                    nil
-                                    configs)
-                  :op           op})
+        (reduced {:valid?      false
+                  :configs     (map #(config/config->map indices %) configs)
+                  :final-paths (final-paths history op configs indices)
+                  :previous-ok (history/render-op indices (analysis/previous-ok history op))
+                  :last-op     (reduce (fn [op config]
+                                     (if (or (nil? op)
+                                             (< (:index op)
+                                                (:index (:last-op config))))
+                                       (history/render-op indices (:last-op config))
+                                       op))
+                                   nil
+                                   configs)
+                  :op          (history/render-op indices op)})
         ; Otherwise, return new config set.
         configs'))
 
@@ -222,32 +227,31 @@
   (let [cache   (weak-cache-set/nbhs)
         res     (reduce (partial step history state cache)
                         configs
-                        history)]
+                        history)
+        indices (:indices @state)]
     (if (and (map? res) (= false (:valid? res)))
       ; Reduced error
       res
       {:valid?  true
-       :configs (map config/config->map res)})))
+       :configs (map #(config/config->map indices %) res)})))
 
 (defn results-for-interrupted-state
   "Computes a result map for an interrupted search."
   [history configs state]
-  (let [{:keys [cause configs op]} @state]
+  (let [{:keys [cause configs op indices]} @state]
     {:valid?       :unknown
      :cause        cause
-     :configs      (map config/config->map configs)
-     :previous-ok  (analysis/previous-ok history op)
+     :configs      (map #(config/config->map indices %) configs)
+     :previous-ok  (history/render-op indices (analysis/previous-ok history op))
      :last-op      (reduce (fn [op config]
                              (if (or (nil? op)
                                      (< (:index op)
-                                        (:index (:last-op
-                                                  config))))
-                               (:last-op config))
+                                        (:index (:last-op config))))
+                               (history/render-op indices (:last-op config)))
                              op)
                            nil
                            configs)
-     :op           op}))
-
+     :op           (history/render-op indices op)}))
 
 (defn start-analysis
   "Spawns a Search to check a history."
@@ -255,7 +259,7 @@
   (let [history (-> history
                     history/parse-ops
                     history/complete)
-        [history index-kindex] (history/kindex history)
+        [history kindex-eindex] (history/kindex history)
         memo (memo model history)
         history (:history memo)
         configs (-> (:model memo)
@@ -265,7 +269,7 @@
         state (atom {:running?     true
                      :configs      configs
                      :op           nil
-                     :index-kindex index-kindex})
+                     :indices kindex-eindex})
         results   (promise)
         worker    (Thread.
                     (fn []
@@ -295,7 +299,7 @@
                       (map config/estimated-cost)
                       (reduce +)
                       (cl-format nil "~,2e"))
-         :op    (:op state)}))
+           :op    (history/render-op kindex-eindex (:op state))}))
 
       (results [_] @results)
       (results [_ timeout timeout-val] (deref results timeout timeout-val)))))

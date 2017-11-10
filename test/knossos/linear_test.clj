@@ -7,32 +7,76 @@
             [knossos.core-test :as ct]
             [clojure.pprint :refer [pprint]]))
 
+(deftest crash-test
+  (let [model (register 0)
+        history [(invoke 0 :write 1)
+                 (info   0 :write 1)]
+        a (analysis model history)]
+    (is (:valid? a))))
+
+(deftest sequential-test
+  (let [model (register 0)
+        history [(invoke 0 :read 0)
+                 (ok     0 :read 0)]
+        a (analysis model history)]
+    (is (:valid? a))))
+
+(deftest preserves-indices-test
+  (let [model (register 0)
+        history [{:process 0 :type :invoke :f :write :value 1 :index 5}
+                 {:process 0 :type :ok     :f :write :value 1 :index 7}
+                 {:process 0 :type :invoke :f :read :value 2 :index 99}
+                 {:process 0 :type :ok     :f :read :value 2 :index 100}]
+        a (analysis model history)]
+    (is (not (:valid? a)))
+    (is (= 100 (get-in a [:op :index])))
+    (is (= 7   (get-in a [:last-op :index])))
+    (is (= 7   (get-in a [:previous-ok :index])))
+    (let [configs (-> a :configs first)]
+      (is (= 99 (-> configs :pending first :index)))
+      (is (= 7  (-> configs :last-op :index))))
+    (let [final-paths (-> a :final-paths vec first)]
+      (is (= 7   (-> final-paths first  :op :index)))
+      (is (= 100 (-> final-paths second :op :index))))))
+
+(deftest read-wrong-initial-value-test
+  (let [model (register 0)
+        history [{:process 0 :type :invoke :f :read :value 1}
+                 {:process 0 :type :ok     :f :read :value 1}]
+        a       (analysis model history)]
+    (is (not (:valid a)))
+    (is (= {:process 0, :type :ok, :f :read, :value 1}
+           (:op a)))
+    (is (= #{[{:op nil, :model model}
+              {:op {:process 0 :type :ok :f :read :value 1},
+               :model (inconsistent "0≠1")}]},
+           (:final-paths a)))
+    (is (not (:last-op a)))
+    (is (not (:previous-ok a)))))
+
 (deftest bad-analysis-test
   (let [history [{:process 0 :type :invoke :f :read :value 1}
                  {:process 0 :type :ok     :f :read :value 1}]]
     (is (= {:valid? false
             :previous-ok nil
             :last-op nil
-            :op (map->Op {:process 0
-                          :index   1
-                          :type    :ok
-                          :f       :read
-                          :value   1})
+            :op {:process 0
+                 :type    :ok
+                 :f       :read
+                 :value   1}
             :configs [{:model (register 0)
                        :last-op nil
-                       :pending [(map->Op {:process  0
-                                           :index    0
-                                           :type     :invoke
-                                           :f        :read
-                                           :value    1})]}]
+                       :pending [{:process  0
+                                  :type     :invoke
+                                  :f        :read
+                                  :value    1}]}]
             :final-paths #{[{:model (register 0) :op nil}
                             {:model (inconsistent
                                       "0≠1")
-                             :op (map->Op {:process 0
-                                           :index 1
-                                           :type :ok
-                                           :f :read
-                                           :value 1})}]}}
+                             :op {:process 0
+                                  :type :ok
+                                  :f :read
+                                  :value 1}}]}}
            (analysis (register 0) history)))))
 
 (deftest bad-analysis-test-2
@@ -45,30 +89,30 @@
     (is (= false (:valid? a)))
     ;; This is the only possible state at this time.
     (is (= [{:model (cas-register 2)
-             :last-op (map->Op {:f :write, :index 472, :process 76, :type :ok, :value 2})
+             :last-op {:f :write :process 76 :type :ok :value 2}
              :pending
-             [(map->Op {:process 70, :type :invoke, :f :read, :value 0, :index 488})
-              (map->Op {:process 77, :type :invoke, :f :cas, :value [1 1], :index 463})]}]
+             [{:process 70 :type :invoke :f :read :value 0}
+              {:process 77 :type :invoke :f :cas :value [1 1]}]}]
            (:configs a)))
     ; We fail because we can't linearize the final read of 0
-    (is (= (map->Op {:process 70, :type :ok, :f :read, :value 0, :index 491})
+    (is (= {:process 70 :type :ok :f :read :value 0}
            (:op a)))
     ; The last linearized ok was the completion of process 74's read of 0, but
     ; that's not the last linearized *op*: that'd be the write of 2.
-    (is (= (map->Op {:process 74, :type :ok, :f :read, :value 0, :index 478})
+    (is (= {:process 74 :type :ok :f :read :value 0}
            (:previous-ok a)))
-    (is (= (map->Op {:process 76, :type :ok, :f :write, :value 2, :index 472})
+    (is (= {:process 76 :type :ok :f :write :value 2}
            (:last-op a)))
 
     ; There are two possible options: write 2, CAS 1->1, or write 2, read 0.
     (is (= #{[{:model (cas-register 2)
-               :op (map->Op {:f :write :index 472 :process 76 :type :ok :value 2})}
+               :op {:f :write :process 76 :type :ok :value 2}}
               {:model (inconsistent "can't CAS 2 from 1 to 1")
-               :op (map->Op {:f :cas :index 463 :process 77 :type :invoke :value [1 1]})}]
+               :op {:f :cas :process 77 :type :invoke :value [1 1]}}]
              [{:model (cas-register 2)
-               :op (map->Op {:f :write :index 472 :process 76 :type :ok :value 2})}
+               :op {:f :write :process 76 :type :ok :value 2}}
               {:model (inconsistent "can't read 0 from register 2")
-               :op (map->Op {:f :read :index 491 :process 70 :type :ok :value 0})}]}
+               :op {:f :read :process 70 :type :ok :value 0}}]}
            (:final-paths a)))))
 
 (deftest volatile-linearizable-test
@@ -78,10 +122,26 @@
           a       (analysis (register 0) history)]
       (is (:valid? a))
       (when (not= true (:valid? a))
-;        (pprint history)
         (println "history length" (count history))
         (prn)
         (pprint (assoc a :configs (take 2 (:configs a))))))))
+
+(deftest rethink-fail-minimal-test
+  (let [a (analysis (cas-register nil)
+                    (ct/read-history-2 "data/cas-register/bad/rethink-fail-minimal.edn"))]
+    (is (= false (:valid? a)))
+
+    ; We shouldn't be able to linearize the read of 3 by process 12, which
+    ; appears out of nowhere.
+    (is (= {:process 1 :type :ok :f :read :value 3}
+           (:op a)))))
+
+(deftest cas-failure-test
+  (let [a (analysis (cas-register 0)
+                    (ct/read-history-2 "data/cas-register/bad/cas-failure.edn"))]
+    (is (= false (:valid? a)))
+    (is (= {:f :read :process 70 :type :ok :value 0}
+           (:op a)))))
 
 (deftest multi-register-test
   (let [a (analysis (multi-register {:x 0 :y 0})
