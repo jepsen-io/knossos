@@ -259,7 +259,8 @@
   [model history]
   (let [history (-> history
                     history/parse-ops
-                    history/complete)
+                    history/complete
+                    history/ensure-indexed)
         [history kindex-eindex] (history/kindex history)
         memo (memo model history)
         history (:history memo)

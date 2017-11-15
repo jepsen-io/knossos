@@ -424,46 +424,51 @@ function dbar(id) {
   Basically we're taking an analysis and figuring out all the stuff we're gonna
   need to render it."
   [history analysis]
-  (let [history         (->> history
-                             history/parse-ops
-                             history/complete
-                             history/with-synthetic-infos
-                             history/index)
-        pair-index      (history/pair-index+ history)
-        ops             (ops analysis)
-        models          (models analysis)
-        model-numbers   (model-numbers models)
-        process-coords  (process-coords ops)
-        time-bounds     (time-bounds pair-index analysis)
-        time-coords     (time-coords pair-index time-bounds ops)
-        paths           (paths analysis time-coords process-coords)
-        [paths lines bars] (paths->lines paths)
-        reachable       (reachable paths)
-        hscale          (comp hscale (warp-time-coordinates time-coords bars))]
-    {:history       history
-     :analysis      analysis
-     :pair-index    pair-index
-     :ops           ops
-     :models        models
-     :model-numbers model-numbers
+  (let [history                  (-> history
+                                     history/complete
+                                     history/with-synthetic-infos
+                                     history/ensure-indexed)
+        [history kindex->eindex] (history/kindex history)
+        pair-index               (history/pair-index+ history)
+        ops                      (ops analysis)
+        models                   (models analysis)
+        model-numbers            (model-numbers models)
+        process-coords           (process-coords ops)
+        time-bounds              (time-bounds pair-index analysis)
+        time-coords              (time-coords pair-index time-bounds ops)
+        paths                    (paths analysis time-coords process-coords)
+        [paths lines bars]       (paths->lines paths)
+        reachable                (reachable paths)
+        hscale                   (comp hscale (warp-time-coordinates time-coords bars))]
+    {:history        history
+     :analysis       analysis
+     :pair-index     pair-index
+     :kindex->eindex kindex->eindex
+     :ops            ops
+     :models         models
+     :model-numbers  model-numbers
      :process-coords process-coords
-     :time-bounds   time-bounds
-     :time-coords   time-coords
-     :paths         paths
-     :lines         lines
-     :bars          bars
-     :reachable     reachable
-     :hscale        hscale}))
+     :time-bounds    time-bounds
+     :time-coords    time-coords
+     :paths          paths
+     :lines          lines
+     :bars           bars
+     :reachable      reachable
+     :hscale         hscale}))
 
 (defn render-ops
   "Given learnings, renders all operations as a group of SVG tags."
-  [{:keys [hscale time-coords process-coords pair-index ops]}]
+  [{:keys [hscale time-coords process-coords pair-index ops kindex->eindex]}]
   (->> ops
        (mapv (fn [op]
               (let [[t1 t2] (time-coords    (:index op))
                     p       (process-coords (:process op))
-                    width   (- (hscale t2) (hscale t1))] ; nonlinear coords
+                    width   (- (hscale t2) (hscale t1)) ; nonlinear coords
+                    i       (->> op (history/completion pair-index) :index kindex->eindex)]
                 (svg/group
+                 [:a
+                  {:xlink:href (str "timeline.html#i" i) ; xlink for fallback (LOOKING AT YOU SAFARI)
+                   :href       (str "timeline.html#i" i)}
                   (svg/rect (hscale t1)
                             (vscale p)
                             (vscale process-height)
@@ -480,7 +485,7 @@ function dbar(id) {
                                  :font-size (vscale (* process-height 0.6))
                                  :font-family font
                                  :alignment-baseline :middle
-                                 :text-anchor :middle))))))
+                                 :text-anchor :middle))]))))
        (apply svg/group)))
 
 (defn activate-line
@@ -641,9 +646,9 @@ function dbar(id) {
   "Render an entire analysis."
   [history analysis file]
   (let [learnings  (learnings history analysis)
-        ops        (render-ops   learnings)
-        bars       (render-bars  learnings)
-        lines      (render-lines learnings)
+        ops        (render-ops    learnings)
+        bars       (render-bars   learnings)
+        lines      (render-lines  learnings)
         legend     (render-legend learnings)]
     (spit file
           (xml/emit

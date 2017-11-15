@@ -275,6 +275,13 @@
   (or (empty? history)
       (integer? (:index (first history)))))
 
+(defn ensure-indexed
+  "Makes sure a history is indexed when we start our analysis"
+  [history]
+  (if-not (indexed? history)
+    (index history)
+    history))
+
 (defn op-with-internal-index->op-with-external-index
   "Uses the internal index to reattach the index that an op had when it was passed in"
   [mapping op]

@@ -487,11 +487,12 @@
 
 (defn check
   [model history state]
-  (let [history     (->> history
-                         history/parse-ops
-                         history/complete
-                         history/with-synthetic-infos
-                         history/without-failures)
+  (let [history (->> history
+                     history/parse-ops
+                     history/complete
+                     history/with-synthetic-infos
+                     history/without-failures
+                     history/ensure-indexed)
         [history kindex-eindex] (history/kindex history)
         _ (swap! state assoc :indices kindex-eindex)
         history (->> history
