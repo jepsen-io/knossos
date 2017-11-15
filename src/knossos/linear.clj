@@ -208,7 +208,6 @@
                   :previous-ok (history/render-op indices (analysis/previous-ok history op))
                   :last-op     (reduce (fn [op config]
                                      (if (or (nil? op)
-                                             (nil? (:index op))
                                              (< (:index op)
                                                 (:index (:last-op config))))
                                        (history/render-op indices (:last-op config))
@@ -258,9 +257,9 @@
   "Spawns a Search to check a history."
   [model history]
   (let [history (-> history
+                    history/ensure-indexed
                     history/parse-ops
-                    history/complete
-                    history/ensure-indexed)
+                    history/complete)
         [history kindex-eindex] (history/kindex history)
         memo (memo model history)
         history (:history memo)
@@ -311,4 +310,5 @@
   linearizable. Returns a map with a :valid? bool and additional debugging
   information."
   [model history]
-  (search/run (start-analysis model history)))
+  (assoc (search/run (start-analysis model history))
+         :analysis :linear))

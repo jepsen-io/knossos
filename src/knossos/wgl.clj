@@ -213,7 +213,7 @@
   external index"
   [indices op]
   (let [o (Op->map op)
-        m (history/op-with-internal-index->op-with-external-index indices o)]
+        m (history/convert-op-index indices o)]
     (if (:index m)
       m
       (dissoc m :index))))
@@ -488,11 +488,11 @@
 (defn check
   [model history state]
   (let [history (->> history
+                     history/ensure-indexed
                      history/parse-ops
                      history/complete
                      history/with-synthetic-infos
-                     history/without-failures
-                     history/ensure-indexed)
+                     history/without-failures)
         [history kindex-eindex] (history/kindex history)
         _ (swap! state assoc :indices kindex-eindex)
         history (->> history
@@ -627,4 +627,5 @@
   linearizable. Returns a map with a :valid? bool and additional debugging
   information."
   [model history]
-  (search/run (start-analysis model history)))
+  (assoc (search/run (start-analysis model history))
+         :analysis :wgl))

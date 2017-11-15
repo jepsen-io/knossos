@@ -196,10 +196,11 @@ function dbar(id) {
 
 (defn path-bounds
   "Assign an initial :y, :min-x and :max-x to every transition in a path."
-  [{:keys [time-coords process-coords]} path]
+  [{:keys [time-coords process-coords]} eindex->kindex path]
   (map (fn [transition]
          (let [op      (:op transition)
-               [t1 t2] (time-coords (:index op))]
+               index   (->> op (history/convert-op-index eindex->kindex) :index)
+               [t1 t2] (time-coords index)]
            (assoc transition
                   :y (process-coords (:process op))
                   :min-x t1
@@ -209,11 +210,12 @@ function dbar(id) {
 (defn paths
   "Given time coords, process coords, and an analysis, emits paths with
   coordinate bounds."
-  [analysis time-coords process-coords]
+  [analysis time-coords process-coords eindex->kindex]
   (->> analysis
        :final-paths
        (map (partial path-bounds {:time-coords    time-coords
-                                  :process-coords process-coords}))))
+                                  :process-coords process-coords}
+                     eindex->kindex))))
 
 (defn path->line
   "Takes a map of coordinates to models, path, a collection of lines, and emits
@@ -424,19 +426,23 @@ function dbar(id) {
   Basically we're taking an analysis and figuring out all the stuff we're gonna
   need to render it."
   [history analysis]
-  (let [history                  (-> history
-                                     history/complete
-                                     history/with-synthetic-infos
-                                     history/ensure-indexed)
+  (let [history                  (let [history (-> history
+                                                   history/ensure-indexed
+                                                   history/complete
+                                                   history/with-synthetic-infos)]
+                                   (if (= :wgl (:checker analysis))
+                                     (history/without-failures history)
+                                     history))
         [history kindex->eindex] (history/kindex history)
+        eindex->kindex           (clojure.set/map-invert kindex->eindex)
         pair-index               (history/pair-index+ history)
-        ops                      (ops analysis)
+        ops                      (->> analysis ops (history/convert-op-indices eindex->kindex))
         models                   (models analysis)
         model-numbers            (model-numbers models)
         process-coords           (process-coords ops)
         time-bounds              (time-bounds pair-index analysis)
         time-coords              (time-coords pair-index time-bounds ops)
-        paths                    (paths analysis time-coords process-coords)
+        paths                    (paths analysis time-coords process-coords eindex->kindex)
         [paths lines bars]       (paths->lines paths)
         reachable                (reachable paths)
         hscale                   (comp hscale (warp-time-coordinates time-coords bars))]

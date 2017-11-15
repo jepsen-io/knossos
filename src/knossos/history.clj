@@ -282,18 +282,22 @@
     (index history)
     history))
 
-(defn op-with-internal-index->op-with-external-index
-  "Uses the internal index to reattach the index that an op had when it was passed in"
+(defn convert-op-index
+  "Maps the index of the op to its corresponding value in the given mapping"
   [mapping op]
-  (when-let [internal (:index op)]
-    (assoc op :index (get mapping internal))))
+  (when-let [new-i (:index op)]
+    (assoc op :index (get mapping new-i))))
+
+(defn convert-op-indices
+  "Maps `convert-op-index` over a collection of ops"
+  [mapping ops]
+  (map #(convert-op-index mapping %) ops))
 
 (defn render-op
   "Prepares an op to be returned by converting it to a plain old map and reassigning its
   external index"
   [indices op]
-  (let [m (op-with-internal-index->op-with-external-index indices
-                                                          (op/Op->map op))]
+  (let [m (convert-op-index indices (op/Op->map op))]
     (if (:index m)
       m
       (dissoc m :index))))
@@ -304,7 +308,10 @@
   [history]
   (assert (vector? history))
   (->> (unmatched-invokes history)
-       (map (fn [invoke] (assoc invoke :type :info)))
+       (map-indexed
+        (fn [i invoke] (assoc invoke
+                              :type :info
+                              :index (+ (inc i) (count history)))))
        (into history)))
 
 (defn without-failures
