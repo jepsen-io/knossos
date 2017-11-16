@@ -42,8 +42,8 @@
           [history m] (kindex history)
           op0  (first history)
           op1  (last  history)
-          op0' (op-with-internal-index->op-with-external-index m op0)
-          op1' (op-with-internal-index->op-with-external-index m op1)]
+          op0' (convert-op-index m op0)
+          op1' (convert-op-index m op1)]
       (is (= 0   (:index op0)))
       (is (= 3   (:index op1)))
       (is (= 5   (:index op0')))
