@@ -242,7 +242,6 @@
        first
        persistent!))
 
-
 (defn index
   "Attaches an :index key to each element of the history, identifying its
   position in the history vector."
@@ -251,12 +250,57 @@
        (mapv (fn [i op] (assoc op :index i)) (range))
        vec))
 
+(defn kindex
+  "Takes a history and returns a new history with internal knossos indices and a map of
+  knossos indices to external indices. Throws IllegalArgumentException if given history
+  does not have unique indices"
+  [history]
+  (let [eindices (map :index history)]
+    (if (or (every? #(= -1 %) eindices)
+            (every? nil? eindices)
+            (apply distinct? eindices))
+      (let [history' (index history)
+            m (->> history'
+                   (map :index)
+                   (#(map vector % eindices))
+                   (into {}))]
+        [history' m])
+      (throw (IllegalArgumentException. (str "History starting with "
+                                             (pr-str (first history))
+                                             " contains ops with non-unique indices"))))))
+
 (defn indexed?
   "Is the given history indexed?"
   [history]
   (or (empty? history)
       (integer? (:index (first history)))))
 
+(defn ensure-indexed
+  "Makes sure a history is indexed when we start our analysis"
+  [history]
+  (if-not (indexed? history)
+    (index history)
+    history))
+
+(defn convert-op-index
+  "Maps the index of the op to its corresponding value in the given mapping"
+  [mapping op]
+  (when-let [new-i (:index op)]
+    (assoc op :index (get mapping new-i))))
+
+(defn convert-op-indices
+  "Maps `convert-op-index` over a collection of ops"
+  [mapping ops]
+  (map #(convert-op-index mapping %) ops))
+
+(defn render-op
+  "Prepares an op to be returned by converting it to a plain old map and reassigning its
+  external index"
+  [indices op]
+  (let [m (convert-op-index indices (op/Op->map op))]
+    (if (:index m)
+      m
+      (dissoc m :index))))
 
 (defn with-synthetic-infos
   "Histories may arrive with :invoke operations that never complete. We append
@@ -264,7 +308,10 @@
   [history]
   (assert (vector? history))
   (->> (unmatched-invokes history)
-       (map (fn [invoke] (assoc invoke :type :info)))
+       (map-indexed
+        (fn [i invoke] (assoc invoke
+                              :type :info
+                              :index (+ (inc i) (count history)))))
        (into history)))
 
 (defn without-failures

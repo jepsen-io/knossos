@@ -103,24 +103,26 @@
 (deftest config->map-test
   (let [w1 {:index 0 :process 0 :type :invoke :f :write :value 1}
         r2 {:index 1 :process 1 :type :invoke :f :read  :value 2}
+        indices {0 nil
+                 1 nil}
         h  [w1 r2]
         c  (config (register 0) h)]
     (testing "initial"
       (is (= {:model (register 0)
               :last-op nil
               :pending []}
-             (config->map c))))
+             (config->map indices c))))
 
     (testing "pending"
       (let [c (-> c (t-call w1))]
         (is (= {:model (register 0)
                 :last-op nil
-                :pending [w1]}
-               (config->map c)))))
+                :pending [{:process 0 :type :invoke :f :write :value 1}]}
+               (config->map indices c)))))
 
     (testing "linearized"
       (let [c (-> c (t-call w1) (t-lin w1))]
         (is (= {:model (register 1)
-                :last-op w1
+                :last-op {:process 0 :type :invoke :f :write :value 1}
                 :pending []}
-               (config->map c)))))))
+               (config->map indices c)))))))

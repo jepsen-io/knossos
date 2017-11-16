@@ -196,10 +196,11 @@ function dbar(id) {
 
 (defn path-bounds
   "Assign an initial :y, :min-x and :max-x to every transition in a path."
-  [{:keys [time-coords process-coords]} path]
+  [{:keys [time-coords process-coords]} eindex->kindex path]
   (map (fn [transition]
          (let [op      (:op transition)
-               [t1 t2] (time-coords (:index op))]
+               index   (->> op (history/convert-op-index eindex->kindex) :index)
+               [t1 t2] (time-coords index)]
            (assoc transition
                   :y (process-coords (:process op))
                   :min-x t1
@@ -209,11 +210,12 @@ function dbar(id) {
 (defn paths
   "Given time coords, process coords, and an analysis, emits paths with
   coordinate bounds."
-  [analysis time-coords process-coords]
+  [analysis time-coords process-coords eindex->kindex]
   (->> analysis
        :final-paths
        (map (partial path-bounds {:time-coords    time-coords
-                                  :process-coords process-coords}))))
+                                  :process-coords process-coords}
+                     eindex->kindex))))
 
 (defn path->line
   "Takes a map of coordinates to models, path, a collection of lines, and emits
@@ -424,46 +426,55 @@ function dbar(id) {
   Basically we're taking an analysis and figuring out all the stuff we're gonna
   need to render it."
   [history analysis]
-  (let [history         (->> history
-                             history/parse-ops
-                             history/complete
-                             history/with-synthetic-infos
-                             history/index)
-        pair-index      (history/pair-index+ history)
-        ops             (ops analysis)
-        models          (models analysis)
-        model-numbers   (model-numbers models)
-        process-coords  (process-coords ops)
-        time-bounds     (time-bounds pair-index analysis)
-        time-coords     (time-coords pair-index time-bounds ops)
-        paths           (paths analysis time-coords process-coords)
-        [paths lines bars] (paths->lines paths)
-        reachable       (reachable paths)
-        hscale          (comp hscale (warp-time-coordinates time-coords bars))]
-    {:history       history
-     :analysis      analysis
-     :pair-index    pair-index
-     :ops           ops
-     :models        models
-     :model-numbers model-numbers
+  (let [history                  (let [history (-> history
+                                                   history/ensure-indexed
+                                                   history/complete
+                                                   history/with-synthetic-infos)]
+                                   (if (= :wgl (:analyzer analysis))
+                                     (history/without-failures history)
+                                     history))
+        [history kindex->eindex] (history/kindex history)
+        eindex->kindex           (clojure.set/map-invert kindex->eindex)
+        pair-index               (history/pair-index+ history)
+        ops                      (->> analysis ops (history/convert-op-indices eindex->kindex))
+        models                   (models analysis)
+        model-numbers            (model-numbers models)
+        process-coords           (process-coords ops)
+        time-bounds              (time-bounds pair-index analysis)
+        time-coords              (time-coords pair-index time-bounds ops)
+        paths                    (paths analysis time-coords process-coords eindex->kindex)
+        [paths lines bars]       (paths->lines paths)
+        reachable                (reachable paths)
+        hscale                   (comp hscale (warp-time-coordinates time-coords bars))]
+    {:history        history
+     :analysis       analysis
+     :pair-index     pair-index
+     :kindex->eindex kindex->eindex
+     :ops            ops
+     :models         models
+     :model-numbers  model-numbers
      :process-coords process-coords
-     :time-bounds   time-bounds
-     :time-coords   time-coords
-     :paths         paths
-     :lines         lines
-     :bars          bars
-     :reachable     reachable
-     :hscale        hscale}))
+     :time-bounds    time-bounds
+     :time-coords    time-coords
+     :paths          paths
+     :lines          lines
+     :bars           bars
+     :reachable      reachable
+     :hscale         hscale}))
 
 (defn render-ops
   "Given learnings, renders all operations as a group of SVG tags."
-  [{:keys [hscale time-coords process-coords pair-index ops]}]
+  [{:keys [hscale time-coords process-coords pair-index ops kindex->eindex]}]
   (->> ops
        (mapv (fn [op]
               (let [[t1 t2] (time-coords    (:index op))
                     p       (process-coords (:process op))
-                    width   (- (hscale t2) (hscale t1))] ; nonlinear coords
+                    width   (- (hscale t2) (hscale t1)) ; nonlinear coords
+                    i       (->> op (history/completion pair-index) :index kindex->eindex)]
                 (svg/group
+                 [:a
+                  {:xlink:href (str "timeline.html#i" i) ; xlink for fallback (LOOKING AT YOU SAFARI)
+                   :href       (str "timeline.html#i" i)}
                   (svg/rect (hscale t1)
                             (vscale p)
                             (vscale process-height)
@@ -480,7 +491,7 @@ function dbar(id) {
                                  :font-size (vscale (* process-height 0.6))
                                  :font-family font
                                  :alignment-baseline :middle
-                                 :text-anchor :middle))))))
+                                 :text-anchor :middle))]))))
        (apply svg/group)))
 
 (defn activate-line
@@ -641,9 +652,9 @@ function dbar(id) {
   "Render an entire analysis."
   [history analysis file]
   (let [learnings  (learnings history analysis)
-        ops        (render-ops   learnings)
-        bars       (render-bars  learnings)
-        lines      (render-lines learnings)
+        ops        (render-ops    learnings)
+        bars       (render-bars   learnings)
+        lines      (render-lines  learnings)
         legend     (render-legend learnings)]
     (spit file
           (xml/emit

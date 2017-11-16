@@ -19,6 +19,20 @@
                      (op/ok     0 :read 0)])]
     (is (:valid? a))))
 
+(deftest preserves-indices-test
+  (let [model (register 0)
+        history [{:process 0 :type :invoke :f :write :value 1 :index 5}
+                 {:process 0 :type :ok     :f :write :value 1 :index 7}
+                 {:process 0 :type :invoke :f :read :value 2 :index 99}
+                 {:process 0 :type :ok     :f :read :value 2 :index 100}]
+        a (analysis model history)]
+    (is (not (:valid? a)))
+    (is (= 100 (get-in a [:op :index])))
+    (is (= 7   (get-in a [:previous-ok :index])))
+    (let [final-paths (-> a :final-paths vec first)]
+      (is (= 7   (-> final-paths first  :op :index)))
+      (is (= 100 (-> final-paths second :op :index))))))
+
 (deftest read-wrong-initial-value-test
   (let [model (register 0)
         history [{:process 0 :type :invoke :f :read :value 1}

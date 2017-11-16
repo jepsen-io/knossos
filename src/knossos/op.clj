@@ -8,6 +8,11 @@
 
 (defrecord Op [process type f value ^:int index])
 
+(defn Op->map
+  "Turns an Op back into a plain old map"
+  [^Op op]
+  (when op (into {} op)))
+
 (defn op
   "Constructs a new operation for a history."
   [process type f value]
