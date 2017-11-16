@@ -430,7 +430,7 @@ function dbar(id) {
                                                    history/ensure-indexed
                                                    history/complete
                                                    history/with-synthetic-infos)]
-                                   (if (= :wgl (:checker analysis))
+                                   (if (= :wgl (:analyzer analysis))
                                      (history/without-failures history)
                                      history))
         [history kindex->eindex] (history/kindex history)

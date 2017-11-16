@@ -628,4 +628,4 @@
   information."
   [model history]
   (assoc (search/run (start-analysis model history))
-         :analysis :wgl))
+         :analyzer :wgl))

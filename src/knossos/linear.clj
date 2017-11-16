@@ -311,4 +311,4 @@
   information."
   [model history]
   (assoc (search/run (start-analysis model history))
-         :analysis :linear))
+         :analyzer :linear))
