@@ -26,7 +26,7 @@
                  {:process 0 :type :invoke :f :read :value 2 :index 99}
                  {:process 0 :type :ok     :f :read :value 2 :index 100}]
         a (analysis model history)]
-    (is (not (:valid? a)))
+    (is (= false (:valid? a)))
     (is (= :wgl (:analyzer a)))
     (is (= 100 (get-in a [:op :index])))
     (is (= 7   (get-in a [:previous-ok :index])))
@@ -53,7 +53,7 @@
   (let [a (analysis
             (cas-register 0)
             (ct/read-history-2 "data/cas-register/bad/bad-analysis.edn"))]
-    (is (not (:valid? a)))
+    (is (= false (:valid? a)))
     (is (= {:process 21, :type :ok, :f :read, :value 2 :index 14} (:op a)))
     (is (= {:process 19, :type :ok, :f :read, :value 0 :index 11}
            (:previous-ok a)))))
@@ -66,7 +66,7 @@
     ; read of 0 by process 70. The only legal linearization to that final read
     ; is all reads of 0, followed by 76 write 2, which leaves the state as 2.
     ; Process 70 read 0 should be the invalidating op.
-    (is (not (:valid? a)))
+    (is (= false (:valid? a)))
 
     ; We fail because we can't linearize the final read of 0
     (is (= {:process 70, :type :ok, :f :read, :value 0 :index 491}
@@ -90,7 +90,7 @@
 (deftest rethink-fail-minimal-test
   (let [a (analysis (cas-register nil)
                     (ct/read-history-2 "data/cas-register/bad/rethink-fail-minimal.edn"))]
-    (is (not (:valid? a)))
+    (is (= false (:valid? a)))
 
     ; We shouldn't be able to linearize the read of 3 by process 12, which
     ; appears out of nowhere.
@@ -100,7 +100,7 @@
 (deftest rethink-fail-smaller-test
   (let [a (analysis (cas-register nil)
                     (ct/read-history-2 "data/cas-register/bad/rethink-fail-smaller.edn"))]
-    (is (not (:valid? a)))
+    (is (= false (:valid? a)))
 
     ; We shouldn't be able to linearize the read of 3 by process 12, which
     ; appears out of nowhere.
@@ -110,7 +110,7 @@
 (deftest cas-failure-test
   (let [a (analysis (cas-register 0)
                     (ct/read-history-2 "data/cas-register/bad/cas-failure.edn"))]
-    (is (not (:valid? a)))
+    (is (= false (:valid? a)))
     (is (= {:f :read :process 70 :type :ok :value 0 :index 491}
            (:op a)))))
 
