@@ -44,75 +44,79 @@
         history [{:process 0 :type :invoke :f :read :value 1}
                  {:process 0 :type :ok     :f :read :value 1}]
         a       (analysis model history)]
-    (is (not (:valid a)))
-    (is (= {:process 0, :type :ok, :f :read, :value 1}
+    (is (not (:valid? a)))
+    (is (= {:process 0, :type :ok, :f :read, :value 1 :index 1}
            (:op a)))
     (is (= #{[{:op nil, :model model}
-              {:op {:process 0 :type :ok :f :read :value 1},
+              {:op {:process 0 :type :ok :f :read :value 1 :index 1},
                :model (inconsistent "0≠1")}]},
            (:final-paths a)))
     (is (not (:last-op a)))
     (is (not (:previous-ok a)))))
 
 (deftest bad-analysis-test
-  (let [history [{:process 0 :type :invoke :f :read :value 1}
-                 {:process 0 :type :ok     :f :read :value 1}]]
-    (is (= {:valid? false
-            :previous-ok nil
-            :last-op nil
-            :op {:process 0
-                 :type    :ok
-                 :f       :read
-                 :value   1}
-            :configs [{:model (register 0)
-                       :last-op nil
-                       :pending [{:process  0
-                                  :type     :invoke
-                                  :f        :read
-                                  :value    1}]}]
-            :final-paths #{[{:model (register 0) :op nil}
-                            {:model (inconsistent
-                                      "0≠1")
-                             :op {:process 0
-                                  :type :ok
-                                  :f :read
-                                  :value 1}}]}}
-           (analysis (register 0) history)))))
+  (let [model (register 0)
+        history [{:process 0 :type :invoke :f :read :value 1}
+                 {:process 0 :type :ok     :f :read :value 1}]
+        a (analysis model history)]
+    (is (= :linear (:analyzer a)))
+    (is (not  (:valid? a)))
+    (is (nil? (:previous-ok a)))
+    (is (nil? (:last-op a)))
+    (is (= {:process 0
+            :type    :ok
+            :f       :read
+            :value   1
+            :index   1}
+         (:op a)))
+    (is (= [{:model model
+           :last-op nil
+           :pending [{:process  0
+                      :type     :invoke
+                      :f        :read
+                      :value    1
+                      :index    0}]}]
+           (:configs a)))
+    (is (= #{[{:model model :op nil}
+              {:model (inconsistent "0≠1")
+               :op {:process 0 :type :ok :f :read :value 1 :index 1}}]}
+         (:final-paths a)))))
 
 (deftest bad-analysis-test-2
-  (let [a (analysis (cas-register 0) (ct/read-history-2 "data/cas-register/bad/cas-failure.edn"))]
+  (let [model (cas-register 0)
+        a (analysis model (ct/read-history-2 "data/cas-register/bad/cas-failure.edn"))]
     ; In this particular history, we know the value is 0, then we have
     ; concurrent reads of 0 and a write of 2 by process 76, followed by another
     ; read of 0 by process 70. The only legal linearization to that final read
     ; is all reads of 0, followed by 76 write 2, which leaves the state as 2.
     ; Process 70 read 0 should be the invalidating op.
-    (is (= false (:valid? a)))
+    (is (not (:valid? a)))
     ;; This is the only possible state at this time.
     (is (= [{:model (cas-register 2)
-             :last-op {:f :write :process 76 :type :ok :value 2}
+             :last-op {:f :write :process 76 :type :ok :value 2 :index 472}
              :pending
-             [{:process 70 :type :invoke :f :read :value 0}
-              {:process 77 :type :invoke :f :cas :value [1 1]}]}]
+             [{:process 70 :type :invoke :f :read :value 0 :index 488}
+              {:process 77 :type :invoke :f :cas :value [1 1] :index 463}]}]
            (:configs a)))
     ; We fail because we can't linearize the final read of 0
-    (is (= {:process 70 :type :ok :f :read :value 0}
+    (is (= {:process 70 :type :ok :f :read :value 0 :index 491}
            (:op a)))
     ; The last linearized ok was the completion of process 74's read of 0, but
     ; that's not the last linearized *op*: that'd be the write of 2.
-    (is (= {:process 74 :type :ok :f :read :value 0}
+    (is (= {:process 74 :type :ok :f :read :value 0 :index 478}
            (:previous-ok a)))
-    (is (= {:process 76 :type :ok :f :write :value 2}
+    (is (= {:process 76 :type :ok :f :write :value 2 :index 472}
            (:last-op a)))
 
     ; There are two possible options: write 2, CAS 1->1, or write 2, read 0.
     (is (= #{[{:model (cas-register 2)
-               :op {:f :write :process 76 :type :ok :value 2}}
+               :op {:f :write :process 76 :type :ok :value 2 :index 472}}
               {:model (inconsistent "can't CAS 2 from 1 to 1")
-               :op {:f :cas :process 77 :type :invoke :value [1 1]}}]
+               :op {:f :cas :process 77 :type :invoke :value [1 1] :index 463}}]
              [{:model (cas-register 2)
-               :op {:f :write :process 76 :type :ok :value 2}}
+               :op {:f :write :process 76 :type :ok :value 2 :index 472}}
               {:model (inconsistent "can't read 0 from register 2")
-               :op {:f :read :process 70 :type :ok :value 0}}]}
+               :op {:f :read :process 70 :type :ok :value 0 :index 491}}]}
            (:final-paths a)))))
 
 (deftest volatile-linearizable-test
@@ -133,14 +137,14 @@
 
     ; We shouldn't be able to linearize the read of 3 by process 12, which
     ; appears out of nowhere.
-    (is (= {:process 1 :type :ok :f :read :value 3}
+    (is (= {:process 1 :type :ok :f :read :value 3 :index 4}
            (:op a)))))
 
 (deftest cas-failure-test
   (let [a (analysis (cas-register 0)
                     (ct/read-history-2 "data/cas-register/bad/cas-failure.edn"))]
     (is (= false (:valid? a)))
-    (is (= {:f :read :process 70 :type :ok :value 0}
+    (is (= {:f :read :process 70 :type :ok :value 0 :index 491}
            (:op a)))))
 
 (deftest multi-register-test
