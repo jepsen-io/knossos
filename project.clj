@@ -15,7 +15,8 @@
                  [org.clojars.pallix/analemma "1.0.0"
                   :exclusions [org.clojure/clojure]]
                  [org.clojure/tools.logging "0.3.1"]
-                 [org.slf4j/slf4j-log4j12 "1.7.21"]]
+                 [org.slf4j/slf4j-log4j12 "1.7.21"]
+                 [org.clojars.achim/multiset "0.1.0"]]
   ; "-verbose:gc" "-XX:+PrintGCDetails"
   :test-selectors {:focus :focus}
   :jvm-opts ["-Xmx12g"
@@ -29,7 +30,6 @@
              "-XX:+UnlockCommercialFeatures"
 ;             "-XX:-OmitStackTraceInFastThrow"
              "-server"
-;             "-XX:+UnlockCommercialFeatures"
 ;             "-XX:+FlightRecorder"
 ;             "-XX:StartFlightRecording=delay=10s,duration=50s,filename=knossos.jfr"
 ]

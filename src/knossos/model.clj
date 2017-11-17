@@ -1,10 +1,13 @@
 (ns knossos.model
   "A model specifies the behavior of a singlethreaded datatype, transitioning
   from one state to another given an operation."
+  (:refer-clojure :exclude [set])
+  (:import [clojure.lang PersistentQueue])
   (:require [clojure.set :as set]
             [knossos.op :as op]
             [potemkin :refer [definterface+]]
-            [knossos.history :as history]))
+            [knossos.history :as history]
+            [multiset.core :as multiset]))
 
 (definterface+ Model
   (step [model op]
@@ -129,3 +132,52 @@
   :read or :write, k is a key, and v is a value. Nil reads are always legal."
   [values]
   (map->MultiRegister values))
+
+(defrecord Set [s]
+  Model
+  (step [this op]
+    (condp = (:f op)
+      :add (Set. (conj s (:value op)))
+      :read (if (= s (:value op))
+              this
+              (inconsistent (str "can't read " (pr-str (:value op)) " from "
+                                 (pr-str s)))))))
+
+(defn set
+  "A set which responds to :add and :read."
+  []
+  (Set. #{}))
+
+(defrecord UnorderedQueue [pending]
+  Model
+  (step [r op]
+    (condp = (:f op)
+      :enqueue (UnorderedQueue. (conj pending (:value op)))
+      :dequeue (if (contains? pending (:value op))
+                 (UnorderedQueue. (disj pending (:value op)))
+                 (inconsistent (str "can't dequeue " (:value op)))))))
+
+(defn unordered-queue
+  "A queue which does not order its pending elements."
+  []
+  (UnorderedQueue. (multiset/multiset)))
+
+(defrecord FIFOQueue [pending]
+  Model
+  (step [r op]
+    (condp = (:f op)
+      :enqueue (FIFOQueue. (conj pending (:value op)))
+      :dequeue (cond (zero? (count pending))
+                     (inconsistent (str "can't dequeue " (:value op)
+                                        " from empty queue"))
+
+                     (= (:value op) (peek pending))
+                     (FIFOQueue. (pop pending))
+
+                     :else
+                     (inconsistent (str "can't dequeue " (:value op)))))))
+
+(defn fifo-queue
+  "A FIFO queue."
+  []
+  (FIFOQueue. PersistentQueue/EMPTY))
