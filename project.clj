@@ -19,7 +19,7 @@
                  [org.clojars.achim/multiset "0.1.0"]]
   ; "-verbose:gc" "-XX:+PrintGCDetails"
   :test-selectors {:focus :focus}
-  :jvm-opts ["-Xmx12g"
+  :jvm-opts ["-Xmx24g"
              "-XX:+UseConcMarkSweepGC"
              "-XX:+UseParNewGC"
              "-XX:+CMSParallelRemarkEnabled"
