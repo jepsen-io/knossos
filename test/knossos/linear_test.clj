@@ -28,7 +28,7 @@
                  {:process 0 :type :invoke :f :read :value 2 :index 99}
                  {:process 0 :type :ok     :f :read :value 2 :index 100}]
         a (analysis model history)]
-    (is (not (:valid? a)))
+    (is (= false (:valid? a)))
     (is (= 100 (get-in a [:op :index])))
     (is (= 7   (get-in a [:last-op :index])))
     (is (= 7   (get-in a [:previous-ok :index])))
@@ -44,7 +44,7 @@
         history [{:process 0 :type :invoke :f :read :value 1}
                  {:process 0 :type :ok     :f :read :value 1}]
         a       (analysis model history)]
-    (is (not (:valid? a)))
+    (is (= false (:valid? a)))
     (is (= {:process 0, :type :ok, :f :read, :value 1 :index 1}
            (:op a)))
     (is (= #{[{:op nil, :model model}
@@ -60,7 +60,7 @@
                  {:process 0 :type :ok     :f :read :value 1}]
         a (analysis model history)]
     (is (= :linear (:analyzer a)))
-    (is (not  (:valid? a)))
+    (is (= false   (:valid? a)))
     (is (nil? (:previous-ok a)))
     (is (nil? (:last-op a)))
     (is (= {:process 0
@@ -90,7 +90,7 @@
     ; read of 0 by process 70. The only legal linearization to that final read
     ; is all reads of 0, followed by 76 write 2, which leaves the state as 2.
     ; Process 70 read 0 should be the invalidating op.
-    (is (not (:valid? a)))
+    (is (= false (:valid? a)))
     ;; This is the only possible state at this time.
     (is (= [{:model (cas-register 2)
              :last-op {:f :write :process 76 :type :ok :value 2 :index 472}
