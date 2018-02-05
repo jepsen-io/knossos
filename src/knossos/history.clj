@@ -1,5 +1,6 @@
 (ns knossos.history
   "Operations on histories"
+  (:refer-clojure :exclude [indexed?])
   (:require [clojure.core.reducers :as r]
             [clojure.pprint :refer [pprint]]
             [knossos.op :as op])

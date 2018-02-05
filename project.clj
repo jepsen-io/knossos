@@ -7,7 +7,7 @@
                  "https://oss.sonatype.org/content/groups/public/"}
   :main knossos.cli
   :dependencies [[org.clojure/math.combinatorics "0.1.1"]
-                 [org.clojure/clojure "1.8.0"]
+                 [org.clojure/clojure "1.9.0"]
                  [potemkin "0.4.3"]
                  [interval-metrics "1.0.0"]
                  [org.clojure/tools.cli "0.3.5"]
@@ -28,9 +28,8 @@
              "-XX:MaxInlineLevel=32"
              "-XX:MaxRecursiveInlineLevel=2"
              "-XX:+UnlockCommercialFeatures"
-;             "-XX:-OmitStackTraceInFastThrow"
              "-server"
+;             "-XX:-OmitStackTraceInFastThrow"
 ;             "-XX:+FlightRecorder"
 ;             "-XX:StartFlightRecording=delay=10s,duration=50s,filename=knossos.jfr"
-]
-  :profiles {:dev {:dependencies [[org.clojure/clojure "1.8.0"]]}})
+])

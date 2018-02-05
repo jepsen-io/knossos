@@ -2,7 +2,7 @@
   (:require [clojure.test :refer :all]
             [knossos.wgl :refer :all]
             [knossos.op :as op]
-            [knossos.model :refer :all]
+            [knossos.model :refer [register cas-register inconsistent]]
             [knossos.core-test :as ct]
             [clojure.pprint :refer [pprint]]))
 

@@ -1,4 +1,5 @@
 (ns knossos.history-test
+  (:refer-clojure :exclude [indexed?])
   (:require [knossos.history :refer :all]
             [clojure.test :refer :all]
             [knossos.op :as op]))
