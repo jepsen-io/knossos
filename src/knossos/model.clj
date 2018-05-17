@@ -89,6 +89,38 @@
   ([]      (CASRegister. nil))
   ([value] (CASRegister. value)))
 
+(defrecord CausalRegister [value counter]
+  Model
+  (step [r op]
+    (condp = (:f op)
+      :write (let [c (inc counter)]
+               (cond
+                 (= (:value op) c)
+                 (CausalRegister. (:value op) c)
+
+                 ;; WriteCOInitRead
+                 (and (= 0 c) (not= value c))
+                 (inconsistent (str "expected init value 0, read "
+                                    (:value op)))
+
+                 ;; WriteCORead
+                 (not= (:value op) c)
+                 (inconsistent (str "expected value "
+                                    c " attempting to write " (:value op)
+                                    " instead"))))
+
+      :read  (if (or (nil? (:value op))
+                     (= value (:value op)))
+               r
+               ;; ThinAirRead
+               (inconsistent (str "can't read " (:value op)
+                                  " from register " value))))))
+
+(defn causal-register
+  ([]              (CausalRegister. 0 0))
+  ([value]         (CausalRegister. value 0))
+  ([value counter] (CausalRegister. value counter)))
+
 (defrecord Mutex [locked?]
   Model
   (step [r op]

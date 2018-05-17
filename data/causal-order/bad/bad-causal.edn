@@ -1,0 +1,10 @@
+{:type :invoke, :f :read, :value [3 nil], :process 3, :time 165537109}
+{:type :ok, :f :read, :value [3 0], :process 3, :time 201752204}
+{:type :invoke, :f :write, :value [3 1], :process 3, :time 885982552}
+{:type :ok, :f :write, :value [3 1], :process 3, :time 963456957}
+{:type :invoke, :f :read, :value [3 nil], :process 3, :time 2317624607}
+{:type :ok, :f :read, :value [3 1], :process 3, :time 2338510524}
+{:type :invoke, :f :write, :value [3 2], :process 3, :time 2998208073}
+{:type :ok, :f :write, :value [3 2], :process 3, :time 3011469452}
+{:type :invoke, :f :read, :value [3 nil], :process 3, :time 3732281384}
+{:type :ok, :f :read, :value [3 2], :process 3, :time 3751244647}
