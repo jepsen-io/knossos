@@ -3,32 +3,25 @@
   'On Verifying Causal Consistency'
   Bouajjani, Enea, Guerraoui, and Hamza
   https://arxiv.org/pdf/1611.00580.pdf"
-  (:require [knossos [analysis :as analysis]
+  (:require [knossos
+             [analysis :as analysis]
              [history :as history]
              [op :as op]
              [search :as search]
              [util :refer [deref-throw]]
              [model :as model]]
+            [clojure.core.reducers :as r]
             [clojure.tools.logging :refer [info warn]]
             [clojure.pprint :refer [pprint]]))
 
-(defn write-co-init-read?
-  "Looks for a violation of our initial read of 0. Could indicate
-  test corruption where a client writes occurs against a
-  CO's register."
-  [r c]
-  (when (= 0 c)
-    (not= r c)))
-
-(defn thin-air-read?
-  "The CO register reads out a value other than init, w1, or w2"
-  [r _]
-  (not (some #{0 1 2} #{r})))
-
-(defn write-co-read?
-  "w2 appears before w1"
-  [r c]
-  (not= r c))
+(defn completed-co?
+  "Ensures attempted invocations completed and we have a CO with
+  precisely 5 operations."
+  [attempted completed]
+  (let [ca (count attempted)
+        cc (count completed)]
+    (and (= ca cc)
+         (= cc 5))))
 
 (defn check
   "A series of causally consistent (CC) ops are a causal order (CO). We issue a CO
@@ -36,28 +29,33 @@
   All operations in this CO must appear to execute in the order provided by
   the issuing site (process). We also look for anomalies, such as unexpected values"
   [model history state]
-  (let [history (-> history
-                    history/ensure-indexed
-                    history/parse-ops
-                    history/complete
-                    history/without-failures)
-        ;; _ (pprint history)
-        ]
-    (loop [s model
-           op (first history)]
-      (cond
-        (not (:running? @state))
-        {:valid? :unknown
-         :cause (:cause @state)}
+  (let [attempted (filter op/invoke? history)
+        completed (filter op/ok? history)]
+    (if-not (completed-co? attempted completed)
+      ;; This is to ensure a malformed CO does not invalidate a set of
+      ;; tests results.
+      {:valid? true
+       :cause "CO incomplete"}
+      (loop [s model
+             history completed]
+        (cond
+          ;; Manually aborted
+          (not (:running? @state))
+          {:valid? :unknown
+           :cause (:cause @state)}
 
-        ;; We've checked every operation in the history
-        (not (next ))
-        {:valid? true
-         :model s}
+          ;; We've checked every operation in the history
+          (empty? history)
+          {:valid? true
+           :model s}
 
-        true
-        (recur (.step s op)
-               (next history))))))
+          true
+          (let [op (first history)
+                s' (model/step s op)]
+            (if (model/inconsistent? s')
+              {:valid? false
+               :error (:msg s')}
+              (recur s' (rest history)))))))))
 
 (defn start-analysis
   "Spawns a search to check if a history is causally consistent"
@@ -91,7 +89,7 @@
       (results [_ timeout timeout-val]
         (deref-throw results timeout timeout-val)))))
 
-(defn anaylsis
+(defn analysis
   [model history]
   (assoc (search/run (start-analysis model history))
          :analyzer :causal))

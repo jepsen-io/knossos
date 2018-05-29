@@ -89,37 +89,60 @@
   ([]      (CASRegister. nil))
   ([value] (CASRegister. value)))
 
-(defrecord CausalRegister [value counter]
+(defrecord CausalRegister [value counter last-pos]
   Model
   (step [r op]
-    (condp = (:f op)
-      :write (let [c (inc counter)]
-               (cond
-                 (= (:value op) c)
-                 (CausalRegister. (:value op) c)
+    (let [c (inc counter)
+          v'   (:value op)
+          pos  (:position op)
+          link (:link op)]
+      (if-not (or (= link :init)
+                  (= link last-pos))
+          (inconsistent (str "Cannot link " link
+                             " to last-seen position " last-pos))
+          (condp = (:f op)
+            :write (cond
+                     ;; Write aligns with next counter, OK
+                     (= v' c)
+                     (CausalRegister. v' c pos)
 
-                 ;; WriteCOInitRead
-                 (and (= 0 c) (not= value c))
-                 (inconsistent (str "expected init value 0, read "
-                                    (:value op)))
+                     ;; Attempting to write an unknown value
+                     (not= v' c)
+                     (inconsistent (str "expected value " c
+                                        " attempting to write "
+                                        v' " instead")))
 
-                 ;; WriteCORead
-                 (not= (:value op) c)
-                 (inconsistent (str "expected value "
-                                    c " attempting to write " (:value op)
-                                    " instead"))))
+            :read-init  (cond
+                          ;; Read a non-0 value from a freshly initialized register
+                          (and (=    0 counter)
+                               (not= 0 v'))
+                          (inconsistent (str "expected init value 0, read " v'))
 
-      :read  (if (or (nil? (:value op))
-                     (= value (:value op)))
-               r
-               ;; ThinAirRead
-               (inconsistent (str "can't read " (:value op)
-                                  " from register " value))))))
+                          ;; Read the expected value of the register,
+                          ;; update the last known position
+                          (or (nil? v')
+                              (= value v'))
+                          (CausalRegister. value counter pos)
 
-(defn causal-register
-  ([]              (CausalRegister. 0 0))
-  ([value]         (CausalRegister. value 0))
-  ([value counter] (CausalRegister. value counter)))
+                          ;; Read a value that we haven't written
+                          true (inconsistent (str "can't read " v'
+                                                  " from register " value)))
+
+            :read  (cond
+                     ;; Read the expected value of the register,
+                     ;; update the last known position
+                     (or (nil? v')
+                         (= value v'))
+                     (CausalRegister. value counter pos)
+
+                     ;; Read a value that we haven't written
+                     true (inconsistent (str "can't read " v'
+                                             " from register " value)))))))
+  Object
+  (toString [this] (pr-str value)))
+
+(defn causal-register []
+  (CausalRegister. 0 0 nil))
 
 (defrecord Mutex [locked?]
   Model
