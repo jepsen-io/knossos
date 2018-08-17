@@ -2,7 +2,9 @@
   (:require [clojure.test :refer :all]
             [knossos.history :as history]
             [knossos.model :refer [register inconsistent step inconsistent?]]
-            [knossos.model.memo :refer :all]))
+            [knossos.model.memo :refer :all]
+            [clojure.pprint :refer [pprint]])
+  (:import knossos.model.Model))
 
 (defn equiv-classes
   "Groups a sequence into collections of = elements."
@@ -80,3 +82,21 @@
                  (step (history 3))
                  (step (history 3)))))
       )))
+
+
+(defrecord Counter [value]
+  Model
+  (step [c op]
+    (assert (= :inc (:f op)))
+    (Counter. (+ value (:value op)))))
+
+(deftest large-state-space-test
+  ; Ordinarily, a counter like this would expand to an infinite collection of
+  ; counters 0, 1, 2, ... if we tried to memoize it. We're verifying that we
+  ; detect and bail on this case.
+  (let [model   (Counter. 0)
+        history [{:process 0, :type :invoke, :f :inc, :value 1}
+                 {:process 0, :type :ok, :f :inc, :value 1}]
+        memo (memo model history)]
+    (is (identical? model (:model memo)))
+    (is (= history (:history memo)))))

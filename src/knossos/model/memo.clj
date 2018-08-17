@@ -30,9 +30,11 @@
   (:require [clojure.core.reducers :as r]
             [clojure.pprint :refer [pprint]]
             [clojure.set :as s]
+            [clojure.tools.logging :refer [info]]
             [knossos.op :as op]
             [knossos.model :as model]
-            [potemkin :refer [definterface+]])
+            [potemkin :refer [definterface+]]
+            [slingshot.slingshot :refer [try+ throw+]])
   (:import [knossos.model Model]))
 
 (definterface+ Wrapper
@@ -80,29 +82,45 @@
        (map op->transition)
        distinct))
 
-; This is not a particularly efficient way to explore the state space; it's
-; quadratic in the depth of the tree
-(defn fixed-point
-  "Repeatedly applies a function to its output until it converges."
-  [f init]
-  (->> (iterate f init)
-       (partition 2 1)
-       (some (fn [[x x']] (when (= x x') x)))))
-
-(defn expand-model
-  "Given a coll of transitions and a set of models, returns a set of resulting
-  models."
+(defn expand-models
+  "Given a coll of transitions and a set of models, returns a lazy sequence of
+  every model reachable by applying any transition to any model."
   [transitions models]
-  (->> models
-       (mapcat (fn [model]
-                 (map (partial model/step model) transitions)))
-       (into models)))
+  (mapcat (fn expand [model] (map (partial model/step model) transitions))
+          models))
+
+(def max-state-space
+  "We want to avoid burning too much time, or memory, on this memoization
+  process. If we think a history may have more than this many reachable states,
+  we don't bother memoizing."
+  1024)
 
 (defn models
   "Given a coll of transitions and an initial model, computes the complete set
-  of all reachable models by recursive application of transitions."
+  of all reachable models."
   [transitions model]
-  (fixed-point (partial expand-model transitions) #{model}))
+  ; We keep track of the previous and next set of models so we can terminate
+  ; when the search fails to expand the model set.
+  (loop [models   #{}
+         models'  (conj models model)]
+    (if (= models models')
+      ; No new reachable states
+      models'
+      ; Take the models set
+      (->> models'
+           ; Compute every reachable model from here
+           (expand-models transitions)
+           ; Add those to our set of models unless it gets too big
+           (reduce (fn [models new-model]
+                     (let [models (conj! models new-model)]
+                       (when (< max-state-space (count models))
+                         ; Too many models; abort
+                         (throw+ {:type ::state-space-too-large}))
+                       models))
+                   (transient models'))
+           persistent!
+           ; And try again
+           (recur models')))))
 
 ; model:                the underlying model.
 ; transition-index:     an integer array mapping operation indices to
@@ -196,9 +214,15 @@
             model. Only compatible with the history provided.
 
   Guarantees that the wrapper linearizes equivalently to the given model, and
-  that (model wrapper) will return the equivalent model at any point in the
-  search."
+  that (unwrap wrapper) will return the equivalent model at any point in the
+  search.
+
+  If the state space is too large to memoize, the returned model will be the
+  original model m. (unwrap m) will return m in this case."
   [model history]
   (let [history (canonical-history history)]
     {:history history
-     :model   (wrapper model history)}))
+     :model   (try+ (wrapper model history)
+                   (catch [:type ::state-space-too-large] _
+                     (info "More than" max-state-space "reachable models; not memoizing models for this search")
+                     model))}))

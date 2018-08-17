@@ -1,4 +1,4 @@
-(defproject knossos "0.3.3"
+(defproject knossos "0.3.4-SNAPSHOT"
   :description "Linearizability checker"
   :url "https://github.com/aphyr/knossos"
   :license {:name "Eclipse Public License"
@@ -9,6 +9,7 @@
   :dependencies [[org.clojure/math.combinatorics "0.1.1"]
                  [org.clojure/clojure "1.9.0"]
                  [potemkin "0.4.3"]
+                 [slingshot "0.12.2"]
                  [interval-metrics "1.0.0"]
                  [org.clojure/tools.cli "0.3.5"]
                  [com.boundary/high-scale-lib "1.0.6"]
