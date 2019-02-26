@@ -19,7 +19,9 @@
                  [org.slf4j/slf4j-log4j12 "1.7.21"]
                  [org.clojars.achim/multiset "0.1.0"]]
   ; "-verbose:gc" "-XX:+PrintGCDetails"
-  :test-selectors {:focus :focus}
+  :test-selectors {:default (complement :perf)
+                   :perf :perf
+                   :focus :focus}
   :jvm-opts ["-Xmx24g"
              "-XX:+UseConcMarkSweepGC"
              "-XX:+UseParNewGC"

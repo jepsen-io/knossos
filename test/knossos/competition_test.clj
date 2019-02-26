@@ -7,5 +7,5 @@
             [knossos.core-test :as ct]
             [clojure.pprint :refer [pprint]]))
 
-(deftest example-test
+(deftest ^:perf example-test
   (ct/test-examples analysis))

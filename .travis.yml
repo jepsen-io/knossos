@@ -1,0 +1,13 @@
+language: clojure
+lein: lein
+dist: trusty
+jdk:
+   - oraclejdk8
+branches:
+  only:
+    - master
+script: lein do clean, test
+notifications:
+  email:
+    on_success: never
+    on_failure: never

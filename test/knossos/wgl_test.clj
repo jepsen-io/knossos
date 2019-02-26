@@ -120,5 +120,5 @@
           a       (analysis (register 0) history)]
       (is (:valid? a)))))
 
-(deftest examples-test
+(deftest ^:perf examples-test
   (ct/test-examples analysis))

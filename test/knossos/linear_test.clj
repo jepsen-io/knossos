@@ -155,5 +155,5 @@
              (multi-register {:x 2 :y 0})}
            (set (map :model (:configs a)))))))
 
-(deftest example-test
+(deftest ^:perf example-test
   (ct/test-examples analysis))
