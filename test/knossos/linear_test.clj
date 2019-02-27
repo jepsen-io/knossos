@@ -7,6 +7,39 @@
             [knossos.core-test :as ct]
             [clojure.pprint :refer [pprint]]))
 
+(deftest timeout-test
+  (testing "will timeout if limit exceeded"
+    (let [model (cas-register 0)
+          history (ct/read-history-2 "data/cas-register/good/memstress3-14.edn")
+          ;; Time limit of 1ms
+          a (analysis model history {:time-limit 1})]
+      (is (= {:valid?   :unknown
+              :cause    :timeout
+              :analyzer :linear}
+             a))))
+
+  (testing "does not timeout when limit not exceeded"
+    (let [model (register 0)
+          history [(invoke 0 :write 1)
+                   (ok     0 :write 1)]
+          a (analysis model history {:time-limit 999999999999})]
+      (is (not= {:valid?   :unknown
+                 :cause    :timeout}
+                a))))
+
+  (testing "does not timeout without limit"
+    (let [model (register 0)
+          history [(invoke 0 :write 1)
+                   (ok     0 :write 1)]
+          a1 (analysis model history {:time-limit nil})
+          a2 (analysis model history)]
+      (is (not= {:valid?   :unknown
+                 :cause    :timeout}
+                a1))
+      (is (not= {:valid?   :unknown
+                 :cause    :timeout}
+                a2)))))
+
 (deftest crash-test
   (let [model (register 0)
         history [(invoke 0 :write 1)
@@ -119,17 +152,6 @@
                :op {:f :read :process 70 :type :ok :value 0 :index 491}}]}
            (:final-paths a)))))
 
-(deftest volatile-linearizable-test
-  (dotimes [i 10]
-    (let [history (ct/volatile-history 100 50 1/1000)
-          _       (prn (count history))
-          a       (analysis (register 0) history)]
-      (is (:valid? a))
-      (when (not= true (:valid? a))
-        (println "history length" (count history))
-        (prn)
-        (pprint (assoc a :configs (take 2 (:configs a))))))))
-
 (deftest rethink-fail-minimal-test
   (let [a (analysis (cas-register nil)
                     (ct/read-history-2 "data/cas-register/bad/rethink-fail-minimal.edn"))]
@@ -154,6 +176,17 @@
     (is (= #{(multi-register {:x 2 :y 2})
              (multi-register {:x 2 :y 0})}
            (set (map :model (:configs a)))))))
+
+(deftest ^:perf volatile-linearizable-test
+  (dotimes [i 10]
+    (let [history (ct/volatile-history 100 50 1/1000)
+          _       (prn (count history))
+          a       (analysis (register 0) history)]
+      (is (:valid? a))
+      (when (not= true (:valid? a))
+        (println "history length" (count history))
+        (prn)
+        (pprint (assoc a :configs (take 2 (:configs a))))))))
 
 (deftest ^:perf example-test
   (ct/test-examples analysis))

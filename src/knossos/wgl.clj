@@ -625,7 +625,12 @@
 (defn analysis
   "Given an initial model state and a history, checks to see if the history is
   linearizable. Returns a map with a :valid? bool and additional debugging
-  information."
-  [model history]
-  (assoc (search/run (start-analysis model history))
-         :analyzer :wgl))
+  information.
+
+  Can also take an options map:
+  {:time-limit ms} Duration to wait before returning with result :unknown"
+  ([model history]
+   (analysis model history {}))
+  ([model history opts]
+   (assoc (search/run (start-analysis model history) opts)
+          :analyzer :wgl)))
