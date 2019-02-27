@@ -41,6 +41,14 @@
     (results [this]
       (let [r (results-from-any (vals searches))]
         (abort! this :competition-ended)
+        r))
+
+    (results [this timeout timeout-val]
+      (let [p   (promise)
+            _   (future
+                  (deliver p (results-from-any (vals searches))))
+            r   (deref p timeout timeout-val)]
+        (abort! this :competition-ended)
         r))))
 
 (defn reporter
@@ -65,15 +73,23 @@
 
 (defn run
   "Given a Search, spins up reporting and memory-pressure handling, executes
-  the search, and returns results."
-  [search]
-  (let [mem-watch (memory/on-low-mem!
+  the search, and returns results.
+
+  Can also take an options map:
+  {:time-limit ms} Duration to wait before returning with result :unknown"
+  ([search]
+   (run search {}))
+  ([search opts]
+   (let [mem-watch (memory/on-low-mem!
                     (fn abort []
                       (warn "Out of memory; aborting search")
                       (abort! search :out-of-memory)))
-        reporter  (reporter search 5000)]
-    (try
-      (results search)
-      (finally
-        (mem-watch)
-        (reporter)))))
+         reporter  (reporter search 5000)
+         time-limit (:time-limit opts)]
+     (try
+       (if time-limit
+         (results search time-limit {:valid? :unknown :cause :timeout})
+         (results search))
+       (finally
+         (mem-watch)
+         (reporter))))))

@@ -16,5 +16,7 @@
 
 (defn analysis
   "Alias for competition/analysis"
-  [model history]
-  (competition/analysis model history))
+  ([model history]
+   (analysis model history {}))
+  ([model history opts]
+   (competition/analysis model history opts)))
