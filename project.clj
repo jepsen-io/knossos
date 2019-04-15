@@ -17,7 +17,7 @@
                   :exclusions [org.clojure/clojure]]
                  [org.clojure/tools.logging "0.3.1"]
                  [org.slf4j/slf4j-log4j12 "1.7.21"]
-                 [org.clojars.achim/multiset "0.1.0"]]
+                 [metametadata/multiset "0.1.1"]]
   ; "-verbose:gc" "-XX:+PrintGCDetails"
   :test-selectors {:default (complement :perf)
                    :perf :perf
