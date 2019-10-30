@@ -19,6 +19,12 @@
            [(op/invoke :a :read 2)
             (op/ok     :a :read 2)])))
 
+  (testing "invocation which doesn't match completion"
+    (is (= (complete [(op/invoke :a :read [1 2])
+                      (op/ok     :a :read [1 3])])
+           [(op/invoke :a :read [1 3])
+            (op/ok     :a :read [1 3])])))
+
   (testing "a failed invocation"
     (is (= (complete [(op/invoke :a :read nil)
                       (op/fail   :a :read nil)])
