@@ -256,11 +256,7 @@
 (defn start-analysis
   "Spawns a Search to check a history."
   [model history]
-  (let [history (-> history
-                    history/ensure-indexed
-                    history/parse-ops
-                    history/complete)
-        [history kindex-eindex] (history/kindex history)
+  (let [{:keys [history kindex-eindex]} (history/preprocess history)
         memo (memo model history)
         history (:history memo)
         configs (-> (:model memo)

@@ -6,7 +6,7 @@
 
 (defn analysis
   "Given an initial model state and a history, checks to see if the history is
-  linearizable by running both the :linaer and :wgl analyzers.
+  linearizable by running both the :linear and :wgl analyzers.
   Returns a map with a :valid? bool and additional debugging information.
 
   Can also take an options map:

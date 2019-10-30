@@ -252,9 +252,9 @@
        vec))
 
 (defn kindex
-  "Takes a history and returns a new history with internal knossos indices and a map of
-  knossos indices to external indices. Throws IllegalArgumentException if given history
-  does not have unique indices"
+  "Takes a history and returns a new history with internal knossos indices and
+  a map of knossos indices to external indices. Throws IllegalArgumentException
+  if given history does not have unique indices"
   [history]
   (let [eindices (map :index history)]
     (if (or (every? #(= -1 %) eindices)
@@ -332,3 +332,32 @@
   (->> history
        (remove op/info?)
        vec))
+
+(defn preprocess
+  "We're going to make several assumptions in Knossos about the structure of
+  histories. This function massages histories to make those assumptions legal.
+
+  1. First, we make sure we have an :index field on ops. This is important so we
+  can uniquely identify operations.
+
+  2. We convert all operation maps to our internal Op representation.
+
+  3. We fill in invocation :values with the results of completions, because we
+  may not know exactly what an operation does at invocation time.
+
+  5. We strip out failed ops; they can't influence state.
+
+  6. We append synthetic :info operations for any incomplete invocations.
+
+  7. We re-index the history so that indices go 0, 1, 2, ..., and compute a map
+  of these knossos :index'es to original :index'es."
+  [history]
+  (let [history (-> history
+                    ensure-indexed
+                    parse-ops
+                    complete
+                    without-failures
+                    with-synthetic-infos)
+        [history kindex-eindex] (kindex history)]
+    {:history       history
+     :kindex-eindex kindex-eindex}))

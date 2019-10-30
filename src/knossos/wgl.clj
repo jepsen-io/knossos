@@ -487,13 +487,7 @@
 
 (defn check
   [model history state]
-  (let [history (->> history
-                     history/ensure-indexed
-                     history/parse-ops
-                     history/complete
-                     history/with-synthetic-infos
-                     history/without-failures)
-        [history kindex-eindex] (history/kindex history)
+  (let [{:keys [history kindex-eindex]} (history/preprocess history)
         _ (swap! state assoc :indices kindex-eindex)
         history (->> history
                      with-entry-ids
