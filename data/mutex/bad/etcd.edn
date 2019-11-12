@@ -1,0 +1,1135 @@
+[{:type :invoke, :f :release, :process 1, :time 341187643, :index 0}
+{:type :fail, :f :release, :process 1, :time 342667129, :error :not-held, :index 1}
+{:type :invoke, :f :acquire, :process 3, :time 371408519, :index 2}
+{:type :invoke, :f :release, :process 4, :time 584312016, :index 3}
+{:type :fail, :f :release, :process 4, :time 585400396, :error :not-held, :index 4}
+{:type :invoke, :f :release, :process 0, :time 584353142, :index 5}
+{:type :fail, :f :release, :process 0, :time 585436373, :error :not-held, :index 6}
+{:type :invoke, :f :release, :process 1, :time 584300961, :index 7}
+{:type :fail, :f :release, :process 1, :time 585478186, :error :not-held, :index 8}
+{:type :invoke, :f :acquire, :process 2, :time 584335820, :index 9}
+{:type :invoke, :f :release, :process 0, :time 679093895, :index 10}
+{:type :fail, :f :release, :process 0, :time 679358186, :error :not-held, :index 11}
+{:type :invoke, :f :release, :process 0, :time 713851176, :index 12}
+{:type :fail, :f :release, :process 0, :time 714088872, :error :not-held, :index 13}
+{:type :invoke, :f :release, :process 4, :time 731083851, :index 14}
+{:type :fail, :f :release, :process 4, :time 731342740, :error :not-held, :index 15}
+{:type :invoke, :f :release, :process 4, :time 745715885, :index 16}
+{:type :fail, :f :release, :process 4, :time 745936264, :error :not-held, :index 17}
+{:type :invoke, :f :acquire, :process 0, :time 752384691, :index 18}
+{:type :invoke, :f :release, :process 1, :time 769095328, :index 19}
+{:type :fail, :f :release, :process 1, :time 769315412, :error :not-held, :index 20}
+{:type :invoke, :f :release, :process 4, :time 808334746, :index 21}
+{:type :fail, :f :release, :process 4, :time 808609471, :error :not-held, :index 22}
+{:type :invoke, :f :acquire, :process 4, :time 881957714, :index 23}
+{:type :invoke, :f :acquire, :process 1, :time 882665819, :index 24}
+{:type :ok, :f :acquire, :process 4, :time 1162920916, :index 25}
+{:type :invoke, :f :release, :process 4, :time 1281474696, :index 26}
+{:type :ok, :f :acquire, :process 3, :time 1303460468, :index 27}
+{:type :ok, :f :release, :process 4, :time 1316352920, :index 28}
+{:type :invoke, :f :acquire, :process 3, :time 1452907765, :index 29}
+{:type :fail, :f :acquire, :process 3, :time 1453316230, :error :already-held, :index 30}
+{:type :invoke, :f :acquire, :process 4, :time 1507835682, :index 31}
+{:type :invoke, :f :release, :process 3, :time 1553941342, :index 32}
+{:type :ok, :f :acquire, :process 2, :time 1567433474, :index 33}
+{:type :ok, :f :release, :process 3, :time 1575232988, :index 34}
+{:type :invoke, :f :release, :process 2, :time 1622944806, :index 35}
+{:type :ok, :f :acquire, :process 0, :time 1637248684, :index 36}
+{:type :ok, :f :release, :process 2, :time 1644445326, :index 37}
+{:type :invoke, :f :release, :process 3, :time 1674768786, :index 38}
+{:type :fail, :f :release, :process 3, :time 1675135944, :error :not-held, :index 39}
+{:type :invoke, :f :release, :process 0, :time 1708864384, :index 40}
+{:type :ok, :f :acquire, :process 1, :time 1723811314, :index 41}
+{:type :ok, :f :release, :process 0, :time 1730562581, :index 42}
+{:type :invoke, :f :acquire, :process 3, :time 1740645485, :index 43}
+{:type :invoke, :f :release, :process 1, :time 1833304366, :index 44}
+{:type :invoke, :f :acquire, :process 2, :time 1836086825, :index 45}
+{:type :ok, :f :acquire, :process 4, :time 1845627043, :index 46}
+{:type :ok, :f :release, :process 1, :time 1857527926, :index 47}
+{:type :invoke, :f :acquire, :process 1, :time 1857872311, :index 48}
+{:type :invoke, :f :release, :process 4, :time 1865122057, :index 49}
+{:type :invoke, :f :release, :process 0, :time 1869128114, :index 50}
+{:type :fail, :f :release, :process 0, :time 1869439654, :error :not-held, :index 51}
+{:type :ok, :f :acquire, :process 3, :time 1876136869, :index 52}
+{:type :ok, :f :release, :process 4, :time 1884188240, :index 53}
+{:type :invoke, :f :release, :process 3, :time 1916652194, :index 54}
+{:type :invoke, :f :release, :process 0, :time 1929886230, :index 55}
+{:type :fail, :f :release, :process 0, :time 1930421270, :error :not-held, :index 56}
+{:type :ok, :f :release, :process 3, :time 1934795177, :index 57}
+{:type :ok, :f :acquire, :process 2, :time 1936109449, :index 58}
+{:type :invoke, :f :release, :process 4, :time 2051486572, :index 59}
+{:type :fail, :f :release, :process 4, :time 2051908823, :error :not-held, :index 60}
+{:type :invoke, :f :release, :process 2, :time 2068531786, :index 61}
+{:type :ok, :f :acquire, :process 1, :time 2088632822, :index 62}
+{:type :ok, :f :release, :process 2, :time 2089647230, :index 63}
+{:type :invoke, :f :acquire, :process 3, :time 2094358706, :index 64}
+{:type :invoke, :f :release, :process 0, :time 2100880110, :index 65}
+{:type :fail, :f :release, :process 0, :time 2101289698, :error :not-held, :index 66}
+{:type :invoke, :f :acquire, :process 2, :time 2101253468, :index 67}
+{:type :invoke, :f :release, :process 4, :time 2166430049, :index 68}
+{:type :fail, :f :release, :process 4, :time 2166796495, :error :not-held, :index 69}
+{:type :invoke, :f :acquire, :process 1, :time 2266225409, :index 70}
+{:type :fail, :f :acquire, :process 1, :time 2266681108, :error :already-held, :index 71}
+{:type :invoke, :f :acquire, :process 0, :time 2276054149, :index 72}
+{:type :invoke, :f :acquire, :process 4, :time 2304206350, :index 73}
+{:type :invoke, :f :acquire, :process 1, :time 2350175584, :index 74}
+{:type :fail, :f :acquire, :process 1, :time 2350575245, :error :already-held, :index 75}
+{:type :invoke, :f :release, :process 1, :time 2451150955, :index 76}
+{:type :ok, :f :acquire, :process 3, :time 2465130706, :index 77}
+{:type :ok, :f :release, :process 1, :time 2472165811, :index 78}
+{:type :invoke, :f :acquire, :process 1, :time 2508852115, :index 79}
+{:type :invoke, :f :release, :process 3, :time 2551707302, :index 80}
+{:type :ok, :f :acquire, :process 2, :time 2564937558, :index 81}
+{:type :ok, :f :release, :process 3, :time 2571268127, :index 82}
+{:type :invoke, :f :acquire, :process 3, :time 2746852989, :index 83}
+{:type :invoke, :f :acquire, :process 2, :time 2752431800, :index 84}
+{:type :fail, :f :acquire, :process 2, :time 2752873787, :error :already-held, :index 85}
+{:type :invoke, :f :acquire, :process 2, :time 2798371225, :index 86}
+{:type :fail, :f :acquire, :process 2, :time 2798728096, :error :already-held, :index 87}
+{:type :invoke, :f :release, :process 2, :time 2957214932, :index 88}
+{:type :ok, :f :acquire, :process 0, :time 2966905603, :index 89}
+{:type :ok, :f :release, :process 2, :time 2972210274, :index 90}
+{:type :invoke, :f :acquire, :process 2, :time 3046749447, :index 91}
+{:type :invoke, :f :acquire, :process 0, :time 3071448386, :index 92}
+{:type :fail, :f :acquire, :process 0, :time 3071957521, :error :already-held, :index 93}
+{:type :invoke, :f :acquire, :process 0, :time 3212513456, :index 94}
+{:type :fail, :f :acquire, :process 0, :time 3213051832, :error :already-held, :index 95}
+{:type :invoke, :f :acquire, :process 0, :time 3383520782, :index 96}
+{:type :fail, :f :acquire, :process 0, :time 3383999075, :error :already-held, :index 97}
+{:type :invoke, :f :release, :process 0, :time 3424559056, :index 98}
+{:type :ok, :f :acquire, :process 4, :time 3435346138, :index 99}
+{:type :ok, :f :release, :process 0, :time 3443389598, :index 100}
+{:type :invoke, :f :acquire, :process 0, :time 3458079138, :index 101}
+{:type :invoke, :f :acquire, :process 4, :time 3517958593, :index 102}
+{:type :fail, :f :acquire, :process 4, :time 3518246082, :error :already-held, :index 103}
+{:type :invoke, :f :acquire, :process 4, :time 3607728847, :index 104}
+{:type :fail, :f :acquire, :process 4, :time 3608091541, :error :already-held, :index 105}
+{:type :invoke, :f :release, :process 4, :time 3637648891, :index 106}
+{:type :ok, :f :acquire, :process 1, :time 3648163499, :index 107}
+{:type :ok, :f :release, :process 4, :time 3654291486, :index 108}
+{:type :invoke, :f :acquire, :process 1, :time 3661636482, :index 109}
+{:type :fail, :f :acquire, :process 1, :time 3661991162, :error :already-held, :index 110}
+{:type :invoke, :f :acquire, :process 1, :time 3718468854, :index 111}
+{:type :fail, :f :acquire, :process 1, :time 3718776889, :error :already-held, :index 112}
+{:type :invoke, :f :release, :process 4, :time 3746876094, :index 113}
+{:type :fail, :f :release, :process 4, :time 3747200865, :error :not-held, :index 114}
+{:type :invoke, :f :acquire, :process 4, :time 3810579055, :index 115}
+{:type :invoke, :f :release, :process 1, :time 3911182892, :index 116}
+{:type :ok, :f :acquire, :process 3, :time 3921574547, :index 117}
+{:type :ok, :f :release, :process 1, :time 3926737716, :index 118}
+{:type :invoke, :f :release, :process 3, :time 3960087192, :index 119}
+{:type :ok, :f :acquire, :process 2, :time 3971504760, :index 120}
+{:type :ok, :f :release, :process 3, :time 3980772770, :index 121}
+{:type :invoke, :f :acquire, :process 1, :time 4040392535, :index 122}
+{:type :invoke, :f :release, :process 2, :time 4169997834, :index 123}
+{:type :invoke, :f :acquire, :process 3, :time 4171282287, :index 124}
+{:type :ok, :f :acquire, :process 0, :time 4186219145, :index 125}
+{:type :ok, :f :release, :process 2, :time 4195972523, :index 126}
+{:type :invoke, :f :release, :process 0, :time 4270858032, :index 127}
+{:type :ok, :f :acquire, :process 4, :time 4282092963, :index 128}
+{:type :invoke, :f :acquire, :process 4, :time 4287553619, :index 129}
+{:type :fail, :f :acquire, :process 4, :time 4287907744, :error :already-held, :index 130}
+{:type :ok, :f :release, :process 0, :time 4289474272, :index 131}
+{:type :invoke, :f :release, :process 2, :time 4338513744, :index 132}
+{:type :fail, :f :release, :process 2, :time 4338815424, :error :not-held, :index 133}
+{:type :invoke, :f :acquire, :process 4, :time 4367351921, :index 134}
+{:type :fail, :f :acquire, :process 4, :time 4367944937, :error :already-held, :index 135}
+{:type :invoke, :f :release, :process 0, :time 4381017723, :index 136}
+{:type :fail, :f :release, :process 0, :time 4381636263, :error :not-held, :index 137}
+{:type :invoke, :f :release, :process 2, :time 4505379284, :index 138}
+{:type :fail, :f :release, :process 2, :time 4505683734, :error :not-held, :index 139}
+{:type :invoke, :f :release, :process 2, :time 4509136956, :index 140}
+{:type :fail, :f :release, :process 2, :time 4509419034, :error :not-held, :index 141}
+{:type :invoke, :f :acquire, :process 0, :time 4559134463, :index 142}
+{:type :invoke, :f :acquire, :process 4, :time 4565454051, :index 143}
+{:type :fail, :f :acquire, :process 4, :time 4565736776, :error :already-held, :index 144}
+{:type :invoke, :f :acquire, :process 2, :time 4588914868, :index 145}
+{:type :invoke, :f :acquire, :process 4, :time 4633146937, :index 146}
+{:type :fail, :f :acquire, :process 4, :time 4633439526, :error :already-held, :index 147}
+{:type :invoke, :f :release, :process 4, :time 4725937962, :index 148}
+{:type :ok, :f :acquire, :process 1, :time 4735121763, :index 149}
+{:type :ok, :f :release, :process 4, :time 4739508968, :index 150}
+{:type :invoke, :f :acquire, :process 4, :time 4865848569, :index 151}
+{:type :invoke, :f :acquire, :process 1, :time 4878405522, :index 152}
+{:type :fail, :f :acquire, :process 1, :time 4878620134, :error :already-held, :index 153}
+{:type :invoke, :f :acquire, :process 1, :time 4905959697, :index 154}
+{:type :fail, :f :acquire, :process 1, :time 4906214075, :error :already-held, :index 155}
+{:type :invoke, :f :acquire, :process 1, :time 4974586216, :index 156}
+{:type :fail, :f :acquire, :process 1, :time 4974920240, :error :already-held, :index 157}
+{:type :invoke, :f :release, :process 1, :time 5027358770, :index 158}
+{:type :ok, :f :acquire, :process 3, :time 5039980210, :index 159}
+{:type :ok, :f :release, :process 1, :time 5046176216, :index 160}
+{:type :invoke, :f :release, :process 3, :time 5174459203, :index 161}
+{:type :ok, :f :acquire, :process 0, :time 5183996392, :index 162}
+{:type :ok, :f :release, :process 3, :time 5187224240, :index 163}
+{:type :invoke, :f :acquire, :process 1, :time 5218455698, :index 164}
+{:type :invoke, :f :release, :process 3, :time 5275632689, :index 165}
+{:type :fail, :f :release, :process 3, :time 5275928086, :error :not-held, :index 166}
+{:type :invoke, :f :acquire, :process 0, :time 5320359694, :index 167}
+{:type :fail, :f :acquire, :process 0, :time 5320654270, :error :already-held, :index 168}
+{:type :info, :f :start, :process :nemesis, :time 5326396898, :index 169}
+{:type :info, :f :start, :process :nemesis, :time 5328551016, :index 170}
+{:type :invoke, :f :release, :process 3, :time 5346344157, :index 171}
+{:type :fail, :f :release, :process 3, :time 5346623850, :error :not-held, :index 172}
+{:type :invoke, :f :release, :process 3, :time 5405051280, :index 173}
+{:type :fail, :f :release, :process 3, :time 5405380114, :error :not-held, :index 174}
+{:type :invoke, :f :release, :process 0, :time 5485179521, :index 175}
+{:type :ok, :f :acquire, :process 2, :time 5495511870, :index 176}
+{:type :ok, :f :release, :process 0, :time 5500247799, :index 177}
+{:type :invoke, :f :acquire, :process 2, :time 5566004890, :index 178}
+{:type :fail, :f :acquire, :process 2, :time 5566256950, :error :already-held, :index 179}
+{:type :invoke, :f :release, :process 3, :time 5573826603, :index 180}
+{:type :fail, :f :release, :process 3, :time 5574057138, :error :not-held, :index 181}
+{:type :invoke, :f :acquire, :process 2, :time 5591737164, :index 182}
+{:type :fail, :f :acquire, :process 2, :time 5592026293, :error :already-held, :index 183}
+{:type :invoke, :f :release, :process 0, :time 5600763242, :index 184}
+{:type :fail, :f :release, :process 0, :time 5600979955, :error :not-held, :index 185}
+{:type :invoke, :f :release, :process 3, :time 5763503742, :index 186}
+{:type :fail, :f :release, :process 3, :time 5763868424, :error :not-held, :index 187}
+{:type :invoke, :f :acquire, :process 2, :time 5772486997, :index 188}
+{:type :fail, :f :acquire, :process 2, :time 5772797398, :error :already-held, :index 189}
+{:type :invoke, :f :release, :process 0, :time 5775326540, :index 190}
+{:type :fail, :f :release, :process 0, :time 5775632514, :error :not-held, :index 191}
+{:type :invoke, :f :release, :process 2, :time 5810226789, :index 192}
+{:type :invoke, :f :acquire, :process 0, :time 5812199754, :index 193}
+{:type :ok, :f :acquire, :process 4, :time 5822556693, :index 194}
+{:type :ok, :f :release, :process 2, :time 5832458812, :index 195}
+{:type :invoke, :f :acquire, :process 4, :time 5875985100, :index 196}
+{:type :fail, :f :acquire, :process 4, :time 5876226443, :error :already-held, :index 197}
+{:type :invoke, :f :release, :process 3, :time 5950322123, :index 198}
+{:type :fail, :f :release, :process 3, :time 5950611704, :error :not-held, :index 199}
+{:type :invoke, :f :acquire, :process 2, :time 6004828228, :index 200}
+{:type :invoke, :f :release, :process 4, :time 6008580911, :index 201}
+{:type :invoke, :f :release, :process 3, :time 6010027099, :index 202}
+{:type :fail, :f :release, :process 3, :time 6010407560, :error :not-held, :index 203}
+{:type :ok, :f :acquire, :process 1, :time 6024394917, :index 204}
+{:type :ok, :f :release, :process 4, :time 6034927765, :index 205}
+{:type :invoke, :f :acquire, :process 3, :time 6177959625, :index 206}
+{:type :invoke, :f :release, :process 1, :time 6213842674, :index 207}
+{:type :ok, :f :acquire, :process 0, :time 6224516283, :index 208}
+{:type :invoke, :f :release, :process 4, :time 6230440880, :index 209}
+{:type :fail, :f :release, :process 4, :time 6230692304, :error :not-held, :index 210}
+{:type :ok, :f :release, :process 1, :time 6232536851, :index 211}
+{:type :invoke, :f :acquire, :process 4, :time 6312130804, :index 212}
+{:type :invoke, :f :release, :process 1, :time 6338987796, :index 213}
+{:type :fail, :f :release, :process 1, :time 6339207626, :error :not-held, :index 214}
+{:type :invoke, :f :acquire, :process 0, :time 6366282253, :index 215}
+{:type :fail, :f :acquire, :process 0, :time 6366550808, :error :already-held, :index 216}
+{:type :invoke, :f :release, :process 1, :time 6499589417, :index 217}
+{:type :fail, :f :release, :process 1, :time 6499919055, :error :not-held, :index 218}
+{:type :invoke, :f :acquire, :process 0, :time 6538959562, :index 219}
+{:type :fail, :f :acquire, :process 0, :time 6539230634, :error :already-held, :index 220}
+{:type :invoke, :f :acquire, :process 0, :time 6627634953, :index 221}
+{:type :fail, :f :acquire, :process 0, :time 6627898941, :error :already-held, :index 222}
+{:type :invoke, :f :release, :process 1, :time 6681298541, :index 223}
+{:type :fail, :f :release, :process 1, :time 6681572651, :error :not-held, :index 224}
+{:type :invoke, :f :release, :process 1, :time 6778040009, :index 225}
+{:type :fail, :f :release, :process 1, :time 6778314667, :error :not-held, :index 226}
+{:type :invoke, :f :release, :process 1, :time 6782745579, :index 227}
+{:type :fail, :f :release, :process 1, :time 6783017570, :error :not-held, :index 228}
+{:type :invoke, :f :release, :process 0, :time 6787297932, :index 229}
+{:type :ok, :f :acquire, :process 2, :time 6798891360, :index 230}
+{:type :ok, :f :release, :process 0, :time 6805115275, :index 231}
+{:type :invoke, :f :release, :process 2, :time 6812404103, :index 232}
+{:type :ok, :f :acquire, :process 3, :time 6824076831, :index 233}
+{:type :ok, :f :release, :process 2, :time 6830216547, :index 234}
+{:type :invoke, :f :release, :process 3, :time 6840508162, :index 235}
+{:type :ok, :f :acquire, :process 4, :time 6858029059, :index 236}
+{:type :ok, :f :release, :process 3, :time 6863101589, :index 237}
+{:type :invoke, :f :release, :process 0, :time 6912621846, :index 238}
+{:type :fail, :f :release, :process 0, :time 6912951391, :error :not-held, :index 239}
+{:type :invoke, :f :release, :process 1, :time 6913429488, :index 240}
+{:type :fail, :f :release, :process 1, :time 6913692592, :error :not-held, :index 241}
+{:type :invoke, :f :release, :process 2, :time 6928767246, :index 242}
+{:type :fail, :f :release, :process 2, :time 6929030818, :error :not-held, :index 243}
+{:type :invoke, :f :release, :process 1, :time 7031249221, :index 244}
+{:type :fail, :f :release, :process 1, :time 7031514892, :error :not-held, :index 245}
+{:type :invoke, :f :release, :process 4, :time 7032493943, :index 246}
+{:type :invoke, :f :acquire, :process 2, :time 7039695102, :index 247}
+{:type :invoke, :f :acquire, :process 3, :time 7041720455, :index 248}
+{:type :ok, :f :release, :process 4, :time 7054579905, :index 249}
+{:type :invoke, :f :acquire, :process 0, :time 7054418920, :index 250}
+{:type :ok, :f :acquire, :process 2, :time 7083320361, :index 251}
+{:type :invoke, :f :acquire, :process 1, :time 7127130992, :index 252}
+{:type :invoke, :f :release, :process 4, :time 7146189802, :index 253}
+{:type :fail, :f :release, :process 4, :time 7146529782, :error :not-held, :index 254}
+{:type :invoke, :f :release, :process 4, :time 7146989692, :index 255}
+{:type :fail, :f :release, :process 4, :time 7147170600, :error :not-held, :index 256}
+{:type :invoke, :f :release, :process 2, :time 7242009600, :index 257}
+{:type :ok, :f :acquire, :process 3, :time 7253750309, :index 258}
+{:type :ok, :f :release, :process 2, :time 7260313901, :index 259}
+{:type :invoke, :f :release, :process 4, :time 7272573428, :index 260}
+{:type :fail, :f :release, :process 4, :time 7272870050, :error :not-held, :index 261}
+{:type :invoke, :f :acquire, :process 2, :time 7358850877, :index 262}
+{:type :invoke, :f :release, :process 4, :time 7388296566, :index 263}
+{:type :fail, :f :release, :process 4, :time 7388608817, :error :not-held, :index 264}
+{:type :invoke, :f :release, :process 3, :time 7395316209, :index 265}
+{:type :ok, :f :acquire, :process 0, :time 7408690292, :index 266}
+{:type :ok, :f :release, :process 3, :time 7417027863, :index 267}
+{:type :invoke, :f :acquire, :process 4, :time 7484007396, :index 268}
+{:type :invoke, :f :acquire, :process 3, :time 7538619672, :index 269}
+{:type :invoke, :f :release, :process 0, :time 7560166205, :index 270}
+{:type :ok, :f :acquire, :process 1, :time 7570429262, :index 271}
+{:type :ok, :f :release, :process 0, :time 7575355063, :index 272}
+{:type :invoke, :f :acquire, :process 1, :time 7624826355, :index 273}
+{:type :fail, :f :acquire, :process 1, :time 7625032423, :error :already-held, :index 274}
+{:type :invoke, :f :release, :process 1, :time 7760652742, :index 275}
+{:type :invoke, :f :release, :process 0, :time 7763947556, :index 276}
+{:type :fail, :f :release, :process 0, :time 7764188030, :error :not-held, :index 277}
+{:type :ok, :f :acquire, :process 2, :time 7772387231, :index 278}
+{:type :ok, :f :release, :process 1, :time 7778095621, :index 279}
+{:type :invoke, :f :release, :process 1, :time 7795556468, :index 280}
+{:type :fail, :f :release, :process 1, :time 7795796161, :error :not-held, :index 281}
+{:type :invoke, :f :acquire, :process 1, :time 7901166273, :index 282}
+{:type :invoke, :f :acquire, :process 0, :time 7938541018, :index 283}
+{:type :invoke, :f :acquire, :process 2, :time 7969918539, :index 284}
+{:type :fail, :f :acquire, :process 2, :time 7970173307, :error :already-held, :index 285}
+{:type :invoke, :f :acquire, :process 2, :time 8161597759, :index 286}
+{:type :fail, :f :acquire, :process 2, :time 8161903025, :error :already-held, :index 287}
+{:type :invoke, :f :acquire, :process 2, :time 8301285565, :index 288}
+{:type :fail, :f :acquire, :process 2, :time 8301520417, :error :already-held, :index 289}
+{:type :invoke, :f :release, :process 2, :time 8481817946, :index 290}
+{:type :ok, :f :acquire, :process 4, :time 8489738951, :index 291}
+{:type :ok, :f :release, :process 2, :time 8496117655, :index 292}
+{:type :invoke, :f :acquire, :process 4, :time 8529190301, :index 293}
+{:type :fail, :f :acquire, :process 4, :time 8529435630, :error :already-held, :index 294}
+{:type :invoke, :f :release, :process 2, :time 8566619970, :index 295}
+{:type :fail, :f :release, :process 2, :time 8566852712, :error :not-held, :index 296}
+{:type :invoke, :f :release, :process 4, :time 8620827280, :index 297}
+{:type :ok, :f :acquire, :process 3, :time 8632331963, :index 298}
+{:type :ok, :f :release, :process 4, :time 8640023175, :index 299}
+{:type :invoke, :f :acquire, :process 2, :time 8681236861, :index 300}
+{:type :invoke, :f :acquire, :process 4, :time 8697508744, :index 301}
+{:type :invoke, :f :release, :process 3, :time 8774736098, :index 302}
+{:type :ok, :f :acquire, :process 1, :time 8786771091, :index 303}
+{:type :ok, :f :release, :process 3, :time 8792592897, :index 304}
+{:type :invoke, :f :acquire, :process 1, :time 8828158256, :index 305}
+{:type :fail, :f :acquire, :process 1, :time 8828399586, :error :already-held, :index 306}
+{:type :invoke, :f :release, :process 1, :time 8831799895, :index 307}
+{:type :ok, :f :acquire, :process 0, :time 8840392010, :index 308}
+{:type :ok, :f :release, :process 1, :time 8846473573, :index 309}
+{:type :invoke, :f :acquire, :process 3, :time 8899113476, :index 310}
+{:type :invoke, :f :release, :process 0, :time 8940803283, :index 311}
+{:type :ok, :f :acquire, :process 2, :time 8951435216, :index 312}
+{:type :ok, :f :release, :process 0, :time 8957893752, :index 313}
+{:type :invoke, :f :release, :process 2, :time 8976881904, :index 314}
+{:type :invoke, :f :acquire, :process 1, :time 8980923466, :index 315}
+{:type :ok, :f :acquire, :process 4, :time 8994093775, :index 316}
+{:type :ok, :f :release, :process 2, :time 8996226914, :index 317}
+{:type :invoke, :f :acquire, :process 2, :time 9001613380, :index 318}
+{:type :invoke, :f :acquire, :process 0, :time 9077359579, :index 319}
+{:type :invoke, :f :release, :process 4, :time 9184532922, :index 320}
+{:type :ok, :f :acquire, :process 3, :time 9196082614, :index 321}
+{:type :ok, :f :release, :process 4, :time 9200070374, :index 322}
+{:type :invoke, :f :release, :process 3, :time 9279666660, :index 323}
+{:type :ok, :f :acquire, :process 1, :time 9290257891, :index 324}
+{:type :ok, :f :release, :process 3, :time 9296203704, :index 325}
+{:type :invoke, :f :acquire, :process 4, :time 9351558563, :index 326}
+{:type :invoke, :f :acquire, :process 3, :time 9392672045, :index 327}
+{:type :invoke, :f :release, :process 1, :time 9396551315, :index 328}
+{:type :ok, :f :acquire, :process 2, :time 9418237904, :index 329}
+{:type :ok, :f :release, :process 1, :time 9418678316, :index 330}
+{:type :invoke, :f :release, :process 1, :time 9470132201, :index 331}
+{:type :fail, :f :release, :process 1, :time 9470371718, :error :not-held, :index 332}
+{:type :invoke, :f :release, :process 2, :time 9554610339, :index 333}
+{:type :ok, :f :acquire, :process 0, :time 9565345976, :index 334}
+{:type :ok, :f :release, :process 2, :time 9570636722, :index 335}
+{:type :invoke, :f :release, :process 2, :time 9627940340, :index 336}
+{:type :fail, :f :release, :process 2, :time 9628126752, :error :not-held, :index 337}
+{:type :invoke, :f :release, :process 1, :time 9664780196, :index 338}
+{:type :fail, :f :release, :process 1, :time 9665046672, :error :not-held, :index 339}
+{:type :invoke, :f :acquire, :process 2, :time 9690442136, :index 340}
+{:type :invoke, :f :release, :process 1, :time 9701376882, :index 341}
+{:type :fail, :f :release, :process 1, :time 9701637276, :error :not-held, :index 342}
+{:type :invoke, :f :release, :process 0, :time 9714687074, :index 343}
+{:type :ok, :f :acquire, :process 4, :time 9722525389, :index 344}
+{:type :ok, :f :release, :process 0, :time 9727931496, :index 345}
+{:type :invoke, :f :release, :process 1, :time 9737009351, :index 346}
+{:type :fail, :f :release, :process 1, :time 9737253391, :error :not-held, :index 347}
+{:type :invoke, :f :acquire, :process 0, :time 9864382414, :index 348}
+{:type :invoke, :f :release, :process 1, :time 9864604109, :index 349}
+{:type :fail, :f :release, :process 1, :time 9864870368, :error :not-held, :index 350}
+{:type :invoke, :f :release, :process 1, :time 9885305689, :index 351}
+{:type :fail, :f :release, :process 1, :time 9885544462, :error :not-held, :index 352}
+{:type :invoke, :f :acquire, :process 1, :time 9892890729, :index 353}
+{:type :invoke, :f :acquire, :process 4, :time 9900029507, :index 354}
+{:type :fail, :f :acquire, :process 4, :time 9900275779, :error :already-held, :index 355}
+{:type :invoke, :f :release, :process 4, :time 9971684363, :index 356}
+{:type :ok, :f :acquire, :process 3, :time 9980679831, :index 357}
+{:type :ok, :f :release, :process 4, :time 9984789225, :index 358}
+{:type :invoke, :f :acquire, :process 3, :time 10046121433, :index 359}
+{:type :fail, :f :acquire, :process 3, :time 10046547750, :error :already-held, :index 360}
+{:type :invoke, :f :acquire, :process 4, :time 10106287193, :index 361}
+{:type :invoke, :f :acquire, :process 3, :time 10111106480, :index 362}
+{:type :fail, :f :acquire, :process 3, :time 10111525593, :error :already-held, :index 363}
+{:type :invoke, :f :release, :process 3, :time 10130003685, :index 364}
+{:type :ok, :f :acquire, :process 2, :time 10141375049, :index 365}
+{:type :ok, :f :release, :process 3, :time 10146239323, :index 366}
+{:type :invoke, :f :release, :process 3, :time 10195650963, :index 367}
+{:type :fail, :f :release, :process 3, :time 10195927514, :error :not-held, :index 368}
+{:type :invoke, :f :acquire, :process 3, :time 10279427302, :index 369}
+{:type :invoke, :f :acquire, :process 2, :time 10305836564, :index 370}
+{:type :fail, :f :acquire, :process 2, :time 10306104700, :error :already-held, :index 371}
+{:type :info, :f :stop, :process :nemesis, :time 10329153864, :index 372}
+{:type :info, :f :stop, :process :nemesis, :time 10329494823, :index 373}
+{:type :invoke, :f :acquire, :process 2, :time 10392479196, :index 374}
+{:type :fail, :f :acquire, :process 2, :time 10392759504, :error :already-held, :index 375}
+{:type :invoke, :f :release, :process 2, :time 10589147446, :index 376}
+{:type :ok, :f :acquire, :process 0, :time 10599205303, :index 377}
+{:type :ok, :f :release, :process 2, :time 10605865345, :index 378}
+{:type :invoke, :f :acquire, :process 2, :time 10692347015, :index 379}
+{:type :invoke, :f :acquire, :process 0, :time 10770629081, :index 380}
+{:type :fail, :f :acquire, :process 0, :time 10770891121, :error :already-held, :index 381}
+{:type :invoke, :f :release, :process 0, :time 10862252818, :index 382}
+{:type :ok, :f :acquire, :process 1, :time 10871535110, :index 383}
+{:type :ok, :f :release, :process 0, :time 10878309167, :index 384}
+{:type :invoke, :f :acquire, :process 1, :time 10997916603, :index 385}
+{:type :fail, :f :acquire, :process 1, :time 10998156114, :error :already-held, :index 386}
+{:type :invoke, :f :release, :process 0, :time 11047818457, :index 387}
+{:type :fail, :f :release, :process 0, :time 11048059375, :error :not-held, :index 388}
+{:type :invoke, :f :release, :process 1, :time 11057551356, :index 389}
+{:type :invoke, :f :acquire, :process 0, :time 11061412984, :index 390}
+{:type :ok, :f :acquire, :process 4, :time 11070600163, :index 391}
+{:type :ok, :f :release, :process 1, :time 11077363374, :index 392}
+{:type :invoke, :f :release, :process 1, :time 11085825925, :index 393}
+{:type :fail, :f :release, :process 1, :time 11086141814, :error :not-held, :index 394}
+{:type :invoke, :f :release, :process 1, :time 11105754258, :index 395}
+{:type :fail, :f :release, :process 1, :time 11106063888, :error :not-held, :index 396}
+{:type :invoke, :f :acquire, :process 4, :time 11118024226, :index 397}
+{:type :fail, :f :acquire, :process 4, :time 11118273932, :error :already-held, :index 398}
+{:type :invoke, :f :acquire, :process 1, :time 11148441510, :index 399}
+{:type :invoke, :f :release, :process 4, :time 11153776415, :index 400}
+{:type :ok, :f :release, :process 4, :time 11170898636, :index 401}
+{:type :ok, :f :acquire, :process 3, :time 11173175824, :index 402}
+{:type :invoke, :f :release, :process 4, :time 11179164655, :index 403}
+{:type :fail, :f :release, :process 4, :time 11179347842, :error :not-held, :index 404}
+{:type :invoke, :f :acquire, :process 4, :time 11197655700, :index 405}
+{:type :invoke, :f :release, :process 3, :time 11240619861, :index 406}
+{:type :ok, :f :acquire, :process 2, :time 11252010299, :index 407}
+{:type :ok, :f :release, :process 3, :time 11257613212, :index 408}
+{:type :invoke, :f :acquire, :process 2, :time 11263339893, :index 409}
+{:type :fail, :f :acquire, :process 2, :time 11263593102, :error :already-held, :index 410}
+{:type :invoke, :f :acquire, :process 2, :time 11339985459, :index 411}
+{:type :fail, :f :acquire, :process 2, :time 11340249886, :error :already-held, :index 412}
+{:type :invoke, :f :acquire, :process 3, :time 11453113263, :index 413}
+{:type :invoke, :f :acquire, :process 2, :time 11485651132, :index 414}
+{:type :fail, :f :acquire, :process 2, :time 11485916850, :error :already-held, :index 415}
+{:type :invoke, :f :release, :process 2, :time 11652291837, :index 416}
+{:type :ok, :f :acquire, :process 0, :time 11664005256, :index 417}
+{:type :ok, :f :release, :process 2, :time 11670297069, :index 418}
+{:type :invoke, :f :acquire, :process 2, :time 11759836582, :index 419}
+{:type :invoke, :f :acquire, :process 0, :time 11814413185, :index 420}
+{:type :fail, :f :acquire, :process 0, :time 11814655186, :error :already-held, :index 421}
+{:type :invoke, :f :acquire, :process 0, :time 11848082484, :index 422}
+{:type :fail, :f :acquire, :process 0, :time 11848321031, :error :already-held, :index 423}
+{:type :invoke, :f :acquire, :process 0, :time 11902731297, :index 424}
+{:type :fail, :f :acquire, :process 0, :time 11902973069, :error :already-held, :index 425}
+{:type :invoke, :f :release, :process 0, :time 12024339864, :index 426}
+{:type :ok, :f :acquire, :process 1, :time 12034133377, :index 427}
+{:type :ok, :f :release, :process 0, :time 12039854628, :index 428}
+{:type :invoke, :f :acquire, :process 0, :time 12108300844, :index 429}
+{:type :invoke, :f :release, :process 1, :time 12186606068, :index 430}
+{:type :ok, :f :acquire, :process 4, :time 12195824735, :index 431}
+{:type :ok, :f :release, :process 1, :time 12202900739, :index 432}
+{:type :invoke, :f :release, :process 1, :time 12299371926, :index 433}
+{:type :fail, :f :release, :process 1, :time 12299617640, :error :not-held, :index 434}
+{:type :invoke, :f :acquire, :process 1, :time 12308002156, :index 435}
+{:type :invoke, :f :release, :process 4, :time 12346282073, :index 436}
+{:type :ok, :f :acquire, :process 3, :time 12356015251, :index 437}
+{:type :ok, :f :release, :process 4, :time 12359834115, :index 438}
+{:type :invoke, :f :acquire, :process 4, :time 12392306201, :index 439}
+{:type :invoke, :f :release, :process 3, :time 12512582586, :index 440}
+{:type :ok, :f :acquire, :process 2, :time 12523967696, :index 441}
+{:type :invoke, :f :release, :process 2, :time 12527355700, :index 442}
+{:type :ok, :f :release, :process 3, :time 12529266197, :index 443}
+{:type :ok, :f :acquire, :process 0, :time 12542763439, :index 444}
+{:type :ok, :f :release, :process 2, :time 12548853131, :index 445}
+{:type :invoke, :f :acquire, :process 2, :time 12584326832, :index 446}
+{:type :invoke, :f :acquire, :process 3, :time 12587757722, :index 447}
+{:type :invoke, :f :acquire, :process 0, :time 12721347499, :index 448}
+{:type :fail, :f :acquire, :process 0, :time 12721818735, :error :already-held, :index 449}
+{:type :invoke, :f :release, :process 0, :time 12872272785, :index 450}
+{:type :ok, :f :acquire, :process 1, :time 12881960422, :index 451}
+{:type :ok, :f :release, :process 0, :time 12886394083, :index 452}
+{:type :invoke, :f :acquire, :process 0, :time 12915053484, :index 453}
+{:type :invoke, :f :acquire, :process 1, :time 12976419751, :index 454}
+{:type :fail, :f :acquire, :process 1, :time 12976694878, :error :already-held, :index 455}
+{:type :invoke, :f :acquire, :process 1, :time 13116100987, :index 456}
+{:type :fail, :f :acquire, :process 1, :time 13116348192, :error :already-held, :index 457}
+{:type :invoke, :f :acquire, :process 1, :time 13163889407, :index 458}
+{:type :fail, :f :acquire, :process 1, :time 13164150319, :error :already-held, :index 459}
+{:type :invoke, :f :acquire, :process 1, :time 13304555084, :index 460}
+{:type :fail, :f :acquire, :process 1, :time 13304889909, :error :already-held, :index 461}
+{:type :invoke, :f :acquire, :process 1, :time 13361273766, :index 462}
+{:type :fail, :f :acquire, :process 1, :time 13361523011, :error :already-held, :index 463}
+{:type :invoke, :f :release, :process 1, :time 13392901249, :index 464}
+{:type :ok, :f :acquire, :process 4, :time 13424000572, :index 465}
+{:type :ok, :f :release, :process 1, :time 13429525471, :index 466}
+{:type :invoke, :f :release, :process 4, :time 13499501307, :index 467}
+{:type :ok, :f :release, :process 4, :time 13510354241, :index 468}
+{:type :invoke, :f :acquire, :process 4, :time 13510761803, :index 469}
+{:type :ok, :f :acquire, :process 2, :time 13512242738, :index 470}
+{:type :invoke, :f :release, :process 1, :time 13548996057, :index 471}
+{:type :fail, :f :release, :process 1, :time 13549244780, :error :not-held, :index 472}
+{:type :invoke, :f :acquire, :process 2, :time 13608633872, :index 473}
+{:type :fail, :f :acquire, :process 2, :time 13608901769, :error :already-held, :index 474}
+{:type :invoke, :f :release, :process 1, :time 13673622812, :index 475}
+{:type :fail, :f :release, :process 1, :time 13673878436, :error :not-held, :index 476}
+{:type :invoke, :f :release, :process 2, :time 13723346856, :index 477}
+{:type :ok, :f :acquire, :process 3, :time 13733465646, :index 478}
+{:type :ok, :f :release, :process 2, :time 13738709418, :index 479}
+{:type :invoke, :f :release, :process 1, :time 13795260373, :index 480}
+{:type :fail, :f :release, :process 1, :time 13795513822, :error :not-held, :index 481}
+{:type :invoke, :f :release, :process 1, :time 13844880946, :index 482}
+{:type :fail, :f :release, :process 1, :time 13845131339, :error :not-held, :index 483}
+{:type :invoke, :f :acquire, :process 1, :time 13847499873, :index 484}
+{:type :invoke, :f :acquire, :process 3, :time 13865026101, :index 485}
+{:type :fail, :f :acquire, :process 3, :time 13865312161, :error :already-held, :index 486}
+{:type :invoke, :f :release, :process 2, :time 13917155678, :index 487}
+{:type :fail, :f :release, :process 2, :time 13917420748, :error :not-held, :index 488}
+{:type :invoke, :f :release, :process 3, :time 13948785205, :index 489}
+{:type :ok, :f :acquire, :process 0, :time 13958038019, :index 490}
+{:type :ok, :f :release, :process 3, :time 13963561388, :index 491}
+{:type :invoke, :f :release, :process 3, :time 13966089274, :index 492}
+{:type :fail, :f :release, :process 3, :time 13966337838, :error :not-held, :index 493}
+{:type :invoke, :f :acquire, :process 0, :time 14062403367, :index 494}
+{:type :fail, :f :acquire, :process 0, :time 14062694867, :error :already-held, :index 495}
+{:type :invoke, :f :acquire, :process 2, :time 14098910832, :index 496}
+{:type :invoke, :f :release, :process 3, :time 14123848249, :index 497}
+{:type :fail, :f :release, :process 3, :time 14124208913, :error :not-held, :index 498}
+{:type :invoke, :f :release, :process 0, :time 14209246784, :index 499}
+{:type :ok, :f :acquire, :process 4, :time 14219929169, :index 500}
+{:type :ok, :f :release, :process 0, :time 14227353999, :index 501}
+{:type :invoke, :f :acquire, :process 3, :time 14237703561, :index 502}
+{:type :invoke, :f :release, :process 4, :time 14316655151, :index 503}
+{:type :ok, :f :acquire, :process 1, :time 14326415658, :index 504}
+{:type :ok, :f :release, :process 4, :time 14329802497, :index 505}
+{:type :invoke, :f :acquire, :process 4, :time 14339372867, :index 506}
+{:type :invoke, :f :acquire, :process 0, :time 14399998265, :index 507}
+{:type :invoke, :f :release, :process 1, :time 14443148861, :index 508}
+{:type :ok, :f :release, :process 1, :time 14456797490, :index 509}
+{:type :ok, :f :acquire, :process 2, :time 14456953738, :index 510}
+{:type :invoke, :f :release, :process 1, :time 14543403249, :index 511}
+{:type :fail, :f :release, :process 1, :time 14543688964, :error :not-held, :index 512}
+{:type :invoke, :f :release, :process 1, :time 14599406034, :index 513}
+{:type :fail, :f :release, :process 1, :time 14599923862, :error :not-held, :index 514}
+{:type :invoke, :f :acquire, :process 2, :time 14622369392, :index 515}
+{:type :fail, :f :acquire, :process 2, :time 14622751174, :error :already-held, :index 516}
+{:type :invoke, :f :release, :process 2, :time 14631066148, :index 517}
+{:type :ok, :f :acquire, :process 3, :time 14640667203, :index 518}
+{:type :ok, :f :release, :process 2, :time 14648685874, :index 519}
+{:type :invoke, :f :acquire, :process 3, :time 14667194955, :index 520}
+{:type :fail, :f :acquire, :process 3, :time 14667451610, :error :already-held, :index 521}
+{:type :invoke, :f :release, :process 1, :time 14670325930, :index 522}
+{:type :fail, :f :release, :process 1, :time 14670672043, :error :not-held, :index 523}
+{:type :invoke, :f :acquire, :process 2, :time 14673192914, :index 524}
+{:type :invoke, :f :release, :process 3, :time 14736844080, :index 525}
+{:type :ok, :f :acquire, :process 4, :time 14746395653, :index 526}
+{:type :ok, :f :release, :process 3, :time 14756133783, :index 527}
+{:type :invoke, :f :release, :process 1, :time 14816002706, :index 528}
+{:type :fail, :f :release, :process 1, :time 14816255192, :error :not-held, :index 529}
+{:type :invoke, :f :acquire, :process 4, :time 14817779159, :index 530}
+{:type :fail, :f :acquire, :process 4, :time 14818013505, :error :already-held, :index 531}
+{:type :invoke, :f :release, :process 4, :time 14875403667, :index 532}
+{:type :invoke, :f :acquire, :process 3, :time 14881620842, :index 533}
+{:type :ok, :f :release, :process 4, :time 14909697166, :index 534}
+{:type :ok, :f :acquire, :process 0, :time 14910136430, :index 535}
+{:type :invoke, :f :release, :process 1, :time 14911574324, :index 536}
+{:type :fail, :f :release, :process 1, :time 14911906356, :error :not-held, :index 537}
+{:type :invoke, :f :acquire, :process 0, :time 14921354005, :index 538}
+{:type :fail, :f :acquire, :process 0, :time 14921483466, :error :already-held, :index 539}
+{:type :invoke, :f :acquire, :process 1, :time 14931301104, :index 540}
+{:type :invoke, :f :release, :process 0, :time 14965664815, :index 541}
+{:type :ok, :f :acquire, :process 2, :time 14975267784, :index 542}
+{:type :ok, :f :release, :process 0, :time 14979003842, :index 543}
+{:type :invoke, :f :release, :process 0, :time 14991267634, :index 544}
+{:type :fail, :f :release, :process 0, :time 14991381267, :error :not-held, :index 545}
+{:type :invoke, :f :release, :process 2, :time 15027621957, :index 546}
+{:type :ok, :f :acquire, :process 3, :time 15034743114, :index 547}
+{:type :ok, :f :release, :process 2, :time 15039241868, :index 548}
+{:type :invoke, :f :acquire, :process 4, :time 15063123451, :index 549}
+{:type :invoke, :f :acquire, :process 2, :time 15088591914, :index 550}
+{:type :invoke, :f :release, :process 0, :time 15101614537, :index 551}
+{:type :fail, :f :release, :process 0, :time 15101948979, :error :not-held, :index 552}
+{:type :invoke, :f :acquire, :process 0, :time 15128268062, :index 553}
+{:type :invoke, :f :release, :process 3, :time 15176040922, :index 554}
+{:type :ok, :f :acquire, :process 1, :time 15185378958, :index 555}
+{:type :ok, :f :release, :process 3, :time 15190895358, :index 556}
+{:type :info, :f :start, :process :nemesis, :time 15329973805, :index 557}
+{:type :info, :f :start, :process :nemesis, :time 15330281530, :index 558}
+{:type :invoke, :f :acquire, :process 1, :time 15330824098, :index 559}
+{:type :fail, :f :acquire, :process 1, :time 15331018828, :error :already-held, :index 560}
+{:type :invoke, :f :acquire, :process 3, :time 15351439084, :index 561}
+{:type :invoke, :f :release, :process 1, :time 15403366344, :index 562}
+{:type :ok, :f :acquire, :process 4, :time 15413233976, :index 563}
+{:type :ok, :f :release, :process 1, :time 15418490391, :index 564}
+{:type :invoke, :f :release, :process 4, :time 15499582272, :index 565}
+{:type :ok, :f :acquire, :process 2, :time 15509010902, :index 566}
+{:type :ok, :f :release, :process 4, :time 15511581227, :index 567}
+{:type :invoke, :f :acquire, :process 2, :time 15555343786, :index 568}
+{:type :fail, :f :acquire, :process 2, :time 15555604739, :error :already-held, :index 569}
+{:type :invoke, :f :release, :process 4, :time 15560010183, :index 570}
+{:type :fail, :f :release, :process 4, :time 15560245518, :error :not-held, :index 571}
+{:type :invoke, :f :release, :process 4, :time 15582624119, :index 572}
+{:type :fail, :f :release, :process 4, :time 15582840889, :error :not-held, :index 573}
+{:type :invoke, :f :release, :process 1, :time 15609906120, :index 574}
+{:type :fail, :f :release, :process 1, :time 15610159707, :error :not-held, :index 575}
+{:type :invoke, :f :release, :process 2, :time 15714882989, :index 576}
+{:type :invoke, :f :acquire, :process 1, :time 15716444884, :index 577}
+{:type :ok, :f :acquire, :process 0, :time 15726695441, :index 578}
+{:type :invoke, :f :acquire, :process 4, :time 15730119026, :index 579}
+{:type :ok, :f :release, :process 2, :time 15732121991, :index 580}
+{:type :invoke, :f :acquire, :process 2, :time 15775555298, :index 581}
+{:type :invoke, :f :release, :process 0, :time 15881255278, :index 582}
+{:type :ok, :f :acquire, :process 3, :time 15893039602, :index 583}
+{:type :ok, :f :release, :process 0, :time 15898170554, :index 584}
+{:type :invoke, :f :release, :process 3, :time 16061388899, :index 585}
+{:type :invoke, :f :release, :process 0, :time 16066534901, :index 586}
+{:type :fail, :f :release, :process 0, :time 16066998349, :error :not-held, :index 587}
+{:type :ok, :f :acquire, :process 1, :time 16072066033, :index 588}
+{:type :ok, :f :release, :process 3, :time 16076867726, :index 589}
+{:type :invoke, :f :acquire, :process 1, :time 16115523810, :index 590}
+{:type :fail, :f :acquire, :process 1, :time 16115705263, :error :already-held, :index 591}
+{:type :invoke, :f :release, :process 3, :time 16147187958, :index 592}
+{:type :fail, :f :release, :process 3, :time 16147373302, :error :not-held, :index 593}
+{:type :invoke, :f :release, :process 3, :time 16231671965, :index 594}
+{:type :fail, :f :release, :process 3, :time 16231923946, :error :not-held, :index 595}
+{:type :invoke, :f :release, :process 0, :time 16262376425, :index 596}
+{:type :fail, :f :release, :process 0, :time 16262632246, :error :not-held, :index 597}
+{:type :invoke, :f :release, :process 1, :time 16296977748, :index 598}
+{:type :ok, :f :acquire, :process 4, :time 16305700018, :index 599}
+{:type :invoke, :f :release, :process 0, :time 16309953047, :index 600}
+{:type :fail, :f :release, :process 0, :time 16310187074, :error :not-held, :index 601}
+{:type :ok, :f :release, :process 1, :time 16314658700, :index 602}
+{:type :invoke, :f :release, :process 4, :time 16346049273, :index 603}
+{:type :invoke, :f :acquire, :process 0, :time 16346509875, :index 604}
+{:type :ok, :f :release, :process 4, :time 16369809007, :index 605}
+{:type :ok, :f :acquire, :process 2, :time 16370914223, :index 606}
+{:type :invoke, :f :acquire, :process 1, :time 16378085621, :index 607}
+{:type :invoke, :f :release, :process 3, :time 16390257649, :index 608}
+{:type :fail, :f :release, :process 3, :time 16390557748, :error :not-held, :index 609}
+{:type :invoke, :f :acquire, :process 2, :time 16451252781, :index 610}
+{:type :fail, :f :acquire, :process 2, :time 16451566179, :error :already-held, :index 611}
+{:type :invoke, :f :release, :process 2, :time 16468888781, :index 612}
+{:type :ok, :f :acquire, :process 0, :time 16480058097, :index 613}
+{:type :invoke, :f :acquire, :process 3, :time 16482920338, :index 614}
+{:type :ok, :f :release, :process 2, :time 16483592801, :index 615}
+{:type :invoke, :f :acquire, :process 4, :time 16532280019, :index 616}
+{:type :invoke, :f :acquire, :process 2, :time 16637073394, :index 617}
+{:type :invoke, :f :release, :process 0, :time 16654400723, :index 618}
+{:type :ok, :f :acquire, :process 1, :time 16662460672, :index 619}
+{:type :ok, :f :release, :process 0, :time 16667165412, :index 620}
+{:type :invoke, :f :acquire, :process 0, :time 16683577688, :index 621}
+{:type :invoke, :f :acquire, :process 1, :time 16708855957, :index 622}
+{:type :fail, :f :acquire, :process 1, :time 16709098649, :error :already-held, :index 623}
+{:type :invoke, :f :release, :process 1, :time 16739421382, :index 624}
+{:type :ok, :f :acquire, :process 3, :time 16752213678, :index 625}
+{:type :ok, :f :release, :process 1, :time 16756894421, :index 626}
+{:type :invoke, :f :acquire, :process 1, :time 16763298294, :index 627}
+{:type :invoke, :f :acquire, :process 3, :time 16846627828, :index 628}
+{:type :fail, :f :acquire, :process 3, :time 16846887246, :error :already-held, :index 629}
+{:type :invoke, :f :acquire, :process 3, :time 17001239877, :index 630}
+{:type :fail, :f :acquire, :process 3, :time 17001517781, :error :already-held, :index 631}
+{:type :invoke, :f :acquire, :process 3, :time 17198819027, :index 632}
+{:type :fail, :f :acquire, :process 3, :time 17199104476, :error :already-held, :index 633}
+{:type :invoke, :f :release, :process 3, :time 17224436082, :index 634}
+{:type :ok, :f :acquire, :process 4, :time 17233119046, :index 635}
+{:type :ok, :f :release, :process 3, :time 17240082620, :index 636}
+{:type :invoke, :f :acquire, :process 4, :time 17323497961, :index 637}
+{:type :fail, :f :acquire, :process 4, :time 17323747465, :error :already-held, :index 638}
+{:type :invoke, :f :release, :process 3, :time 17407525082, :index 639}
+{:type :fail, :f :release, :process 3, :time 17407776911, :error :not-held, :index 640}
+{:type :invoke, :f :acquire, :process 4, :time 17501083989, :index 641}
+{:type :fail, :f :acquire, :process 4, :time 17501333832, :error :already-held, :index 642}
+{:type :invoke, :f :acquire, :process 4, :time 17532737531, :index 643}
+{:type :fail, :f :acquire, :process 4, :time 17532976247, :error :already-held, :index 644}
+{:type :invoke, :f :acquire, :process 4, :time 17574308273, :index 645}
+{:type :fail, :f :acquire, :process 4, :time 17574544406, :error :already-held, :index 646}
+{:type :invoke, :f :acquire, :process 4, :time 17592865522, :index 647}
+{:type :fail, :f :acquire, :process 4, :time 17593101937, :error :already-held, :index 648}
+{:type :invoke, :f :acquire, :process 3, :time 17595117897, :index 649}
+{:type :invoke, :f :acquire, :process 4, :time 17743476730, :index 650}
+{:type :fail, :f :acquire, :process 4, :time 17743757851, :error :already-held, :index 651}
+{:type :invoke, :f :acquire, :process 4, :time 17869130709, :index 652}
+{:type :fail, :f :acquire, :process 4, :time 17869369608, :error :already-held, :index 653}
+{:type :invoke, :f :acquire, :process 4, :time 17891730049, :index 654}
+{:type :fail, :f :acquire, :process 4, :time 17891950096, :error :already-held, :index 655}
+{:type :invoke, :f :acquire, :process 4, :time 18047269555, :index 656}
+{:type :fail, :f :acquire, :process 4, :time 18047512104, :error :already-held, :index 657}
+{:type :invoke, :f :acquire, :process 4, :time 18120839461, :index 658}
+{:type :fail, :f :acquire, :process 4, :time 18121074620, :error :already-held, :index 659}
+{:type :invoke, :f :acquire, :process 4, :time 18304412191, :index 660}
+{:type :fail, :f :acquire, :process 4, :time 18304657869, :error :already-held, :index 661}
+{:type :invoke, :f :release, :process 4, :time 18365028307, :index 662}
+{:type :ok, :f :acquire, :process 2, :time 18397701036, :index 663}
+{:type :ok, :f :release, :process 4, :time 18402267741, :index 664}
+{:type :invoke, :f :release, :process 4, :time 18423683942, :index 665}
+{:type :fail, :f :release, :process 4, :time 18423919411, :error :not-held, :index 666}
+{:type :invoke, :f :release, :process 2, :time 18460094469, :index 667}
+{:type :ok, :f :acquire, :process 0, :time 18471273224, :index 668}
+{:type :ok, :f :release, :process 2, :time 18478816916, :index 669}
+{:type :invoke, :f :acquire, :process 0, :time 18557704028, :index 670}
+{:type :fail, :f :acquire, :process 0, :time 18557959185, :error :already-held, :index 671}
+{:type :invoke, :f :release, :process 4, :time 18580244240, :index 672}
+{:type :fail, :f :release, :process 4, :time 18580492768, :error :not-held, :index 673}
+{:type :invoke, :f :acquire, :process 2, :time 18605252353, :index 674}
+{:type :invoke, :f :acquire, :process 0, :time 18681287001, :index 675}
+{:type :fail, :f :acquire, :process 0, :time 18681525280, :error :already-held, :index 676}
+{:type :invoke, :f :release, :process 4, :time 18697945600, :index 677}
+{:type :fail, :f :release, :process 4, :time 18698184290, :error :not-held, :index 678}
+{:type :invoke, :f :release, :process 4, :time 18717515842, :index 679}
+{:type :fail, :f :release, :process 4, :time 18717751547, :error :not-held, :index 680}
+{:type :invoke, :f :acquire, :process 0, :time 18742869238, :index 681}
+{:type :fail, :f :acquire, :process 0, :time 18743102641, :error :already-held, :index 682}
+{:type :invoke, :f :release, :process 4, :time 18897082723, :index 683}
+{:type :fail, :f :release, :process 4, :time 18897322609, :error :not-held, :index 684}
+{:type :invoke, :f :release, :process 0, :time 18939434173, :index 685}
+{:type :ok, :f :acquire, :process 1, :time 18949675555, :index 686}
+{:type :ok, :f :release, :process 0, :time 18954372360, :index 687}
+{:type :invoke, :f :release, :process 1, :time 19003070000, :index 688}
+{:type :ok, :f :acquire, :process 3, :time 19014281523, :index 689}
+{:type :ok, :f :release, :process 1, :time 19018747356, :index 690}
+{:type :invoke, :f :release, :process 0, :time 19044807180, :index 691}
+{:type :fail, :f :release, :process 0, :time 19045042074, :error :not-held, :index 692}
+{:type :invoke, :f :release, :process 0, :time 19054360144, :index 693}
+{:type :fail, :f :release, :process 0, :time 19054594477, :error :not-held, :index 694}
+{:type :invoke, :f :release, :process 4, :time 19068675500, :index 695}
+{:type :fail, :f :release, :process 4, :time 19068994218, :error :not-held, :index 696}
+{:type :invoke, :f :acquire, :process 1, :time 19084202423, :index 697}
+{:type :invoke, :f :release, :process 0, :time 19117918565, :index 698}
+{:type :fail, :f :release, :process 0, :time 19118157670, :error :not-held, :index 699}
+{:type :invoke, :f :acquire, :process 3, :time 19161750663, :index 700}
+{:type :fail, :f :acquire, :process 3, :time 19162068324, :error :already-held, :index 701}
+{:type :invoke, :f :acquire, :process 0, :time 19175480269, :index 702}
+{:type :invoke, :f :acquire, :process 4, :time 19180348298, :index 703}
+{:type :invoke, :f :acquire, :process 3, :time 19348446274, :index 704}
+{:type :fail, :f :acquire, :process 3, :time 19348706892, :error :already-held, :index 705}
+{:type :invoke, :f :acquire, :process 3, :time 19544072978, :index 706}
+{:type :fail, :f :acquire, :process 3, :time 19544324086, :error :already-held, :index 707}
+{:type :invoke, :f :release, :process 3, :time 19662704216, :index 708}
+{:type :ok, :f :acquire, :process 2, :time 19672191630, :index 709}
+{:type :ok, :f :release, :process 3, :time 19677363473, :index 710}
+{:type :invoke, :f :release, :process 2, :time 19799563938, :index 711}
+{:type :ok, :f :acquire, :process 1, :time 19810341139, :index 712}
+{:type :ok, :f :release, :process 2, :time 19815441100, :index 713}
+{:type :invoke, :f :acquire, :process 1, :time 19838731368, :index 714}
+{:type :fail, :f :acquire, :process 1, :time 19838981091, :error :already-held, :index 715}
+{:type :invoke, :f :release, :process 3, :time 19857785767, :index 716}
+{:type :fail, :f :release, :process 3, :time 19858055248, :error :not-held, :index 717}
+{:type :invoke, :f :acquire, :process 2, :time 19877867993, :index 718}
+{:type :invoke, :f :acquire, :process 1, :time 19885331034, :index 719}
+{:type :fail, :f :acquire, :process 1, :time 19885580205, :error :already-held, :index 720}
+{:type :invoke, :f :release, :process 1, :time 19954922473, :index 721}
+{:type :ok, :f :acquire, :process 4, :time 19964032282, :index 722}
+{:type :ok, :f :release, :process 1, :time 19972445782, :index 723}
+{:type :invoke, :f :acquire, :process 4, :time 20039338875, :index 724}
+{:type :fail, :f :acquire, :process 4, :time 20039497206, :error :already-held, :index 725}
+{:type :invoke, :f :acquire, :process 3, :time 20042367973, :index 726}
+{:type :invoke, :f :release, :process 1, :time 20074872276, :index 727}
+{:type :fail, :f :release, :process 1, :time 20074997236, :error :not-held, :index 728}
+{:type :invoke, :f :acquire, :process 4, :time 20198709571, :index 729}
+{:type :fail, :f :acquire, :process 4, :time 20198959551, :error :already-held, :index 730}
+{:type :invoke, :f :release, :process 1, :time 20205211353, :index 731}
+{:type :fail, :f :release, :process 1, :time 20205334863, :error :not-held, :index 732}
+{:type :invoke, :f :acquire, :process 4, :time 20244240232, :index 733}
+{:type :fail, :f :acquire, :process 4, :time 20244539195, :error :already-held, :index 734}
+{:type :info, :f :stop, :process :nemesis, :time 20330923673, :index 735}
+{:type :info, :f :stop, :process :nemesis, :time 20331217328, :index 736}
+{:type :invoke, :f :acquire, :process 1, :time 20349641543, :index 737}
+{:type :invoke, :f :acquire, :process 4, :time 20408888323, :index 738}
+{:type :fail, :f :acquire, :process 4, :time 20409141287, :error :already-held, :index 739}
+{:type :invoke, :f :acquire, :process 4, :time 20546482511, :index 740}
+{:type :fail, :f :acquire, :process 4, :time 20546721633, :error :already-held, :index 741}
+{:type :invoke, :f :acquire, :process 4, :time 20575061913, :index 742}
+{:type :fail, :f :acquire, :process 4, :time 20575301560, :error :already-held, :index 743}
+{:type :invoke, :f :release, :process 4, :time 20627656863, :index 744}
+{:type :ok, :f :acquire, :process 0, :time 20635763376, :index 745}
+{:type :ok, :f :release, :process 4, :time 20638949815, :index 746}
+{:type :invoke, :f :release, :process 4, :time 20742377283, :index 747}
+{:type :fail, :f :release, :process 4, :time 20742614652, :error :not-held, :index 748}
+{:type :invoke, :f :acquire, :process 0, :time 20815104569, :index 749}
+{:type :fail, :f :acquire, :process 0, :time 20815345392, :error :already-held, :index 750}
+{:type :invoke, :f :acquire, :process 4, :time 20878950810, :index 751}
+{:type :invoke, :f :acquire, :process 0, :time 20916739052, :index 752}
+{:type :fail, :f :acquire, :process 0, :time 20916986925, :error :already-held, :index 753}
+{:type :invoke, :f :acquire, :process 0, :time 20956318102, :index 754}
+{:type :fail, :f :acquire, :process 0, :time 20956555244, :error :already-held, :index 755}
+{:type :invoke, :f :release, :process 0, :time 21129908410, :index 756}
+{:type :ok, :f :acquire, :process 2, :time 21139245381, :index 757}
+{:type :ok, :f :release, :process 0, :time 21143364217, :index 758}
+{:type :invoke, :f :acquire, :process 0, :time 21150801000, :index 759}
+{:type :invoke, :f :release, :process 2, :time 21203604279, :index 760}
+{:type :ok, :f :acquire, :process 3, :time 21213925608, :index 761}
+{:type :ok, :f :release, :process 2, :time 21216592361, :index 762}
+{:type :invoke, :f :acquire, :process 3, :time 21343308134, :index 763}
+{:type :fail, :f :acquire, :process 3, :time 21343551338, :error :already-held, :index 764}
+{:type :invoke, :f :release, :process 2, :time 21366052031, :index 765}
+{:type :fail, :f :release, :process 2, :time 21366299416, :error :not-held, :index 766}
+{:type :invoke, :f :acquire, :process 3, :time 21434881795, :index 767}
+{:type :fail, :f :acquire, :process 3, :time 21435136689, :error :already-held, :index 768}
+{:type :invoke, :f :release, :process 2, :time 21440665785, :index 769}
+{:type :fail, :f :release, :process 2, :time 21440938245, :error :not-held, :index 770}
+{:type :invoke, :f :acquire, :process 3, :time 21447512116, :index 771}
+{:type :fail, :f :acquire, :process 3, :time 21447750524, :error :already-held, :index 772}
+{:type :invoke, :f :acquire, :process 2, :time 21466341578, :index 773}
+{:type :invoke, :f :acquire, :process 3, :time 21585197521, :index 774}
+{:type :fail, :f :acquire, :process 3, :time 21585469681, :error :already-held, :index 775}
+{:type :invoke, :f :acquire, :process 3, :time 21654875985, :index 776}
+{:type :fail, :f :acquire, :process 3, :time 21655117415, :error :already-held, :index 777}
+{:type :invoke, :f :acquire, :process 3, :time 21778455654, :index 778}
+{:type :fail, :f :acquire, :process 3, :time 21778710780, :error :already-held, :index 779}
+{:type :invoke, :f :release, :process 3, :time 21861028550, :index 780}
+{:type :ok, :f :acquire, :process 1, :time 21870440194, :index 781}
+{:type :ok, :f :release, :process 3, :time 21875637833, :index 782}
+{:type :invoke, :f :acquire, :process 1, :time 21890845730, :index 783}
+{:type :fail, :f :acquire, :process 1, :time 21891091561, :error :already-held, :index 784}
+{:type :invoke, :f :release, :process 3, :time 21984078639, :index 785}
+{:type :fail, :f :release, :process 3, :time 21984321398, :error :not-held, :index 786}
+{:type :invoke, :f :release, :process 3, :time 21988684427, :index 787}
+{:type :fail, :f :release, :process 3, :time 21988952301, :error :not-held, :index 788}
+{:type :invoke, :f :acquire, :process 1, :time 22001419170, :index 789}
+{:type :fail, :f :acquire, :process 1, :time 22001662679, :error :already-held, :index 790}
+{:type :invoke, :f :acquire, :process 1, :time 22068995838, :index 791}
+{:type :fail, :f :acquire, :process 1, :time 22069241835, :error :already-held, :index 792}
+{:type :invoke, :f :acquire, :process 1, :time 22082578036, :index 793}
+{:type :fail, :f :acquire, :process 1, :time 22082826175, :error :already-held, :index 794}
+{:type :invoke, :f :release, :process 3, :time 22155291380, :index 795}
+{:type :fail, :f :release, :process 3, :time 22155547798, :error :not-held, :index 796}
+{:type :invoke, :f :acquire, :process 1, :time 22269159548, :index 797}
+{:type :fail, :f :acquire, :process 1, :time 22269407285, :error :already-held, :index 798}
+{:type :invoke, :f :acquire, :process 1, :time 22293788079, :index 799}
+{:type :fail, :f :acquire, :process 1, :time 22294033375, :error :already-held, :index 800}
+{:type :invoke, :f :acquire, :process 3, :time 22310871603, :index 801}
+{:type :invoke, :f :release, :process 1, :time 22357330112, :index 802}
+{:type :ok, :f :acquire, :process 4, :time 22369734364, :index 803}
+{:type :ok, :f :release, :process 1, :time 22386380296, :index 804}
+{:type :invoke, :f :release, :process 1, :time 22396644240, :index 805}
+{:type :fail, :f :release, :process 1, :time 22396837868, :error :not-held, :index 806}
+{:type :invoke, :f :release, :process 4, :time 22409240872, :index 807}
+{:type :ok, :f :acquire, :process 0, :time 22418907616, :index 808}
+{:type :ok, :f :release, :process 4, :time 22422701747, :index 809}
+{:type :invoke, :f :release, :process 4, :time 22494042360, :index 810}
+{:type :fail, :f :release, :process 4, :time 22494288720, :error :not-held, :index 811}
+{:type :invoke, :f :acquire, :process 0, :time 22529169347, :index 812}
+{:type :fail, :f :acquire, :process 0, :time 22529410489, :error :already-held, :index 813}
+{:type :invoke, :f :release, :process 1, :time 22543085201, :index 814}
+{:type :fail, :f :release, :process 1, :time 22543333134, :error :not-held, :index 815}
+{:type :invoke, :f :release, :process 0, :time 22549704589, :index 816}
+{:type :ok, :f :acquire, :process 2, :time 22560945870, :index 817}
+{:type :ok, :f :release, :process 0, :time 22565861131, :index 818}
+{:type :invoke, :f :acquire, :process 1, :time 22602732007, :index 819}
+{:type :invoke, :f :release, :process 0, :time 22641232377, :index 820}
+{:type :fail, :f :release, :process 0, :time 22641403125, :error :not-held, :index 821}
+{:type :invoke, :f :release, :process 4, :time 22641553439, :index 822}
+{:type :fail, :f :release, :process 4, :time 22641698455, :error :not-held, :index 823}
+{:type :invoke, :f :release, :process 2, :time 22684317937, :index 824}
+{:type :invoke, :f :acquire, :process 4, :time 22690948356, :index 825}
+{:type :ok, :f :acquire, :process 3, :time 22693058271, :index 826}
+{:type :ok, :f :release, :process 2, :time 22702916624, :index 827}
+{:type :invoke, :f :acquire, :process 2, :time 22788261913, :index 828}
+{:type :invoke, :f :release, :process 0, :time 22794715620, :index 829}
+{:type :fail, :f :release, :process 0, :time 22795010558, :error :not-held, :index 830}
+{:type :invoke, :f :acquire, :process 3, :time 22810297212, :index 831}
+{:type :fail, :f :acquire, :process 3, :time 22810545819, :error :already-held, :index 832}
+{:type :invoke, :f :acquire, :process 0, :time 22833391833, :index 833}
+{:type :invoke, :f :release, :process 3, :time 22942883448, :index 834}
+{:type :ok, :f :acquire, :process 1, :time 22953256146, :index 835}
+{:type :ok, :f :release, :process 3, :time 22956197181, :index 836}
+{:type :invoke, :f :release, :process 1, :time 23031679218, :index 837}
+{:type :ok, :f :acquire, :process 4, :time 23041908710, :index 838}
+{:type :ok, :f :release, :process 1, :time 23048475264, :index 839}
+{:type :invoke, :f :acquire, :process 3, :time 23085618560, :index 840}
+{:type :invoke, :f :acquire, :process 4, :time 23129238513, :index 841}
+{:type :fail, :f :acquire, :process 4, :time 23129481228, :error :already-held, :index 842}
+{:type :invoke, :f :release, :process 1, :time 23145011095, :index 843}
+{:type :fail, :f :release, :process 1, :time 23145254936, :error :not-held, :index 844}
+{:type :invoke, :f :release, :process 4, :time 23228818362, :index 845}
+{:type :ok, :f :acquire, :process 2, :time 23238633297, :index 846}
+{:type :ok, :f :release, :process 4, :time 23242383057, :index 847}
+{:type :invoke, :f :acquire, :process 1, :time 23284577754, :index 848}
+{:type :invoke, :f :release, :process 4, :time 23349791022, :index 849}
+{:type :fail, :f :release, :process 4, :time 23350023575, :error :not-held, :index 850}
+{:type :invoke, :f :acquire, :process 2, :time 23394974200, :index 851}
+{:type :fail, :f :acquire, :process 2, :time 23395219397, :error :already-held, :index 852}
+{:type :invoke, :f :release, :process 2, :time 23477528624, :index 853}
+{:type :ok, :f :acquire, :process 0, :time 23487725007, :index 854}
+{:type :ok, :f :release, :process 2, :time 23493883069, :index 855}
+{:type :invoke, :f :acquire, :process 4, :time 23532345923, :index 856}
+{:type :invoke, :f :release, :process 0, :time 23550069562, :index 857}
+{:type :ok, :f :acquire, :process 3, :time 23561017980, :index 858}
+{:type :ok, :f :release, :process 0, :time 23571618806, :index 859}
+{:type :invoke, :f :acquire, :process 3, :time 23591366945, :index 860}
+{:type :fail, :f :acquire, :process 3, :time 23591609733, :error :already-held, :index 861}
+{:type :invoke, :f :release, :process 0, :time 23623064060, :index 862}
+{:type :fail, :f :release, :process 0, :time 23623319811, :error :not-held, :index 863}
+{:type :invoke, :f :acquire, :process 2, :time 23647304677, :index 864}
+{:type :invoke, :f :acquire, :process 3, :time 23691928629, :index 865}
+{:type :fail, :f :acquire, :process 3, :time 23692171198, :error :already-held, :index 866}
+{:type :invoke, :f :acquire, :process 3, :time 23721498162, :index 867}
+{:type :fail, :f :acquire, :process 3, :time 23721740758, :error :already-held, :index 868}
+{:type :invoke, :f :release, :process 0, :time 23809685797, :index 869}
+{:type :fail, :f :release, :process 0, :time 23809938592, :error :not-held, :index 870}
+{:type :invoke, :f :release, :process 0, :time 23837267936, :index 871}
+{:type :fail, :f :release, :process 0, :time 23837513231, :error :not-held, :index 872}
+{:type :invoke, :f :acquire, :process 3, :time 23894078356, :index 873}
+{:type :fail, :f :acquire, :process 3, :time 23894319440, :error :already-held, :index 874}
+{:type :invoke, :f :acquire, :process 0, :time 24010852730, :index 875}
+{:type :invoke, :f :release, :process 3, :time 24069689124, :index 876}
+{:type :ok, :f :acquire, :process 1, :time 24080034476, :index 877}
+{:type :ok, :f :release, :process 3, :time 24084528725, :index 878}
+{:type :invoke, :f :release, :process 3, :time 24121973866, :index 879}
+{:type :fail, :f :release, :process 3, :time 24122233818, :error :not-held, :index 880}
+{:type :invoke, :f :release, :process 1, :time 24153380172, :index 881}
+{:type :invoke, :f :release, :process 3, :time 24157555758, :index 882}
+{:type :fail, :f :release, :process 3, :time 24157842755, :error :not-held, :index 883}
+{:type :ok, :f :acquire, :process 4, :time 24162663951, :index 884}
+{:type :invoke, :f :acquire, :process 4, :time 24165063119, :index 885}
+{:type :fail, :f :acquire, :process 4, :time 24165299711, :error :already-held, :index 886}
+{:type :ok, :f :release, :process 1, :time 24168363833, :index 887}
+{:type :invoke, :f :release, :process 4, :time 24266650365, :index 888}
+{:type :ok, :f :acquire, :process 2, :time 24277009197, :index 889}
+{:type :ok, :f :release, :process 4, :time 24281682219, :index 890}
+{:type :invoke, :f :release, :process 3, :time 24300168076, :index 891}
+{:type :fail, :f :release, :process 3, :time 24300414179, :error :not-held, :index 892}
+{:type :invoke, :f :release, :process 1, :time 24308786509, :index 893}
+{:type :fail, :f :release, :process 1, :time 24309030981, :error :not-held, :index 894}
+{:type :invoke, :f :acquire, :process 4, :time 24317133864, :index 895}
+{:type :invoke, :f :acquire, :process 2, :time 24354342673, :index 896}
+{:type :fail, :f :acquire, :process 2, :time 24354595721, :error :already-held, :index 897}
+{:type :invoke, :f :release, :process 2, :time 24360901559, :index 898}
+{:type :ok, :f :acquire, :process 0, :time 24371107148, :index 899}
+{:type :ok, :f :release, :process 2, :time 24375793916, :index 900}
+{:type :invoke, :f :release, :process 3, :time 24420798203, :index 901}
+{:type :fail, :f :release, :process 3, :time 24421040795, :error :not-held, :index 902}
+{:type :invoke, :f :release, :process 1, :time 24426356274, :index 903}
+{:type :fail, :f :release, :process 1, :time 24426604456, :error :not-held, :index 904}
+{:type :invoke, :f :release, :process 3, :time 24436367704, :index 905}
+{:type :fail, :f :release, :process 3, :time 24436610140, :error :not-held, :index 906}
+{:type :invoke, :f :acquire, :process 2, :time 24463202141, :index 907}
+{:type :invoke, :f :release, :process 3, :time 24534968380, :index 908}
+{:type :fail, :f :release, :process 3, :time 24535210344, :error :not-held, :index 909}
+{:type :invoke, :f :acquire, :process 3, :time 24550535449, :index 910}
+{:type :invoke, :f :release, :process 0, :time 24562422470, :index 911}
+{:type :ok, :f :acquire, :process 4, :time 24570957113, :index 912}
+{:type :ok, :f :release, :process 0, :time 24576423020, :index 913}
+{:type :invoke, :f :release, :process 1, :time 24580938247, :index 914}
+{:type :fail, :f :release, :process 1, :time 24581190272, :error :not-held, :index 915}
+{:type :invoke, :f :release, :process 0, :time 24638888576, :index 916}
+{:type :fail, :f :release, :process 0, :time 24639127764, :error :not-held, :index 917}
+{:type :invoke, :f :release, :process 1, :time 24660533478, :index 918}
+{:type :fail, :f :release, :process 1, :time 24660824948, :error :not-held, :index 919}
+{:type :invoke, :f :release, :process 4, :time 24673317858, :index 920}
+{:type :ok, :f :release, :process 4, :time 24688433469, :index 921}
+{:type :ok, :f :acquire, :process 2, :time 24688809032, :index 922}
+{:type :invoke, :f :release, :process 1, :time 24756170225, :index 923}
+{:type :fail, :f :release, :process 1, :time 24756415178, :error :not-held, :index 924}
+{:type :invoke, :f :acquire, :process 1, :time 24778813049, :index 925}
+{:type :invoke, :f :release, :process 4, :time 24808054622, :index 926}
+{:type :fail, :f :release, :process 4, :time 24808301724, :error :not-held, :index 927}
+{:type :invoke, :f :acquire, :process 2, :time 24808181531, :index 928}
+{:type :fail, :f :acquire, :process 2, :time 24808387434, :error :already-held, :index 929}
+{:type :invoke, :f :acquire, :process 0, :time 24808435784, :index 930}
+{:type :invoke, :f :release, :process 4, :time 24853706738, :index 931}
+{:type :fail, :f :release, :process 4, :time 24853954541, :error :not-held, :index 932}
+{:type :invoke, :f :acquire, :process 2, :time 24854780742, :index 933}
+{:type :fail, :f :acquire, :process 2, :time 24855023377, :error :already-held, :index 934}
+{:type :invoke, :f :release, :process 2, :time 25022345579, :index 935}
+{:type :invoke, :f :release, :process 4, :time 25032255368, :index 936}
+{:type :fail, :f :release, :process 4, :time 25032527452, :error :not-held, :index 937}
+{:type :ok, :f :acquire, :process 3, :time 25033212619, :index 938}
+{:type :ok, :f :release, :process 2, :time 25041881863, :index 939}
+{:type :invoke, :f :release, :process 3, :time 25076549938, :index 940}
+{:type :invoke, :f :release, :process 4, :time 25076956474, :index 941}
+{:type :fail, :f :release, :process 4, :time 25077170218, :error :not-held, :index 942}
+{:type :invoke, :f :acquire, :process 2, :time 25086294753, :index 943}
+{:type :ok, :f :acquire, :process 1, :time 25086857325, :index 944}
+{:type :ok, :f :release, :process 3, :time 25091421080, :index 945}
+{:type :invoke, :f :release, :process 4, :time 25118474503, :index 946}
+{:type :fail, :f :release, :process 4, :time 25118715073, :error :not-held, :index 947}
+{:type :invoke, :f :acquire, :process 1, :time 25137196727, :index 948}
+{:type :fail, :f :acquire, :process 1, :time 25137473764, :error :already-held, :index 949}
+{:type :invoke, :f :acquire, :process 4, :time 25153026416, :index 950}
+{:type :invoke, :f :release, :process 1, :time 25209837122, :index 951}
+{:type :ok, :f :acquire, :process 0, :time 25218938774, :index 952}
+{:type :ok, :f :release, :process 1, :time 25224317633, :index 953}
+{:type :invoke, :f :acquire, :process 3, :time 25234860694, :index 954}
+{:type :invoke, :f :acquire, :process 0, :time 25250264634, :index 955}
+{:type :fail, :f :acquire, :process 0, :time 25250550538, :error :already-held, :index 956}
+{:type :invoke, :f :release, :process 1, :time 25251719561, :index 957}
+{:type :fail, :f :release, :process 1, :time 25251978058, :error :not-held, :index 958}
+{:type :info, :f :start, :process :nemesis, :time 25331645857, :index 959}
+{:type :info, :f :start, :process :nemesis, :time 25331928044, :index 960}
+{:type :invoke, :f :acquire, :process 0, :time 25409945408, :index 961}
+{:type :fail, :f :acquire, :process 0, :time 25410248758, :error :already-held, :index 962}
+{:type :invoke, :f :acquire, :process 1, :time 25430292694, :index 963}
+{:type :invoke, :f :release, :process 0, :time 25547646910, :index 964}
+{:type :ok, :f :acquire, :process 2, :time 25558275024, :index 965}
+{:type :ok, :f :release, :process 0, :time 25565610644, :index 966}
+{:type :invoke, :f :acquire, :process 0, :time 25605021097, :index 967}
+{:type :invoke, :f :release, :process 2, :time 25740625285, :index 968}
+{:type :ok, :f :acquire, :process 4, :time 25747849370, :index 969}
+{:type :ok, :f :release, :process 2, :time 25754094717, :index 970}
+{:type :invoke, :f :release, :process 2, :time 25806401483, :index 971}
+{:type :fail, :f :release, :process 2, :time 25806623131, :error :not-held, :index 972}
+{:type :invoke, :f :release, :process 2, :time 25874931328, :index 973}
+{:type :fail, :f :release, :process 2, :time 25875155527, :error :not-held, :index 974}
+{:type :invoke, :f :release, :process 4, :time 25883196548, :index 975}
+{:type :ok, :f :release, :process 4, :time 25896918266, :index 976}
+{:type :ok, :f :acquire, :process 3, :time 25897262364, :index 977}
+{:type :invoke, :f :release, :process 3, :time 25922664758, :index 978}
+{:type :invoke, :f :acquire, :process 4, :time 25923361405, :index 979}
+{:type :ok, :f :acquire, :process 1, :time 25942289467, :index 980}
+{:type :ok, :f :release, :process 3, :time 25942557462, :index 981}
+{:type :invoke, :f :acquire, :process 2, :time 25998455694, :index 982}
+{:type :invoke, :f :acquire, :process 3, :time 26022925367, :index 983}
+{:type :invoke, :f :acquire, :process 1, :time 26051695601, :index 984}
+{:type :fail, :f :acquire, :process 1, :time 26051937632, :error :already-held, :index 985}
+{:type :invoke, :f :release, :process 1, :time 26237253034, :index 986}
+{:type :ok, :f :acquire, :process 0, :time 26245863695, :index 987}
+{:type :invoke, :f :release, :process 0, :time 26246090871, :index 988}
+{:type :ok, :f :release, :process 1, :time 26254323183, :index 989}
+{:type :ok, :f :acquire, :process 4, :time 26256064884, :index 990}
+{:type :ok, :f :release, :process 0, :time 26262276075, :index 991}
+{:type :invoke, :f :acquire, :process 4, :time 26361423935, :index 992}
+{:type :fail, :f :acquire, :process 4, :time 26361676784, :error :already-held, :index 993}
+{:type :invoke, :f :acquire, :process 1, :time 26368842353, :index 994}
+{:type :invoke, :f :release, :process 4, :time 26392975467, :index 995}
+{:type :ok, :f :acquire, :process 2, :time 26405848815, :index 996}
+{:type :ok, :f :release, :process 4, :time 26405899536, :index 997}
+{:type :invoke, :f :release, :process 2, :time 26407178690, :index 998}
+{:type :invoke, :f :acquire, :process 0, :time 26409678510, :index 999}
+{:type :ok, :f :release, :process 2, :time 26422840549, :index 1000}
+{:type :ok, :f :acquire, :process 3, :time 26423297540, :index 1001}
+{:type :invoke, :f :release, :process 3, :time 26518682498, :index 1002}
+{:type :ok, :f :acquire, :process 1, :time 26528979361, :index 1003}
+{:type :ok, :f :release, :process 3, :time 26534655977, :index 1004}
+{:type :invoke, :f :release, :process 2, :time 26543215563, :index 1005}
+{:type :fail, :f :release, :process 2, :time 26543460918, :error :not-held, :index 1006}
+{:type :invoke, :f :release, :process 4, :time 26562262204, :index 1007}
+{:type :fail, :f :release, :process 4, :time 26562507709, :error :not-held, :index 1008}
+{:type :invoke, :f :acquire, :process 1, :time 26607328251, :index 1009}
+{:type :fail, :f :acquire, :process 1, :time 26607570166, :error :already-held, :index 1010}
+{:type :invoke, :f :release, :process 2, :time 26624837183, :index 1011}
+{:type :fail, :f :release, :process 2, :time 26625126853, :error :not-held, :index 1012}
+{:type :invoke, :f :release, :process 4, :time 26639825144, :index 1013}
+{:type :fail, :f :release, :process 4, :time 26640074355, :error :not-held, :index 1014}
+{:type :invoke, :f :release, :process 2, :time 26681560063, :index 1015}
+{:type :fail, :f :release, :process 2, :time 26681803363, :error :not-held, :index 1016}
+{:type :invoke, :f :acquire, :process 1, :time 26693883995, :index 1017}
+{:type :fail, :f :acquire, :process 1, :time 26694126431, :error :already-held, :index 1018}
+{:type :invoke, :f :acquire, :process 3, :time 26730087754, :index 1019}
+{:type :invoke, :f :acquire, :process 1, :time 26800505919, :index 1020}
+{:type :fail, :f :acquire, :process 1, :time 26800780185, :error :already-held, :index 1021}
+{:type :invoke, :f :acquire, :process 4, :time 26807391884, :index 1022}
+{:type :invoke, :f :release, :process 2, :time 26858131008, :index 1023}
+{:type :fail, :f :release, :process 2, :time 26858376002, :error :not-held, :index 1024}
+{:type :invoke, :f :acquire, :process 1, :time 26927119281, :index 1025}
+{:type :fail, :f :acquire, :process 1, :time 26927389058, :error :already-held, :index 1026}
+{:type :invoke, :f :release, :process 1, :time 27002773956, :index 1027}
+{:type :ok, :f :acquire, :process 0, :time 27013101895, :index 1028}
+{:type :ok, :f :release, :process 1, :time 27017657404, :index 1029}
+{:type :invoke, :f :acquire, :process 1, :time 27044067075, :index 1030}
+{:type :invoke, :f :release, :process 2, :time 27050744025, :index 1031}
+{:type :fail, :f :release, :process 2, :time 27050964196, :error :not-held, :index 1032}
+{:type :invoke, :f :release, :process 0, :time 27109455207, :index 1033}
+{:type :ok, :f :acquire, :process 3, :time 27118119679, :index 1034}
+{:type :ok, :f :release, :process 0, :time 27125107162, :index 1035}
+{:type :invoke, :f :release, :process 2, :time 27247279181, :index 1036}
+{:type :fail, :f :release, :process 2, :time 27247525782, :error :not-held, :index 1037}
+{:type :invoke, :f :release, :process 3, :time 27291473203, :index 1038}
+{:type :invoke, :f :release, :process 2, :time 27291826699, :index 1039}
+{:type :fail, :f :release, :process 2, :time 27292025508, :error :not-held, :index 1040}
+{:type :ok, :f :acquire, :process 4, :time 27300961025, :index 1041}
+{:type :invoke, :f :release, :process 0, :time 27304521418, :index 1042}
+{:type :fail, :f :release, :process 0, :time 27304815346, :error :not-held, :index 1043}
+{:type :ok, :f :release, :process 3, :time 27306664596, :index 1044}
+{:type :invoke, :f :release, :process 2, :time 27311346114, :index 1045}
+{:type :fail, :f :release, :process 2, :time 27311592084, :error :not-held, :index 1046}
+{:type :invoke, :f :release, :process 3, :time 27323091450, :index 1047}
+{:type :fail, :f :release, :process 3, :time 27323339702, :error :not-held, :index 1048}
+{:type :invoke, :f :acquire, :process 3, :time 27333737747, :index 1049}
+{:type :invoke, :f :release, :process 0, :time 27364149711, :index 1050}
+{:type :fail, :f :release, :process 0, :time 27364393160, :error :not-held, :index 1051}
+{:type :invoke, :f :release, :process 2, :time 27437897095, :index 1052}
+{:type :fail, :f :release, :process 2, :time 27438140527, :error :not-held, :index 1053}
+{:type :invoke, :f :release, :process 0, :time 27461770021, :index 1054}
+{:type :fail, :f :release, :process 0, :time 27462014234, :error :not-held, :index 1055}
+{:type :invoke, :f :release, :process 2, :time 27463498012, :index 1056}
+{:type :fail, :f :release, :process 2, :time 27463741803, :error :not-held, :index 1057}
+{:type :invoke, :f :acquire, :process 4, :time 27473312997, :index 1058}
+{:type :fail, :f :acquire, :process 4, :time 27473557911, :error :already-held, :index 1059}
+{:type :invoke, :f :release, :process 2, :time 27633049049, :index 1060}
+{:type :fail, :f :release, :process 2, :time 27633298390, :error :not-held, :index 1061}
+{:type :invoke, :f :acquire, :process 0, :time 27633335062, :index 1062}
+{:type :invoke, :f :acquire, :process 4, :time 27666888705, :index 1063}
+{:type :fail, :f :acquire, :process 4, :time 27667132324, :error :already-held, :index 1064}
+{:type :invoke, :f :acquire, :process 4, :time 27808462688, :index 1065}
+{:type :fail, :f :acquire, :process 4, :time 27808745965, :error :already-held, :index 1066}
+{:type :invoke, :f :acquire, :process 2, :time 27825665845, :index 1067}
+{:type :invoke, :f :release, :process 4, :time 27920085801, :index 1068}
+{:type :ok, :f :release, :process 4, :time 27936803085, :index 1069}
+{:type :ok, :f :acquire, :process 1, :time 27937711834, :index 1070}
+{:type :invoke, :f :acquire, :process 4, :time 28043225051, :index 1071}
+{:type :invoke, :f :acquire, :process 1, :time 28108047353, :index 1072}
+{:type :fail, :f :acquire, :process 1, :time 28108290637, :error :already-held, :index 1073}
+{:type :invoke, :f :acquire, :process 1, :time 28207640179, :index 1074}
+{:type :fail, :f :acquire, :process 1, :time 28207885894, :error :already-held, :index 1075}
+{:type :invoke, :f :acquire, :process 1, :time 28285202883, :index 1076}
+{:type :fail, :f :acquire, :process 1, :time 28285443716, :error :already-held, :index 1077}
+{:type :invoke, :f :release, :process 1, :time 28285697092, :index 1078}
+{:type :ok, :f :acquire, :process 3, :time 28294921807, :index 1079}
+{:type :invoke, :f :acquire, :process 3, :time 28300251044, :index 1080}
+{:type :fail, :f :acquire, :process 3, :time 28300567822, :error :already-held, :index 1081}
+{:type :ok, :f :release, :process 1, :time 28300904504, :index 1082}
+{:type :invoke, :f :acquire, :process 3, :time 28456956731, :index 1083}
+{:type :fail, :f :acquire, :process 3, :time 28457196566, :error :already-held, :index 1084}
+{:type :invoke, :f :release, :process 3, :time 28479513981, :index 1085}
+{:type :ok, :f :acquire, :process 0, :time 28489421524, :index 1086}
+{:type :ok, :f :release, :process 3, :time 28492833324, :index 1087}
+{:type :invoke, :f :acquire, :process 1, :time 28495291640, :index 1088}
+{:type :invoke, :f :release, :process 0, :time 28657948584, :index 1089}
+{:type :ok, :f :acquire, :process 2, :time 28669671732, :index 1090}
+{:type :ok, :f :release, :process 0, :time 28675386111, :index 1091}
+{:type :invoke, :f :release, :process 3, :time 28691284981, :index 1092}
+{:type :fail, :f :release, :process 3, :time 28691578398, :error :not-held, :index 1093}
+{:type :invoke, :f :acquire, :process 3, :time 28694900390, :index 1094}
+{:type :invoke, :f :acquire, :process 0, :time 28725735425, :index 1095}
+{:type :invoke, :f :release, :process 2, :time 28799027411, :index 1096}
+{:type :ok, :f :release, :process 2, :time 28867965900, :index 1097}
+{:type :ok, :f :acquire, :process 4, :time 28868968298, :index 1098}
+{:type :invoke, :f :release, :process 2, :time 28886374517, :index 1099}
+{:type :fail, :f :release, :process 2, :time 28886590175, :error :not-held, :index 1100}
+{:type :invoke, :f :acquire, :process 2, :time 28899887255, :index 1101}
+{:type :invoke, :f :acquire, :process 4, :time 29058294098, :index 1102}
+{:type :fail, :f :acquire, :process 4, :time 29058539573, :error :already-held, :index 1103}
+{:type :invoke, :f :release, :process 4, :time 29120855224, :index 1104}
+{:type :ok, :f :release, :process 4, :time 29173887803, :index 1105}
+{:type :ok, :f :acquire, :process 1, :time 29175673068, :index 1106}
+{:type :invoke, :f :acquire, :process 4, :time 29262385594, :index 1107}
+{:type :invoke, :f :release, :process 1, :time 29340008318, :index 1108}
+{:type :ok, :f :acquire, :process 3, :time 29421304362, :index 1109}
+{:type :ok, :f :release, :process 1, :time 29426475479, :index 1110}
+{:type :invoke, :f :acquire, :process 3, :time 29453685176, :index 1111}
+{:type :fail, :f :acquire, :process 3, :time 29453923414, :error :already-held, :index 1112}
+{:type :invoke, :f :release, :process 1, :time 29569913024, :index 1113}
+{:type :fail, :f :release, :process 1, :time 29570158838, :error :not-held, :index 1114}
+{:type :invoke, :f :release, :process 3, :time 29589248615, :index 1115}
+{:type :invoke, :f :acquire, :process 1, :time 29646498962, :index 1116}
+{:type :info, :f :stop, :process :nemesis, :time 30332281070, :index 1117}
+{:type :info, :f :stop, :process :nemesis, :time 30332572215, :index 1118}
+{:type :ok, :f :acquire, :process 0, :time 32085029300, :index 1119}
+{:type :fail, :f :release, :process 3, :time 32094782390, :error [:not-found "etcdserver: requested lease not found"], :index 1120}
+{:type :invoke, :f :release, :process 3, :time 32258384217, :index 1121}
+{:type :fail, :f :release, :process 3, :time 32258639775, :error :not-held, :index 1122}
+{:type :invoke, :f :release, :process 3, :time 32273912298, :index 1123}
+{:type :fail, :f :release, :process 3, :time 32274174935, :error :not-held, :index 1124}
+{:type :invoke, :f :release, :process 0, :time 32282320992, :index 1125}
+{:type :invoke, :f :release, :process 3, :time 32468499330, :index 1126}
+{:type :fail, :f :release, :process 3, :time 32468770102, :error :not-held, :index 1127}
+{:type :invoke, :f :acquire, :process 3, :time 32645094758, :index 1128}
+{:type :fail, :f :acquire, :process 2, :time 33922393157, :error :timeout, :index 1129}
+{:type :invoke, :f :acquire, :process 2, :time 34025927080, :index 1130}
+{:type :fail, :f :acquire, :process 4, :time 34283954905, :error :timeout, :index 1131}
+{:type :invoke, :f :acquire, :process 4, :time 34360394903, :index 1132}
+{:type :ok, :f :acquire, :process 1, :time 34819701448, :index 1133}
+{:type :fail, :f :release, :process 0, :time 34821084511, :error [:not-found "etcdserver: requested lease not found"], :index 1134}]
