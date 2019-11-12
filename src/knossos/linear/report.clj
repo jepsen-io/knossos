@@ -426,23 +426,28 @@ function dbar(id) {
   Basically we're taking an analysis and figuring out all the stuff we're gonna
   need to render it."
   [history analysis]
-  (let [{:keys [history kindex->eindex]} (history/preprocess history)
-        eindex->kindex           (clojure.set/map-invert kindex->eindex)
+  (let [{:keys [history kindex-eindex]} (history/preprocess history)
+        eindex-kindex            (clojure.set/map-invert kindex-eindex)
         pair-index               (history/pair-index+ history)
-        ops                      (->> analysis ops (history/convert-op-indices eindex->kindex))
+        ops                      (->> analysis ops
+                                      (history/convert-op-indices eindex-kindex)
+                                      ; Our pair index and history use Knossos
+                                      ; Ops, so we need to convert these maps
+                                      ; to Ops too.
+                                      (history/parse-ops))
         models                   (models analysis)
         model-numbers            (model-numbers models)
         process-coords           (process-coords ops)
         time-bounds              (time-bounds pair-index analysis)
         time-coords              (time-coords pair-index time-bounds ops)
-        paths                    (paths analysis time-coords process-coords eindex->kindex)
+        paths                    (paths analysis time-coords process-coords eindex-kindex)
         [paths lines bars]       (paths->lines paths)
         reachable                (reachable paths)
         hscale                   (comp hscale (warp-time-coordinates time-coords bars))]
     {:history        history
      :analysis       analysis
      :pair-index     pair-index
-     :kindex->eindex kindex->eindex
+     :kindex->eindex kindex-eindex
      :ops            ops
      :models         models
      :model-numbers  model-numbers
