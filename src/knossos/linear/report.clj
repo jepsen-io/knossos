@@ -397,7 +397,7 @@ function dbar(id) {
   function of times to warped times."
   [time-coords bars]
   (let [density     (coordinate-density bars)
-        dmax        (->> density vals (reduce max))
+        dmax        (->> density vals (reduce max 0))
         tmin        (->> time-coords vals flatten (reduce min))
         tmax        (->> time-coords vals flatten (reduce max))
         m (->> (range tmin (inc tmax) 1)
@@ -426,14 +426,7 @@ function dbar(id) {
   Basically we're taking an analysis and figuring out all the stuff we're gonna
   need to render it."
   [history analysis]
-  (let [history                  (let [history (-> history
-                                                   history/ensure-indexed
-                                                   history/complete
-                                                   history/with-synthetic-infos)]
-                                   (if (= :wgl (:analyzer analysis))
-                                     (history/without-failures history)
-                                     history))
-        [history kindex->eindex] (history/kindex history)
+  (let [{:keys [history kindex->eindex]} (history/preprocess history)
         eindex->kindex           (clojure.set/map-invert kindex->eindex)
         pair-index               (history/pair-index+ history)
         ops                      (->> analysis ops (history/convert-op-indices eindex->kindex))
@@ -651,6 +644,8 @@ function dbar(id) {
 (defn render-analysis!
   "Render an entire analysis."
   [history analysis file]
+  ; We can't render anything except invalid analyses
+  (assert (= false (:valid? analysis)))
   (let [learnings  (learnings history analysis)
         ops        (render-ops    learnings)
         bars       (render-bars   learnings)
