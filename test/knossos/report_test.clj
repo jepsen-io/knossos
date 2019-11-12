@@ -5,7 +5,7 @@
             [knossos.wgl :as wgl]
             [knossos.linear.report :refer :all]
             [knossos.op :refer :all]
-            [knossos.model :refer [register cas-register]]
+            [knossos.model :refer [register cas-register mutex]]
             [knossos.core-test :as ct]
             [clojure.pprint :refer [pprint]]))
 
@@ -47,3 +47,6 @@
 (deftest cas-failure-wgl
   (report! wgl/analysis (cas-register nil)
            "data/cas-register/bad/cas-failure.edn"))
+
+(deftest etcd-mutex
+  (report! wgl/analysis (mutex) "data/mutex/bad/etcd.edn"))

@@ -308,12 +308,13 @@
   synthetic :info ops to the end of the history for any in-process calls."
   [history]
   (assert (vector? history))
-  (->> (unmatched-invokes history)
-       (map-indexed
-        (fn [i invoke] (assoc invoke
-                              :type :info
-                              :index (+ (inc i) (count history)))))
-       (into history)))
+  (let [max-index (reduce max 0 (map :index history))]
+    (->> (unmatched-invokes history)
+         (map-indexed
+           (fn [i invoke] (assoc invoke
+                                 :type :info
+                                 :index (+ (inc i) max-index))))
+         (into history))))
 
 (defn without-failures
   "Takes a completed history, and returns a copy of the given history without
