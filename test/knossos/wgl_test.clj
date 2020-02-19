@@ -2,6 +2,7 @@
   (:require [clojure.test :refer :all]
             [clojure.spec.alpha :as s]
             [knossos.wgl :refer :all]
+            [knossos.linear :as linear]
             [knossos.op :as op]
             [knossos.model :as model :refer [register cas-register inconsistent]]
             [knossos.core-test :as ct]
@@ -289,3 +290,8 @@
          java.lang.AbstractMethodError
          #"Method knossos/wgl/Op.iterator\(\)Ljava/util/Iterator; is abstract"
          (a)))))
+
+(deftest linear-works
+  (let [a (linear/analysis (LogModel. (initial-log))
+                           (ct/read-history-2 "data/wgl-error.edn"))]
+    (is (:valid? a))))
