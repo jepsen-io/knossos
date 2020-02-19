@@ -291,6 +291,12 @@
          #"Method knossos/wgl/Op.iterator\(\)Ljava/util/Iterator; is abstract"
          (a)))))
 
+(deftest wgl-iterator-error-shorter-history
+  (let [history (ct/read-history-2 "data/wgl-error.edn")
+        history' (take 800 history)
+        a (fn [] (analysis (LogModel. (initial-log)) history'))]
+    (is (:valid? (a)))))
+
 (deftest linear-works
   (let [a (linear/analysis (LogModel. (initial-log))
                            (ct/read-history-2 "data/wgl-error.edn"))]
