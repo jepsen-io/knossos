@@ -179,7 +179,11 @@
                  (->> m
                       (map (fn [pair]
                              (str (key pair) " " (val pair))))
-                      (str/join ", ")))))
+                      (str/join ", "))))
+
+  java.lang.Iterable
+  (iterator [this]
+            (new clojure.lang.SeqIterator (seq this))))
 
 (prefer-method clojure.pprint/simple-dispatch
                clojure.lang.IPersistentMap
