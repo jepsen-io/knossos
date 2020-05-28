@@ -6,17 +6,17 @@
   :repositories {"sonatype-oss-public"
                  "https://oss.sonatype.org/content/groups/public/"}
   :main knossos.cli
-  :dependencies [[org.clojure/math.combinatorics "0.1.1"]
-                 [org.clojure/clojure "1.9.0"]
-                 [potemkin "0.4.3"]
+  :dependencies [[org.clojure/math.combinatorics "0.1.6"]
+                 [org.clojure/clojure "1.10.1"]
+                 [potemkin "0.4.5"]
                  [slingshot "0.12.2"]
                  [interval-metrics "1.0.0"]
-                 [org.clojure/tools.cli "0.3.5"]
+                 [org.clojure/tools.cli "1.0.194"]
                  [com.boundary/high-scale-lib "1.0.6"]
                  [org.clojars.pallix/analemma "1.0.0"
                   :exclusions [org.clojure/clojure]]
-                 [org.clojure/tools.logging "0.3.1"]
-                 [org.slf4j/slf4j-log4j12 "1.7.21"]
+                 [org.clojure/tools.logging "1.1.0"]
+                 [org.slf4j/slf4j-log4j12 "1.7.30"]
                  [metametadata/multiset "0.1.1"]]
   ; "-verbose:gc" "-XX:+PrintGCDetails"
   :test-selectors {:default (complement :perf)
