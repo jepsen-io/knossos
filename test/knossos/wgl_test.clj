@@ -155,3 +155,8 @@
 
 (deftest ^:perf examples-test
   (ct/test-examples analysis))
+
+(deftest iterable-op
+  (let [op (map->Op {:process 0 :type :ok :f :append :value nil :index 1 :entry-id 2})]
+    (is (= (iterator-seq (-> op .iterator))
+           '([:process 0] [:type :ok] [:f :append] [:value nil] [:index 1] [:entry-id 2])))))
