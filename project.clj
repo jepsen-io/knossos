@@ -1,4 +1,4 @@
-(defproject knossos "0.3.7-SNAPSHOT"
+(defproject knossos "0.3.7"
   :description "Linearizability checker"
   :url "https://github.com/aphyr/knossos"
   :license {:name "Eclipse Public License"
@@ -16,7 +16,6 @@
                  [org.clojars.pallix/analemma "1.0.0"
                   :exclusions [org.clojure/clojure]]
                  [org.clojure/tools.logging "1.1.0"]
-                 [org.slf4j/slf4j-log4j12 "1.7.30"]
                  [metametadata/multiset "0.1.1"]]
   ; "-verbose:gc" "-XX:+PrintGCDetails"
   :test-selectors {:default (complement :perf)
