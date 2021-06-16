@@ -1,4 +1,4 @@
-(defproject knossos "0.3.7"
+(defproject knossos "0.3.8-SNAPSHOT"
   :description "Linearizability checker"
   :url "https://github.com/aphyr/knossos"
   :license {:name "Eclipse Public License"
@@ -7,11 +7,11 @@
                  "https://oss.sonatype.org/content/groups/public/"}
   :main knossos.cli
   :dependencies [[org.clojure/math.combinatorics "0.1.6"]
-                 [org.clojure/clojure "1.10.1"]
+                 [org.clojure/clojure "1.10.3"]
                  [potemkin "0.4.5"]
                  [slingshot "0.12.2"]
                  [interval-metrics "1.0.0"]
-                 [org.clojure/tools.cli "1.0.194"]
+                 [org.clojure/tools.cli "1.0.206"]
                  [com.boundary/high-scale-lib "1.0.6"]
                  [org.clojars.pallix/analemma "1.0.0"
                   :exclusions [org.clojure/clojure]]
@@ -22,16 +22,6 @@
                    :perf :perf
                    :focus :focus}
   :jvm-opts ["-Xmx24g"
-             "-XX:+UseConcMarkSweepGC"
-             "-XX:+UseParNewGC"
-             "-XX:+CMSParallelRemarkEnabled"
-             "-XX:+AggressiveOpts"
-             "-XX:+UseFastAccessorMethods"
-             "-XX:MaxInlineLevel=32"
-             "-XX:MaxRecursiveInlineLevel=2"
-             "-XX:+UnlockCommercialFeatures"
              "-server"
 ;             "-XX:-OmitStackTraceInFastThrow"
-;             "-XX:+FlightRecorder"
-;             "-XX:StartFlightRecording=delay=10s,duration=50s,filename=knossos.jfr"
 ])

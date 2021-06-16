@@ -72,6 +72,7 @@
                 ; _ (pprint history)
                 analysis (analysis model history)]
             (print "\t")
+            (pprint analysis)
             (prn (:valid? analysis)))))
       (System/exit 0))
 
