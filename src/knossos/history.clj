@@ -103,13 +103,27 @@
      (when op
        (let [p (:process op)]
          (case (:type op)
-           :invoke      (do (assert (not (contains? invocations p)))
+           :invoke      (do (when (contains? invocations p)
+                              (throw (ex-info
+                                       (str "Process " p " is still executing "
+                                            (pr-str (get invocations p))
+                                            " and cannot invoke "
+                                            (pr-str op))
+                                       {:process    p
+                                        :op         op
+                                        :running-op (get invocations p)})))
                             (pairs+ (assoc invocations p op) ops))
            :info        (if (contains? invocations p)
                           (cons [(get invocations p) op]
                                 (pairs+ (dissoc invocations p) ops))
                           (cons [op] (pairs+ invocations ops)))
-           (:ok :fail)  (do (assert (contains? invocations p))
+           (:ok :fail)  (do (when-not (contains? invocations p)
+                              (throw (ex-info
+                                       (str "Process " p " can not complete "
+                                            (pr-str op)
+                                            " without invoking it first")
+                                       {:process p
+                                        :op      op})))
                             (cons [(get invocations p) op]
                                   (pairs+ (dissoc invocations p)
                                           ops)))))))))
@@ -124,8 +138,8 @@
    (->> history
         pair-fn
         (reduce (fn [index [invoke complete]]
-                  ; We need these to be unique! Otherwise the index we build
-                  ; won't be bijective
+                  ; We don't need indices to be ordered, but they DO need to be
+                  ; unique! Otherwise the index we build won't be bijective
                   (assert (:index invoke))
                   (assoc! (if complete
                             (assoc! index complete invoke)
