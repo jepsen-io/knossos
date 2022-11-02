@@ -6,6 +6,7 @@ pom.xml
 pom.xml.asc
 *.jar
 *.class
+.nrepl-port
 .lein-deps-sum
 .lein-failures
 .lein-plugins
