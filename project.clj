@@ -21,6 +21,7 @@
   :test-selectors {:default (complement :perf)
                    :perf :perf
                    :focus :focus}
+  :profiles {:dev {:dependencies [[criterium "0.4.6"]]}}
   :jvm-opts ["-Xmx24g"
              "-server"
 ;             "-XX:-OmitStackTraceInFastThrow"
