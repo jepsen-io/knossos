@@ -7,15 +7,15 @@
                  "https://oss.sonatype.org/content/groups/public/"}
   :main knossos.cli
   :dependencies [[org.clojure/math.combinatorics "0.1.6"]
-                 [org.clojure/clojure "1.10.3"]
-                 [potemkin "0.4.5"]
+                 [org.clojure/clojure "1.11.1"]
+                 [potemkin "0.4.6"]
                  [slingshot "0.12.2"]
                  [interval-metrics "1.0.1"]
-                 [org.clojure/tools.cli "1.0.206"]
+                 [org.clojure/tools.cli "1.0.214"]
                  [com.boundary/high-scale-lib "1.0.6"]
                  [org.clojars.pallix/analemma "1.0.0"
                   :exclusions [org.clojure/clojure]]
-                 [org.clojure/tools.logging "1.1.0"]
+                 [org.clojure/tools.logging "1.2.4"]
                  [metametadata/multiset "0.1.1"]]
   ; "-verbose:gc" "-XX:+PrintGCDetails"
   :test-selectors {:default (complement :perf)
