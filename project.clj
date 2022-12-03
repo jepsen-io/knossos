@@ -10,7 +10,7 @@
                  [org.clojure/clojure "1.10.3"]
                  [potemkin "0.4.5"]
                  [slingshot "0.12.2"]
-                 [interval-metrics "1.0.0"]
+                 [interval-metrics "1.0.1"]
                  [org.clojure/tools.cli "1.0.206"]
                  [com.boundary/high-scale-lib "1.0.6"]
                  [org.clojars.pallix/analemma "1.0.0"
