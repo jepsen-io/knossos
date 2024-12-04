@@ -1,0 +1,4 @@
+[{:type :invoke, :process 1, :f :read, :value nil}
+{:type :invoke, :process 101, :f :write, :value 3}
+{:type :fail, :process 101, :f :write, :value 3, :error [:temporarily-unavailable nil]}
+{:type :ok, :process 1, :f :read, :value 3}]

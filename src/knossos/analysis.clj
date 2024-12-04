@@ -64,5 +64,7 @@
          (r/map #(concat % (list final)))
          ; And extend the prefix along those paths
          (r/map (partial extend-path prefix))
+         ; Remove any nil ops, which can come from an empty prefix
+         (r/map (r/filter :op))
          ; Computing a set
          (foldset))))

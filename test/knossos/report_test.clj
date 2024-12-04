@@ -36,6 +36,10 @@
   (report! linear/analysis (cas-register nil)
            "data/cas-register/bad/cas-failure.edn"))
 
+(deftest cas-immediate-failure
+  (report! linear/analysis (cas-register 0)
+           "data/cas-register/bad/immediate-failure.edn"))
+
 (deftest bad-analysis-test-wgl
   (report! wgl/analysis (register 0)
            "data/cas-register/bad/bad-analysis.edn"))
@@ -47,6 +51,10 @@
 (deftest cas-failure-wgl
   (report! wgl/analysis (cas-register nil)
            "data/cas-register/bad/cas-failure.edn"))
+
+(deftest cas-immediate-failure-wgl
+  (report! wgl/analysis (cas-register 0)
+           "data/cas-register/bad/immediate-failure.edn"))
 
 (deftest etcd-mutex
   (report! wgl/analysis (mutex) "data/mutex/bad/etcd.edn"))
