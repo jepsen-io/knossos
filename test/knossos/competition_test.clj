@@ -10,7 +10,7 @@
 (deftest ^:perf timeout-test
   (testing "will timeout if limit exceeded"
     (let [model (cas-register 0)
-          history (ct/read-history-2 "data/cas-register/good/memstress3-12.edn")
+          history (ct/read-history-2 "data/cas-register/good/memstress3-55.edn")
           ;; Time limit of 1ms
           a (analysis model history {:time-limit 1})]
       (is (= {:valid?   :unknown
