@@ -68,7 +68,7 @@
     (dothreads [process process-count]
                (try
                  (dotimes [i action-count]
-                   (Thread/sleep (rand-int 5))
+                   (Thread/sleep (long (rand-int 5)))
                    (when (< (rand) crash-factor) (assert false))
 
                    (let [value (rand-int 10)]

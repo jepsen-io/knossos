@@ -76,9 +76,7 @@
             :valid?      false
             :op          {:process 0 :type :ok :f :read :value 1 :index 1}
             :previous-ok nil
-            :final-paths #{[{:model model
-                             :op nil}
-                            {:model (inconsistent "0≠1")
+            :final-paths #{[{:model (inconsistent "0≠1")
                              :op {:f :read, :process 0 :type :ok :value 1 :index 1}}]}}
            a))))
 
@@ -146,6 +144,19 @@
     (is (= false (:valid? a)))
     (is (= {:f :read :process 70 :type :ok :value 0 :index 491}
            (:op a)))))
+
+(deftest immediate-failure-test
+  (let [a (analysis (cas-register 0)
+                    (ct/read-history-2 "data/cas-register/bad/immediate-failure.edn"))]
+    (is (= false (:valid? a)))
+    (is (= {:process 1, :type :ok, :f :read, :value 3 :index 3}
+           (:op a)))
+    (is (= #{[
+              {:op {:process 1 :type :ok :f :read :value 3 :index 3},
+               :model (inconsistent "can't read 3 from register 0")}]},
+           (:final-paths a)))
+    (is (not (:last-op a)))
+    (is (not (:previous-ok a)))))
 
 (deftest volatile-linearizable-test
   (dotimes [i 10]

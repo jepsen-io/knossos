@@ -80,8 +80,7 @@
     (is (= false (:valid? a)))
     (is (= {:process 0, :type :ok, :f :read, :value 1 :index 1}
            (:op a)))
-    (is (= #{[{:op nil, :model model}
-              {:op {:process 0 :type :ok :f :read :value 1 :index 1},
+    (is (= #{[{:op {:process 0 :type :ok :f :read :value 1 :index 1},
                :model (inconsistent "0≠1")}]},
            (:final-paths a)))
     (is (not (:last-op a)))
@@ -110,8 +109,7 @@
                       :value    1
                       :index    0}]}]
            (:configs a)))
-    (is (= #{[{:model model :op nil}
-              {:model (inconsistent "0≠1")
+    (is (= #{[{:model (inconsistent "0≠1")
                :op {:process 0 :type :ok :f :read :value 1 :index 1}}]}
          (:final-paths a)))))
 
@@ -176,6 +174,19 @@
     (is (= #{(multi-register {:x 2 :y 2})
              (multi-register {:x 2 :y 0})}
            (set (map :model (:configs a)))))))
+
+(deftest immediate-failure-test
+  (let [a (analysis (cas-register 0)
+                    (ct/read-history-2 "data/cas-register/bad/immediate-failure.edn"))]
+    (is (= false (:valid? a)))
+    (is (= {:process 1, :type :ok, :f :read, :value 3 :index 3}
+           (:op a)))
+    (is (= #{[
+              {:op {:process 1 :type :ok :f :read :value 3 :index 3},
+               :model (inconsistent "can't read 3 from register 0")}]},
+           (:final-paths a)))
+    (is (not (:last-op a)))
+    (is (not (:previous-ok a)))))
 
 (deftest ^:perf volatile-linearizable-test
   (dotimes [i 10]
