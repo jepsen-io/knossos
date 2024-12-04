@@ -23,7 +23,7 @@
   the previous ok. Returns nil if there was none."
   [history op]
   (assert (op/ok? op))
-  (loop [i (dec (.indexOf history op))]
+  (loop [i (dec (.indexOf ^java.util.List history op))]
     (when-not (neg? i)
       (when-let [op (nth history i)]
         (if (op/ok? op)
