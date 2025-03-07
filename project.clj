@@ -8,14 +8,14 @@
   :main knossos.cli
   :dependencies [[org.clojure/math.combinatorics "0.3.0"]
                  [org.clojure/clojure "1.12.0"]
-                 [potemkin "0.4.6"]
+                 [potemkin "0.4.7"]
                  [slingshot "0.12.2"]
                  [interval-metrics "1.0.1"]
-                 [org.clojure/tools.cli "1.0.219"]
+                 [org.clojure/tools.cli "1.1.230"]
                  [com.boundary/high-scale-lib "1.0.6"]
                  [org.clojars.pallix/analemma "1.0.0"
                   :exclusions [org.clojure/clojure]]
-                 [org.clojure/tools.logging "1.2.4"]
+                 [org.clojure/tools.logging "1.3.0"]
                  [metametadata/multiset "0.1.1"]]
   ; "-verbose:gc" "-XX:+PrintGCDetails"
   :test-selectors {:default (complement :perf)
