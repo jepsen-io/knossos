@@ -6,7 +6,7 @@
   :repositories {"sonatype-oss-public"
                  "https://oss.sonatype.org/content/groups/public/"}
   :main knossos.cli
-  :dependencies [[org.clojure/math.combinatorics "0.2.0"]
+  :dependencies [[org.clojure/math.combinatorics "0.3.0"]
                  [org.clojure/clojure "1.11.1"]
                  [potemkin "0.4.6"]
                  [slingshot "0.12.2"]
