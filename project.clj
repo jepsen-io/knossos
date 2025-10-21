@@ -8,7 +8,7 @@
   :main knossos.cli
   :dependencies [[org.clojure/math.combinatorics "0.3.0"]
                  [org.clojure/clojure "1.12.0"]
-                 [potemkin "0.4.7"]
+                 [potemkin "0.4.8"]
                  [slingshot "0.12.2"]
                  [interval-metrics "1.0.1"]
                  [org.clojure/tools.cli "1.1.230"]
