@@ -11,11 +11,8 @@ Named after the ruins where the Linear B script was discovered. You know,
 because we're testing if the history "be linear". YES IT'S A HISTORY PUN WORK
 WITH ME HERE OKAY?
 
-[![Build Status](https://travis-ci.com/jepsen-io/knossos.svg?branch=master)](https://travis-ci.com/jepsen-io/knossos)
-
-## Installation
-
-Via [Clojars](https://clojars.org/knossos), as usual.
+[![clojars badge](https://img.shields.io/clojars/v/knossos.svg)](https://clojars.org/knossos)
+[![cljdoc badge](https://cljdoc.org/badge/knossos/knossos)](https://cljdoc.org/d/knossos/knossos)
 
 ## Quickly!
 
